@@ -5,14 +5,14 @@ services:
     # Use the official PostgreSQL image, pinned to major version 16.
     image: postgres:16
     
-		# Give the container an explicit name on your machine.
+    # Give the container an explicit name on your machine.
     container_name: social_app_db
 
-		# Tell Docker to always restart this container if it stops.
+    # Tell Docker to always restart this container if it stops.
     # Useful so the database comes back up automatically after a crash or Docker restart.
     restart: always
 
-		# Environment variables passed into the Postgres container at startup.
+    # Environment variables passed into the Postgres container at startup.
     environment:
 
       # Creates/sets the PostgreSQL superuser name.
@@ -23,18 +23,18 @@ services:
       # If not specified, the default database name follows POSTGRES_USER.
       POSTGRES_DB: social_app
 
-			# Tell the Postgres image to read the password from a mounted secret file.
+      # Tell the Postgres image to read the password from a mounted secret file.
       POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
 
-		# Expose Postgres on localhost:5432.
+    # Expose Postgres on localhost:5432.
     ports:
       - "5432:5432"
-		
-		# Persist DB data across container restarts/removals.
+
+    # Persist DB data across container restarts/removals.
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
-		# Grant this service access to the secret.
+    # Grant this service access to the secret.
     secrets:
       - postgres_password
 
