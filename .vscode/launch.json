@@ -1,0 +1,30 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Backend: Nest debug",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "npm run start:debug",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "docker: postgres up"
+    },
+    {
+      "name": "Tools: Prisma Studio",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "npx prisma studio",
+      "cwd": "${workspaceFolder}"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Local dev: backend + Prisma Studio",
+      "configurations": [
+        "Backend: Nest debug",
+        "Tools: Prisma Studio"
+      ],
+      "stopAll": true
+    }
+  ]
+}
