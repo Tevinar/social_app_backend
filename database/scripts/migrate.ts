@@ -2,7 +2,7 @@ import 'dotenv/config';
 import postgres from 'postgres';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { getDatabaseUrl } from '../src/database/database.config';
+import { getDatabaseUrl } from '../../src/database/database.config';
 
 /**
  * Applies SQL migration files in filename order and records each successful
