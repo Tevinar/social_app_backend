@@ -36,7 +36,7 @@ async function main() {
     const files = readdirSync(migrationsDir)
       .filter((file) => file.endsWith('.sql'))
       // Prefix filenames like 001_, 002_, ... so lexical order is migration order.
-      .sort();
+      .sort((a, b) => a.localeCompare(b));
 
     // Apply only the SQL files that have not been recorded yet.
     for (const file of files) {
