@@ -17,18 +17,18 @@ services:
 
       # Creates/sets the PostgreSQL superuser name.
       # If not specified, the default is "postgres".
-      POSTGRES_USER: social_app_user
+      POSTGRES_USER: ${POSTGRES_USER}
 
       # Creates a database named "social_app" on first initialization.
       # If not specified, the default database name follows POSTGRES_USER.
-      POSTGRES_DB: social_app
+      POSTGRES_DB: ${POSTGRES_DB}
 
       # Tell the Postgres image to read the password from a mounted secret file.
       POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
 
-    # Expose Postgres on localhost:5432.
+    # Expose Postgres on ${POSTGRES_HOST}:${POSTGRES_PORT}.
     ports:
-      - "5432:5432"
+      - "${POSTGRES_HOST}:${POSTGRES_PORT}:5432"
 
     # Persist DB data across container restarts/removals.
     volumes:
