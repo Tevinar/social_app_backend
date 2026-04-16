@@ -2,6 +2,7 @@
 import eslint from '@eslint/js';
 import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
 import globals from 'globals';
+import jsdoc from 'eslint-plugin-jsdoc';
 import tseslint from 'typescript-eslint';
 import { defineConfig } from 'eslint/config';
 
@@ -13,6 +14,9 @@ export default defineConfig(
   ...tseslint.configs.recommendedTypeChecked,
   eslintPluginPrettierRecommended,
   {
+    plugins: {
+      jsdoc,
+    },
     languageOptions: {
       globals: {
         ...globals.node,
@@ -35,6 +39,22 @@ export default defineConfig(
       '@typescript-eslint/no-unsafe-member-access': 'error',
       '@typescript-eslint/no-unsafe-return': 'error',
       'prettier/prettier': ['error', { endOfLine: 'auto' }],
+
+      'jsdoc/require-jsdoc': [
+        'error',
+        {
+          contexts: [
+            'ClassDeclaration',
+            'FunctionDeclaration',
+            'MethodDefinition',
+          ],
+        },
+      ],
+      'jsdoc/require-description': 'error',
+      'jsdoc/require-param': 'error',
+      'jsdoc/require-param-description': 'error',
+      'jsdoc/require-returns': 'error',
+      'jsdoc/require-returns-description': 'error',
     },
   },
 );

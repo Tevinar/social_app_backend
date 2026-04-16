@@ -9,6 +9,11 @@ import { DATABASE_CLIENT, type DatabaseClient } from './database.provider';
  */
 @Injectable()
 export class DatabaseService implements OnModuleDestroy {
+  /**
+   * Receives the shared Postgres.js client exposed by the database provider.
+   *
+   * @param sql Shared Postgres.js client used by repositories and services.
+   */
   constructor(
     @Inject(DATABASE_CLIENT)
     readonly sql: DatabaseClient,
