@@ -1,6 +1,5 @@
-# "services" list all the containers (also named services) that should run.
 services:
-  # "postgres" is the service name.
+  # database service using the official PostgreSQL image
   postgres:
     # Use the official PostgreSQL image, pinned to major version 16.
     image: postgres:16
@@ -30,19 +29,33 @@ services:
     ports:
       - "${POSTGRES_HOST}:${POSTGRES_PORT}:5432"
 
-    # Persist DB data across container restarts/removals.
+    # Mount the named volume `postgres_data` at Postgres's data directory.
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
-    # Grant this service access to the secret.
+    # Mount the declared secret into this container under `/run/secrets/`.
     secrets:
       - postgres_password
+  
+  # Storage service using the fsouza/fake-gcs-server image to simulate 
+  # Google Cloud Storage for local development and testing.
+  fake-gcs:
+    image: fsouza/fake-gcs-server:1.52.3
+    container_name: social_app_fake_gcs
+    # Use the host/port that local clients should see in generated URLs.
+    command: -public-host ${GCS_HOST}:${GCS_PORT}
+    # Expose fake GCS on the host while keeping the container's internal port fixed.
+    ports:
+      - "${GCS_HOST}:${GCS_PORT}:4443"
+    # Bind local fake storage data to a project folder for easy inspection/reset.
+    volumes:
+      - ./storage/fake-gcs:/data
 
-# Named Docker volume for persistent Postgres data.
+# Declare the named volume used to store PostgreSQL data files.
 volumes:
   postgres_data:
 
-# Local file whose contents become the secret value.
+# Declare a Compose secret loaded from the local password file.
 secrets:
   postgres_password:
     file: ./.secrets/postgres_password.txt
