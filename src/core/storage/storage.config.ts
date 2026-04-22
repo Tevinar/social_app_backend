@@ -1,18 +1,4 @@
-/**
- * Reads a required environment variable and fails fast when it is missing.
- *
- * @param name Name of the environment variable to read.
- * @returns The resolved environment variable value.
- */
-function requireEnv(name: string): string {
-  const value = process.env[name];
-
-  if (!value) {
-    throw new Error(`Missing required environment variable: ${name}`);
-  }
-
-  return value;
-}
+import { requireEnv } from '../config/require-env';
 
 /**
  * Builds the custom storage endpoint used when a local GCS-compatible server is

@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
+import { AppModule } from './app/bootstrap/app.module';
 
 /**
  * Boots the Nest application, enables graceful shutdown hooks, and starts the
