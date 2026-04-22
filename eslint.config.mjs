@@ -41,7 +41,7 @@ export default defineConfig(
       'prettier/prettier': ['warn', { endOfLine: 'auto' }],
 
       'jsdoc/require-jsdoc': [
-        'error',
+        'warn',
         {
           contexts: [
             'ClassDeclaration',

@@ -1,5 +1,6 @@
 import {
   Body,
+  ConflictException,
   Controller,
   HttpCode,
   HttpStatus,
@@ -12,8 +13,14 @@ import {
   InvalidCredentialsError,
   SignInWithEmailPasswordUseCase,
 } from '../application/use-cases/sign-in-with-email-password';
+import {
+  EmailAlreadyInUseError,
+  SignUpWithEmailPasswordUseCase,
+} from '../application/use-cases/sign-up-with-email-password';
 import { SignInRequest } from './dto/sign-in-request';
 import { SignInResponse } from './dto/sign-in-response';
+import { SignUpRequest } from './dto/sign-up-request';
+import { SignUpResponse } from './dto/sign-up-response';
 
 /**
  * HTTP controller exposing authentication endpoints.
@@ -31,13 +38,45 @@ import { SignInResponse } from './dto/sign-in-response';
 )
 export class AuthController {
   /**
-   * Receives the sign-in use case used by the controller action.
+   * Receives the auth use cases used by the controller actions.
    *
+   * @param signUpWithEmailPassword Auth application service for email/password sign-up.
    * @param signInWithEmailPassword Auth application service for email/password sign-in.
    */
   constructor(
+    private readonly signUpWithEmailPassword: SignUpWithEmailPasswordUseCase,
     private readonly signInWithEmailPassword: SignInWithEmailPasswordUseCase,
   ) {}
+
+  /**
+   * Registers a user from an email/password pair and opens the initial session.
+   *
+   * The endpoint returns the created user data together with the issued auth
+   * tokens so the client can start authenticated immediately after sign-up.
+   *
+   * @param body Validated sign-up request body.
+   * @returns HTTP response DTO containing the created auth session data.
+   * @throws {ConflictException} Thrown when the submitted email is already in use.
+   */
+  @Post('sign-up')
+  @HttpCode(HttpStatus.CREATED)
+  async signUp(@Body() body: SignUpRequest): Promise<SignUpResponse> {
+    try {
+      const session = await this.signUpWithEmailPassword.execute({
+        email: body.email,
+        password: body.password,
+        name: body.name,
+      });
+
+      return SignUpResponse.fromSignUpResult(session);
+    } catch (error: unknown) {
+      if (error instanceof EmailAlreadyInUseError) {
+        throw new ConflictException(error.message);
+      }
+
+      throw error;
+    }
+  }
 
   /**
    * Authenticates a user from an email/password pair.
