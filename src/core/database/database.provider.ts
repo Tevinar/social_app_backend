@@ -1,6 +1,8 @@
 import { type Provider } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import postgres from 'postgres';
-import { getDatabaseUrl } from './database.config';
+import { requireSecretFile } from '../config/require-secret-file';
+import { buildDatabaseUrl } from './build-database-url';
 
 /**
  * Runtime key under which Nest stores the shared Postgres.js client.
@@ -19,6 +21,16 @@ export const DATABASE_CLIENT = Symbol('DATABASE_CLIENT');
 export type DatabaseClient = ReturnType<typeof postgres>;
 
 /**
+ * Secret file that stores the PostgreSQL password outside of source control.
+ */
+const POSTGRES_PASSWORD_SECRET_FILE_NAME = 'postgres_password.txt';
+
+/**
+ * Default maximum number of Postgres connections opened by one app instance.
+ */
+const POSTGRES_MAX_CONNECTIONS = 10;
+
+/**
  * Provider definition object used by Nest to create the shared Postgres.js
  * client.
  *
@@ -30,8 +42,24 @@ export type DatabaseClient = ReturnType<typeof postgres>;
 export const databaseProvider: Provider = {
   // Register the factory result under the `DATABASE_CLIENT` token.
   provide: DATABASE_CLIENT,
-  useFactory: (): DatabaseClient =>
-    postgres(getDatabaseUrl(), {
-      max: 10,
-    }),
+  inject: [ConfigService],
+  useFactory: (configService: ConfigService): DatabaseClient => {
+    const host = configService.getOrThrow<string>('POSTGRES_HOST');
+    const port = Number(configService.getOrThrow<string>('POSTGRES_PORT'));
+    const database = configService.getOrThrow<string>('POSTGRES_DB');
+    const username = configService.getOrThrow<string>('POSTGRES_USER');
+    const password = requireSecretFile(POSTGRES_PASSWORD_SECRET_FILE_NAME);
+
+    const url = buildDatabaseUrl({
+      host,
+      port,
+      database,
+      username,
+      password,
+    });
+
+    return postgres(url, {
+      max: POSTGRES_MAX_CONNECTIONS,
+    });
+  },
 };

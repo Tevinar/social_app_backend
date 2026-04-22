@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { requireEnv } from '../../../../core/config/require-env';
 import { requireSecretFile } from '../../../../core/config/require-secret-file';
 import { type TokenCreator } from '../../application/ports/token-creator';
 
@@ -59,30 +59,6 @@ const accessTokenSecret = requireSecretFile(ACCESS_TOKEN_SECRET_FILE_NAME);
 const refreshTokenSecret = requireSecretFile(REFRESH_TOKEN_SECRET_FILE_NAME);
 
 /**
- * Access-token lifetime expressed in minutes and validated at startup.
- */
-const accessTokenTtlMinutes = requirePositiveIntegerEnv(
-  ACCESS_TOKEN_TTL_MINUTES_ENV_NAME,
-);
-
-/**
- * Access-token lifetime expressed in seconds for `jsonwebtoken`.
- */
-const accessTokenTtlSeconds = accessTokenTtlMinutes * 60;
-
-/**
- * Refresh-token lifetime expressed in days and validated at startup.
- */
-const refreshTokenTtlDays = requirePositiveIntegerEnv(
-  REFRESH_TOKEN_TTL_DAYS_ENV_NAME,
-);
-
-/**
- * Refresh-token lifetime expressed in seconds for `jsonwebtoken`.
- */
-const refreshTokenTtlSeconds = refreshTokenTtlDays * 24 * 60 * 60;
-
-/**
  * Verifies that the decoded JWT payload contains a numeric `exp` claim.
  *
  * @param value Decoded token payload to inspect.
@@ -97,16 +73,20 @@ function hasExpirationClaim(value: unknown): value is JwtPayloadWithExpiration {
 }
 
 /**
- * Reads a required environment variable and parses it as a positive integer.
+ * Reads a required config value and parses it as a positive integer.
  *
+ * @param configService Shared Nest config service.
  * @param name Name of the environment variable to read.
  * @returns The parsed positive integer value.
  */
-function requirePositiveIntegerEnv(name: string): number {
-  const value = Number(requireEnv(name));
+function requirePositiveIntegerConfig(
+  configService: ConfigService,
+  name: string,
+): number {
+  const value = Number(configService.getOrThrow<string>(name));
 
   if (!Number.isInteger(value) || value <= 0) {
-    throw new Error(`Environment variable ${name} must be a positive integer`);
+    throw new Error(`Configuration value ${name} must be a positive integer`);
   }
 
   return value;
@@ -136,6 +116,35 @@ export class JwtTokenCreator implements TokenCreator {
   });
 
   /**
+   * Access-token lifetime expressed in seconds for `jsonwebtoken`.
+   */
+  private readonly accessTokenTtlSeconds: number;
+
+  /**
+   * Refresh-token lifetime expressed in seconds for `jsonwebtoken`.
+   */
+  private readonly refreshTokenTtlSeconds: number;
+
+  /**
+   * Creates the JWT adapter and validates the configured token lifetimes.
+   *
+   * @param configService Shared Nest config service used to resolve auth TTLs.
+   */
+  constructor(private readonly configService: ConfigService) {
+    const accessTokenTtlMinutes = requirePositiveIntegerConfig(
+      this.configService,
+      ACCESS_TOKEN_TTL_MINUTES_ENV_NAME,
+    );
+    const refreshTokenTtlDays = requirePositiveIntegerConfig(
+      this.configService,
+      REFRESH_TOKEN_TTL_DAYS_ENV_NAME,
+    );
+
+    this.accessTokenTtlSeconds = accessTokenTtlMinutes * 60;
+    this.refreshTokenTtlSeconds = refreshTokenTtlDays * 24 * 60 * 60;
+  }
+
+  /**
    * Creates a signed access token for an authenticated user session.
    *
    * @param params Access-token payload data.
@@ -154,7 +163,7 @@ export class JwtTokenCreator implements TokenCreator {
       },
       {
         subject: params.userId,
-        expiresIn: accessTokenTtlSeconds,
+        expiresIn: this.accessTokenTtlSeconds,
       },
     );
 
@@ -183,7 +192,7 @@ export class JwtTokenCreator implements TokenCreator {
       },
       {
         subject: params.userId,
-        expiresIn: refreshTokenTtlSeconds,
+        expiresIn: this.refreshTokenTtlSeconds,
       },
     );
 

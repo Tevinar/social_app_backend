@@ -2,7 +2,9 @@ import 'dotenv/config';
 import postgres from 'postgres';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { getDatabaseUrl } from '../../src/core/database/database.config';
+import { requireEnv } from './helpers/require-env';
+import { requireSecretFile } from '../../src/core/config/require-secret-file';
+import { buildDatabaseUrl } from '../../src/core/database/build-database-url';
 
 /**
  * Applies SQL migration files in filename order and records each successful
@@ -10,7 +12,15 @@ import { getDatabaseUrl } from '../../src/core/database/database.config';
  */
 async function main() {
   // Open one shared client for the migration process.
-  const sql = postgres(getDatabaseUrl());
+  const sql = postgres(
+    buildDatabaseUrl({
+      host: requireEnv('POSTGRES_HOST'),
+      port: Number(requireEnv('POSTGRES_PORT')),
+      database: requireEnv('POSTGRES_DB'),
+      username: requireEnv('POSTGRES_USER'),
+      password: requireSecretFile('postgres_password.txt'),
+    }),
+  );
 
   try {
     // Track applied migrations in the database so each file runs only once.

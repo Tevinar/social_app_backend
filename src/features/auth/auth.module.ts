@@ -18,6 +18,9 @@ import { HmacTokenHasher } from './infrastructure/security/hmac-token-hasher';
 import { JwtTokenCreator } from './infrastructure/security/jwt-token-creator';
 import { AuthController } from './presentation/auth.controller';
 
+/**
+ * Feature module that wires the authentication slice into Nest's DI graph.
+ */
 @Module({
   imports: [DatabaseModule],
   controllers: [AuthController],

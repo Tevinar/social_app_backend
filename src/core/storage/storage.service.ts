@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { type Bucket } from '@google-cloud/storage';
 import { STORAGE_CLIENT, type StorageClient } from './storage.provider';
-import { storageConfig } from './storage.config';
 
 /**
  * Thin Nest wrapper around the shared Google Cloud Storage client.
@@ -14,10 +14,13 @@ export class StorageService {
    * Receives the shared storage client exposed by the storage provider.
    *
    * @param client Shared Google Cloud Storage client used by feature adapters.
+   * @param configService Shared Nest config service used to resolve runtime
+   *   storage settings.
    */
   constructor(
     @Inject(STORAGE_CLIENT)
     readonly client: StorageClient,
+    private readonly configService: ConfigService,
   ) {}
 
   /**
@@ -26,6 +29,8 @@ export class StorageService {
    * @returns The bucket used to store application objects.
    */
   bucket(): Bucket {
-    return this.client.bucket(storageConfig.bucketName);
+    return this.client.bucket(
+      this.configService.getOrThrow<string>('GCS_BUCKET_NAME'),
+    );
   }
 }
