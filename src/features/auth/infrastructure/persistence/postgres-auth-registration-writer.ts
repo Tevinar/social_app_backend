@@ -5,7 +5,7 @@ import {
   CreateAuthRegistrationResult,
   type AuthRegistrationWriter,
   type CreateAuthRegistrationParams,
-} from '../../application/ports/auth-registration-writer';
+} from '../../application/ports/identity/auth-registration-writer';
 
 /**
  * Name of the unique constraint that protects `users.email`.
@@ -96,12 +96,14 @@ export class PostgresAuthRegistrationWriter implements AuthRegistrationWriter {
           insert into refresh_sessions (
             id,
             user_id,
+            device_id,
             token_hash,
             expires_at
           )
           values (
             ${refreshSession.id},
             ${refreshSession.userId},
+            ${refreshSession.deviceId},
             ${refreshSession.tokenHash},
             ${refreshSession.expiresAt}
           )

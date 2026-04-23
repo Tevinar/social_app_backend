@@ -14,9 +14,15 @@ import {
   SignInWithEmailPasswordUseCase,
 } from '../application/use-cases/sign-in-with-email-password';
 import {
+  InvalidRefreshTokenError,
+  RefreshSessionUseCase,
+} from '../application/use-cases/refresh-session';
+import {
   EmailAlreadyInUseError,
   SignUpWithEmailPasswordUseCase,
 } from '../application/use-cases/sign-up-with-email-password';
+import { RefreshSessionRequest } from './dto/refresh-session-request';
+import { RefreshSessionResponse } from './dto/refresh-session-response';
 import { SignInRequest } from './dto/sign-in-request';
 import { SignInResponse } from './dto/sign-in-response';
 import { SignUpRequest } from './dto/sign-up-request';
@@ -42,10 +48,12 @@ export class AuthController {
    *
    * @param signUpWithEmailPassword Auth application service for email/password sign-up.
    * @param signInWithEmailPassword Auth application service for email/password sign-in.
+   * @param refreshSession Auth application service for refresh-token renewal.
    */
   constructor(
     private readonly signUpWithEmailPassword: SignUpWithEmailPasswordUseCase,
     private readonly signInWithEmailPassword: SignInWithEmailPasswordUseCase,
+    private readonly refreshSession: RefreshSessionUseCase,
   ) {}
 
   /**
@@ -66,6 +74,7 @@ export class AuthController {
         email: body.email,
         password: body.password,
         name: body.name,
+        deviceId: body.deviceId,
       });
 
       return SignUpResponse.fromSignUpResult(session);
@@ -95,11 +104,43 @@ export class AuthController {
       const session = await this.signInWithEmailPassword.execute({
         email: body.email,
         password: body.password,
+        deviceId: body.deviceId,
       });
 
       return SignInResponse.fromAuthSession(session);
     } catch (error: unknown) {
       if (error instanceof InvalidCredentialsError) {
+        throw new UnauthorizedException(error.message);
+      }
+
+      throw error;
+    }
+  }
+
+  /**
+   * Renews an authenticated session from a valid refresh token.
+   *
+   * The endpoint rotates the submitted refresh token and returns a fresh token
+   * pair bound to the same device session.
+   *
+   * @param body Validated refresh-session request body.
+   * @returns HTTP response DTO containing the rotated token pair.
+   * @throws {UnauthorizedException} Thrown when the submitted refresh token is invalid.
+   */
+  @Post('refresh')
+  @HttpCode(HttpStatus.OK)
+  async refresh(
+    @Body() body: RefreshSessionRequest,
+  ): Promise<RefreshSessionResponse> {
+    try {
+      const result = await this.refreshSession.execute({
+        refreshToken: body.refreshToken,
+        deviceId: body.deviceId,
+      });
+
+      return RefreshSessionResponse.fromRefreshSessionResult(result);
+    } catch (error: unknown) {
+      if (error instanceof InvalidRefreshTokenError) {
         throw new UnauthorizedException(error.message);
       }
 

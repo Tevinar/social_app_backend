@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { createHmac } from 'node:crypto';
 import { requireSecretFile } from '../../../../core/config/require-secret-file';
-import { type TokenHasher } from '../../application/ports/token-hasher';
+import { type TokenHasher } from '../../application/ports/tokens/token-hasher';
 
 /**
  * Secret file that stores the key used to derive deterministic refresh-token

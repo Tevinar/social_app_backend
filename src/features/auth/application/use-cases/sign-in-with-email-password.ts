@@ -2,20 +2,24 @@ import { Inject, Injectable } from '@nestjs/common';
 import {
   AUTH_USER_READER,
   type AuthUserReader,
-} from '../ports/auth-user-reader';
+} from '../ports/identity/auth-user-reader';
 import { randomUUID } from 'node:crypto';
 import { UseCase } from '../../../../core/contracts/use-case';
 import { Email } from '../../domain/value-objects/email';
+import { DeviceId } from '../../domain/value-objects/device-id';
 import {
   PASSWORD_VERIFIER,
   type PasswordVerifier,
-} from '../ports/password-verifier';
+} from '../ports/credentials/password-verifier';
 import {
   REFRESH_SESSION_WRITER,
   type RefreshSessionWriter,
-} from '../ports/refresh-session-writer';
-import { TOKEN_CREATOR, type TokenCreator } from '../ports/token-creator';
-import { TOKEN_HASHER, type TokenHasher } from '../ports/token-hasher';
+} from '../ports/sessions/refresh-session-writer';
+import {
+  TOKEN_CREATOR,
+  type TokenCreator,
+} from '../ports/tokens/token-creator';
+import { TOKEN_HASHER, type TokenHasher } from '../ports/tokens/token-hasher';
 
 /**
  * Signals that the provided email/password pair does not match a valid user.
@@ -39,10 +43,12 @@ export class InvalidCredentialsError extends Error {
  *
  * Responsibilities:
  * - normalize the incoming email
+ * - normalize and validate the client device identifier
  * - load the user record needed for password verification
  * - validate the submitted password
  * - create access and refresh tokens
- * - persist the hashed refresh token for future rotation/revocation
+ * - persist the hashed refresh token for future rotation/revocation, replacing
+ *   any previous session for the same user/device pair
  *
  * This class orchestrates the sign-in flow through application ports and does
  * not depend on HTTP, database, hashing, or JWT implementation details.
@@ -91,6 +97,7 @@ export class SignInWithEmailPasswordUseCase implements UseCase<
    */
   async execute(params: SignInWithEmailPasswordParams): Promise<AuthSession> {
     const email = Email.from(params.email);
+    const deviceId = DeviceId.from(params.deviceId);
 
     const user = await this.authUserReader.findByEmail(email.value);
     if (!user) {
@@ -123,6 +130,7 @@ export class SignInWithEmailPasswordUseCase implements UseCase<
     await this.refreshSessionWriter.create({
       id: sessionId,
       userId: user.id,
+      deviceId: deviceId.value,
       tokenHash: refreshTokenHash,
       expiresAt: refresh.expiresAt,
     });
@@ -144,6 +152,7 @@ export class SignInWithEmailPasswordUseCase implements UseCase<
 export type SignInWithEmailPasswordParams = {
   email: string;
   password: string;
+  deviceId: string;
 };
 
 export type AuthSession = {

@@ -1,4 +1,4 @@
-import { type CreateRefreshSessionParams } from './refresh-session-writer';
+import { type CreateRefreshSessionParams } from '../sessions/refresh-session-writer';
 
 export const AUTH_REGISTRATION_WRITER = Symbol('AUTH_REGISTRATION_WRITER');
 

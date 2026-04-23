@@ -1,15 +1,24 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { UseCase } from '../../../../core/contracts/use-case';
-import { TOKEN_CREATOR, type TokenCreator } from '../ports/token-creator';
-import { TOKEN_HASHER, type TokenHasher } from '../ports/token-hasher';
+import {
+  TOKEN_CREATOR,
+  type TokenCreator,
+} from '../ports/tokens/token-creator';
+import { TOKEN_HASHER, type TokenHasher } from '../ports/tokens/token-hasher';
+import { DeviceId } from '../../domain/value-objects/device-id';
 import { Email } from '../../domain/value-objects/email';
-import { PASSWORD_HASHER, type PasswordHasher } from '../ports/password-hasher';
+import { Name } from '../../domain/value-objects/name';
+import {
+  PASSWORD_HASHER,
+  type PasswordHasher,
+} from '../ports/credentials/password-hasher';
+import { NewPassword } from '../../domain/value-objects/new-password';
 import {
   AUTH_REGISTRATION_WRITER,
   CreateAuthRegistrationResult,
   type AuthRegistrationWriter,
-} from '../ports/auth-registration-writer';
+} from '../ports/identity/auth-registration-writer';
 
 /**
  * Signals that the submitted email address is already owned by another user.
@@ -30,6 +39,9 @@ export class EmailAlreadyInUseError extends Error {
  *
  * Responsibilities:
  * - normalize the incoming email
+ * - normalize and validate the client device identifier
+ * - normalize and validate the submitted public profile name
+ * - validate the submitted password against sign-up policy
  * - hash the submitted password before persistence
  * - create access and refresh tokens
  * - persist the user/profile records and refresh session atomically
@@ -76,10 +88,12 @@ export class SignUpWithEmailPasswordUseCase implements UseCase<
    */
   async execute(params: SignUpWithEmailPasswordParams): Promise<SignUpResult> {
     const email = Email.from(params.email);
+    const deviceId = DeviceId.from(params.deviceId);
+    const name = Name.from(params.name);
+    const newPassword = NewPassword.from(params.password);
     const userId = randomUUID();
     const sessionId = randomUUID();
-    const passwordHash = await this.passwordHasher.hash(params.password);
-    const name = params.name.trim();
+    const passwordHash = await this.passwordHasher.hash(newPassword.value);
 
     const access = await this.tokenCreator.createAccessToken({
       userId,
@@ -98,11 +112,12 @@ export class SignUpWithEmailPasswordUseCase implements UseCase<
         id: userId,
         email: email.value,
         passwordHash,
-        name,
+        name: name.value,
       },
       refreshSession: {
         id: sessionId,
         userId,
+        deviceId: deviceId.value,
         tokenHash: refreshTokenHash,
         expiresAt: refresh.expiresAt,
       },
@@ -116,7 +131,7 @@ export class SignUpWithEmailPasswordUseCase implements UseCase<
       user: {
         id: userId,
         email: email.value,
-        name,
+        name: name.value,
       },
       accessToken: access.token,
       refreshToken: refresh.token,
@@ -133,6 +148,7 @@ export type SignUpWithEmailPasswordParams = {
   email: string;
   password: string;
   name: string;
+  deviceId: string;
 };
 
 /**

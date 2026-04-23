@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { verify as verifyArgon2Hash } from 'argon2';
-import { type PasswordVerifier } from '../../application/ports/password-verifier';
+import { type PasswordVerifier } from '../../application/ports/credentials/password-verifier';
 
 /**
  * Argon2-backed implementation of the password verification port.

@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { requireSecretFile } from '../../../../core/config/require-secret-file';
-import { type TokenCreator } from '../../application/ports/token-creator';
+import { type TokenCreator } from '../../application/ports/tokens/token-creator';
 
 /**
  * Secret file that stores the HMAC key used to sign access tokens.

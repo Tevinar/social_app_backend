@@ -1,4 +1,4 @@
-import { IsEmail, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsString, IsUUID, MinLength } from 'class-validator';
 
 /**
  * HTTP request body accepted by the sign-in endpoint.
@@ -16,4 +16,10 @@ export class SignInRequest {
   @IsString()
   @MinLength(1)
   password!: string;
+
+  /**
+   * App-scoped client installation identifier.
+   */
+  @IsUUID(4)
+  deviceId!: string;
 }
