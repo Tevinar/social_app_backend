@@ -63,12 +63,18 @@ export class RefreshSession {
    * presented token matches the stored token hash.
    */
   canBeRefreshedWith(attempt: RefreshSessionUsageAttempt): boolean {
-    return (
-      this.belongsTo(attempt.userId) &&
-      this.belongsToDevice(attempt.deviceId) &&
-      this.matchesTokenHash(attempt.tokenHash) &&
-      this.isActiveAt(attempt.now)
-    );
+    return this.matchesUsageAttempt(attempt) && this.isActiveAt(attempt.now);
+  }
+
+  /**
+   * Evaluates whether the presented refresh-token data may revoke this session.
+   *
+   * @param attempt User, token hash, and timestamp for the sign-out attempt.
+   * @returns `true` when the session is active, owned by the same user, and the
+   * presented token matches the stored token hash.
+   */
+  canBeSignedOutWith(attempt: RefreshSessionUsageAttempt): boolean {
+    return this.matchesUsageAttempt(attempt) && this.isActiveAt(attempt.now);
   }
 
   /**
@@ -99,6 +105,20 @@ export class RefreshSession {
    */
   private matchesTokenHash(tokenHash: string): boolean {
     return this.snapshot.tokenHash === tokenHash;
+  }
+
+  /**
+   * Checks whether a presented usage attempt belongs to this session.
+   *
+   * @param attempt User, device, and token hash presented by the caller.
+   * @returns `true` when the attempt matches the stored session ownership data.
+   */
+  private matchesUsageAttempt(attempt: RefreshSessionUsageAttempt): boolean {
+    return (
+      this.belongsTo(attempt.userId) &&
+      this.belongsToDevice(attempt.deviceId) &&
+      this.matchesTokenHash(attempt.tokenHash)
+    );
   }
 
   /**

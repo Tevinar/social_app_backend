@@ -1,12 +1,12 @@
-import { type CreateRefreshSessionParams } from '../sessions/refresh-session-writer';
+import { type CreateRefreshSessionParams } from '../sessions/refresh-session-creator';
 
-export const AUTH_REGISTRATION_WRITER = Symbol('AUTH_REGISTRATION_WRITER');
+export const AUTH_REGISTRATION_CREATOR = Symbol('AUTH_REGISTRATION_CREATOR');
 
 /**
  * Application port used to persist a newly registered user and the initial
  * refresh session in one atomic operation.
  */
-export interface AuthRegistrationWriter {
+export interface AuthRegistrationCreator {
   /**
    * Persists the sign-up write set transactionally.
    *

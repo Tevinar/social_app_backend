@@ -15,10 +15,10 @@ import {
 } from '../ports/credentials/password-hasher';
 import { NewPassword } from '../../domain/value-objects/new-password';
 import {
-  AUTH_REGISTRATION_WRITER,
+  AUTH_REGISTRATION_CREATOR,
   CreateAuthRegistrationResult,
-  type AuthRegistrationWriter,
-} from '../ports/identity/auth-registration-writer';
+  type AuthRegistrationCreator,
+} from '../ports/identity/auth-registration-creator';
 
 /**
  * Signals that the submitted email address is already owned by another user.
@@ -62,8 +62,8 @@ export class SignUpWithEmailPasswordUseCase implements UseCase<
    * @param tokenHasher Hashes refresh tokens before they are stored.
    */
   constructor(
-    @Inject(AUTH_REGISTRATION_WRITER)
-    private readonly authRegistrationWriter: AuthRegistrationWriter,
+    @Inject(AUTH_REGISTRATION_CREATOR)
+    private readonly authRegistrationWriter: AuthRegistrationCreator,
     @Inject(PASSWORD_HASHER)
     private readonly passwordHasher: PasswordHasher,
     @Inject(TOKEN_CREATOR)

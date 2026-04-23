@@ -12,9 +12,10 @@ import {
   type PasswordVerifier,
 } from '../ports/credentials/password-verifier';
 import {
-  REFRESH_SESSION_WRITER,
-  type RefreshSessionWriter,
-} from '../ports/sessions/refresh-session-writer';
+  CreateRefreshSessionResult,
+  REFRESH_SESSION_CREATOR,
+  type RefreshSessionCreator,
+} from '../ports/sessions/refresh-session-creator';
 import {
   TOKEN_CREATOR,
   type TokenCreator,
@@ -38,6 +39,19 @@ export class InvalidCredentialsError extends Error {
 }
 
 /**
+ * Signals that the user already has an active session on the submitted device.
+ */
+export class UserAlreadySignedInOnDeviceError extends Error {
+  /**
+   * Creates a stable session-conflict message suitable for client-facing auth
+   * responses.
+   */
+  constructor() {
+    super('User is already signed in on this device');
+  }
+}
+
+/**
  * Application use case responsible for authenticating a user with an email and
  * password and opening a new refresh session.
  *
@@ -46,9 +60,9 @@ export class InvalidCredentialsError extends Error {
  * - normalize and validate the client device identifier
  * - load the user record needed for password verification
  * - validate the submitted password
+ * - reject sign-in when the device already has an active session for the user
  * - create access and refresh tokens
- * - persist the hashed refresh token for future rotation/revocation, replacing
- *   any previous session for the same user/device pair
+ * - persist the hashed refresh token for future rotation/revocation
  *
  * This class orchestrates the sign-in flow through application ports and does
  * not depend on HTTP, database, hashing, or JWT implementation details.
@@ -74,8 +88,8 @@ export class SignInWithEmailPasswordUseCase implements UseCase<
     private readonly authUserReader: AuthUserReader,
     @Inject(PASSWORD_VERIFIER)
     private readonly passwordVerifier: PasswordVerifier,
-    @Inject(REFRESH_SESSION_WRITER)
-    private readonly refreshSessionWriter: RefreshSessionWriter,
+    @Inject(REFRESH_SESSION_CREATOR)
+    private readonly refreshSessionWriter: RefreshSessionCreator,
     @Inject(TOKEN_CREATOR)
     private readonly tokenCreator: TokenCreator,
     @Inject(TOKEN_HASHER)
@@ -94,6 +108,8 @@ export class SignInWithEmailPasswordUseCase implements UseCase<
    * refresh tokens.
    * @throws {InvalidCredentialsError} Thrown when the user does not exist or
    * the password check fails.
+   * @throws {UserAlreadySignedInOnDeviceError} Thrown when the submitted
+   * device already has an active session for the authenticated user.
    */
   async execute(params: SignInWithEmailPasswordParams): Promise<AuthSession> {
     const email = Email.from(params.email);
@@ -127,13 +143,20 @@ export class SignInWithEmailPasswordUseCase implements UseCase<
 
     const refreshTokenHash = await this.tokenHasher.hash(refresh.token);
 
-    await this.refreshSessionWriter.create({
+    const sessionCreationResult = await this.refreshSessionWriter.create({
       id: sessionId,
       userId: user.id,
       deviceId: deviceId.value,
       tokenHash: refreshTokenHash,
       expiresAt: refresh.expiresAt,
     });
+
+    if (
+      sessionCreationResult ===
+      CreateRefreshSessionResult.ACTIVE_SESSION_CONFLICT
+    ) {
+      throw new UserAlreadySignedInOnDeviceError();
+    }
 
     return {
       user: {

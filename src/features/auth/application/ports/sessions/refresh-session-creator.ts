@@ -1,16 +1,16 @@
-export const REFRESH_SESSION_WRITER = Symbol('REFRESH_SESSION_WRITER');
+export const REFRESH_SESSION_CREATOR = Symbol('REFRESH_SESSION_CREATOR');
 
 /**
  * Application port used to persist refresh session records.
  */
-export interface RefreshSessionWriter {
+export interface RefreshSessionCreator {
   /**
    * Persists a newly issued refresh token session for a client device.
    *
    * Implementations are expected to store only the hashed token value rather
-   * than the raw refresh token. When a session already exists for the same
-   * user/device pair, implementations should replace it so repeated sign-ins
-   * from the same app installation do not accumulate stale active sessions.
+   * than the raw refresh token. When an active session already exists for the
+   * same user/device pair, implementations should return a stable conflict
+   * result instead of silently overwriting the existing session.
    *
    * @param params Refresh session data to persist.
    * @param params.id Stable identifier of the refresh session.
@@ -18,8 +18,11 @@ export interface RefreshSessionWriter {
    * @param params.deviceId App-scoped client device identifier.
    * @param params.tokenHash Hashed refresh token value.
    * @param params.expiresAt Expiration timestamp for the refresh session.
+   * @returns The outcome of the session-creation attempt.
    */
-  create(params: CreateRefreshSessionParams): Promise<void>;
+  create(
+    params: CreateRefreshSessionParams,
+  ): Promise<CreateRefreshSessionResult>;
 }
 
 export type CreateRefreshSessionParams = {
@@ -29,3 +32,11 @@ export type CreateRefreshSessionParams = {
   tokenHash: string;
   expiresAt: Date;
 };
+
+/**
+ * Outcome of the refresh-session creation attempt.
+ */
+export enum CreateRefreshSessionResult {
+  CREATED = 'created',
+  ACTIVE_SESSION_CONFLICT = 'active_session_conflict',
+}

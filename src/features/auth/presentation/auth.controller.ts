@@ -12,11 +12,13 @@ import {
 import {
   InvalidCredentialsError,
   SignInWithEmailPasswordUseCase,
+  UserAlreadySignedInOnDeviceError,
 } from '../application/use-cases/sign-in-with-email-password';
 import {
   InvalidRefreshTokenError,
   RefreshSessionUseCase,
 } from '../application/use-cases/refresh-session';
+import { SignOutCurrentSessionUseCase } from '../application/use-cases/sign-out-current-session';
 import {
   EmailAlreadyInUseError,
   SignUpWithEmailPasswordUseCase,
@@ -25,6 +27,7 @@ import { RefreshSessionRequest } from './dto/refresh-session-request';
 import { RefreshSessionResponse } from './dto/refresh-session-response';
 import { SignInRequest } from './dto/sign-in-request';
 import { SignInResponse } from './dto/sign-in-response';
+import { SignOutCurrentSessionRequest } from './dto/sign-out-current-session-request';
 import { SignUpRequest } from './dto/sign-up-request';
 import { SignUpResponse } from './dto/sign-up-response';
 
@@ -49,11 +52,13 @@ export class AuthController {
    * @param signUpWithEmailPassword Auth application service for email/password sign-up.
    * @param signInWithEmailPassword Auth application service for email/password sign-in.
    * @param refreshSession Auth application service for refresh-token renewal.
+   * @param signOutCurrentSession Auth application service for current-session sign-out.
    */
   constructor(
     private readonly signUpWithEmailPassword: SignUpWithEmailPasswordUseCase,
     private readonly signInWithEmailPassword: SignInWithEmailPasswordUseCase,
     private readonly refreshSession: RefreshSessionUseCase,
+    private readonly signOutCurrentSession: SignOutCurrentSessionUseCase,
   ) {}
 
   /**
@@ -113,6 +118,10 @@ export class AuthController {
         throw new UnauthorizedException(error.message);
       }
 
+      if (error instanceof UserAlreadySignedInOnDeviceError) {
+        throw new ConflictException(error.message);
+      }
+
       throw error;
     }
   }
@@ -146,5 +155,23 @@ export class AuthController {
 
       throw error;
     }
+  }
+
+  /**
+   * Revokes the caller's current refresh session.
+   *
+   * The endpoint is intentionally idempotent: invalid or already-expired
+   * session data still resolves to a successful sign-out response so the client
+   * can always clear local auth state.
+   *
+   * @param body Validated sign-out request body.
+   */
+  @Post('sign-out')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async signOut(@Body() body: SignOutCurrentSessionRequest): Promise<void> {
+    await this.signOutCurrentSession.execute({
+      refreshToken: body.refreshToken,
+      deviceId: body.deviceId,
+    });
   }
 }

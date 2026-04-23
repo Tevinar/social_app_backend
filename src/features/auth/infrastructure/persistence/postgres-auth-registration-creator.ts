@@ -3,9 +3,9 @@ import postgres from 'postgres';
 import { DatabaseService } from '../../../../core/database/database.service';
 import {
   CreateAuthRegistrationResult,
-  type AuthRegistrationWriter,
+  type AuthRegistrationCreator,
   type CreateAuthRegistrationParams,
-} from '../../application/ports/identity/auth-registration-writer';
+} from '../../application/ports/identity/auth-registration-creator';
 
 /**
  * Name of the unique constraint that protects `users.email`.
@@ -42,7 +42,7 @@ function isUsersEmailConflict(error: unknown): boolean {
  * fails.
  */
 @Injectable()
-export class PostgresAuthRegistrationWriter implements AuthRegistrationWriter {
+export class PostgresAuthRegistrationCreator implements AuthRegistrationCreator {
   /**
    * Receives the shared database service used to execute registration writes.
    *
