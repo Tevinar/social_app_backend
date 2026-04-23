@@ -15,6 +15,7 @@ import { RefreshSessionUseCase } from './application/use-cases/refresh-session';
 import { SignInWithEmailPasswordUseCase } from './application/use-cases/sign-in-with-email-password';
 import { SignOutCurrentSessionUseCase } from './application/use-cases/sign-out-current-session';
 import { SignUpWithEmailPasswordUseCase } from './application/use-cases/sign-up-with-email-password';
+import { ValidateAccessTokenUseCase } from './application/use-cases/validate-access-token';
 import { PostgresAuthRegistrationCreator } from './infrastructure/persistence/postgres-auth-registration-creator';
 import { PostgresAuthUserReader } from './infrastructure/persistence/postgres-auth-user-reader';
 import { PostgresRefreshSessionReader } from './infrastructure/persistence/postgres-refresh-session-reader';
@@ -39,6 +40,7 @@ import { AuthController } from './presentation/auth.controller';
     SignInWithEmailPasswordUseCase,
     RefreshSessionUseCase,
     SignOutCurrentSessionUseCase,
+    ValidateAccessTokenUseCase,
 
     {
       provide: AUTH_REGISTRATION_CREATOR,
@@ -85,6 +87,6 @@ import { AuthController } from './presentation/auth.controller';
       useClass: JwtTokenVerifier,
     },
   ],
-  exports: [],
+  exports: [ValidateAccessTokenUseCase],
 })
 export class AuthModule {}
