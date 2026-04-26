@@ -1,28 +1,16 @@
 import {
   Body,
-  ConflictException,
   Controller,
   HttpCode,
   HttpStatus,
   Post,
-  UnauthorizedException,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
-import {
-  InvalidCredentialsError,
-  SignInWithEmailPasswordUseCase,
-  UserAlreadySignedInOnDeviceError,
-} from '../application/use-cases/sign-in-with-email-password';
-import {
-  InvalidRefreshTokenError,
-  RefreshSessionUseCase,
-} from '../application/use-cases/refresh-session';
+import { SignInWithEmailPasswordUseCase } from '../application/use-cases/sign-in-with-email-password';
+import { RefreshSessionUseCase } from '../application/use-cases/refresh-session';
 import { SignOutCurrentSessionUseCase } from '../application/use-cases/sign-out-current-session';
-import {
-  EmailAlreadyInUseError,
-  SignUpWithEmailPasswordUseCase,
-} from '../application/use-cases/sign-up-with-email-password';
+import { SignUpWithEmailPasswordUseCase } from '../application/use-cases/sign-up-with-email-password';
 import { RefreshSessionRequest } from './dto/refresh-session-request';
 import { RefreshSessionResponse } from './dto/refresh-session-response';
 import { SignInRequest } from './dto/sign-in-request';
@@ -34,9 +22,9 @@ import { SignUpResponse } from './dto/sign-up-response';
 /**
  * HTTP controller exposing authentication endpoints.
  *
- * This presentation adapter is responsible for request validation, translating
- * application errors into HTTP semantics, and mapping use-case results into
- * response DTOs.
+ * This presentation adapter is responsible for request validation and mapping
+ * use-case results into response DTOs. Application errors are translated by
+ * the global HTTP exception filter.
  */
 @Controller('auth')
 @UsePipes(
@@ -69,27 +57,18 @@ export class AuthController {
    *
    * @param body Validated sign-up request body.
    * @returns HTTP response DTO containing the created auth session data.
-   * @throws {ConflictException} Thrown when the submitted email is already in use.
    */
   @Post('sign-up')
   @HttpCode(HttpStatus.CREATED)
   async signUp(@Body() body: SignUpRequest): Promise<SignUpResponse> {
-    try {
-      const session = await this.signUpWithEmailPassword.execute({
-        email: body.email,
-        password: body.password,
-        name: body.name,
-        deviceId: body.deviceId,
-      });
+    const session = await this.signUpWithEmailPassword.execute({
+      email: body.email,
+      password: body.password,
+      name: body.name,
+      deviceId: body.deviceId,
+    });
 
-      return SignUpResponse.fromSignUpResult(session);
-    } catch (error: unknown) {
-      if (error instanceof EmailAlreadyInUseError) {
-        throw new ConflictException(error.message);
-      }
-
-      throw error;
-    }
+    return SignUpResponse.fromSignUpResult(session);
   }
 
   /**
@@ -100,30 +79,17 @@ export class AuthController {
    *
    * @param body Validated sign-in request body.
    * @returns HTTP response DTO containing the issued auth session data.
-   * @throws {UnauthorizedException} Thrown when the submitted credentials are invalid.
    */
   @Post('sign-in')
   @HttpCode(HttpStatus.OK)
   async signIn(@Body() body: SignInRequest): Promise<SignInResponse> {
-    try {
-      const session = await this.signInWithEmailPassword.execute({
-        email: body.email,
-        password: body.password,
-        deviceId: body.deviceId,
-      });
+    const session = await this.signInWithEmailPassword.execute({
+      email: body.email,
+      password: body.password,
+      deviceId: body.deviceId,
+    });
 
-      return SignInResponse.fromAuthSession(session);
-    } catch (error: unknown) {
-      if (error instanceof InvalidCredentialsError) {
-        throw new UnauthorizedException(error.message);
-      }
-
-      if (error instanceof UserAlreadySignedInOnDeviceError) {
-        throw new ConflictException(error.message);
-      }
-
-      throw error;
-    }
+    return SignInResponse.fromAuthSession(session);
   }
 
   /**
@@ -134,27 +100,18 @@ export class AuthController {
    *
    * @param body Validated refresh-session request body.
    * @returns HTTP response DTO containing the rotated token pair.
-   * @throws {UnauthorizedException} Thrown when the submitted refresh token is invalid.
    */
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   async refresh(
     @Body() body: RefreshSessionRequest,
   ): Promise<RefreshSessionResponse> {
-    try {
-      const result = await this.refreshSession.execute({
-        refreshToken: body.refreshToken,
-        deviceId: body.deviceId,
-      });
+    const result = await this.refreshSession.execute({
+      refreshToken: body.refreshToken,
+      deviceId: body.deviceId,
+    });
 
-      return RefreshSessionResponse.fromRefreshSessionResult(result);
-    } catch (error: unknown) {
-      if (error instanceof InvalidRefreshTokenError) {
-        throw new UnauthorizedException(error.message);
-      }
-
-      throw error;
-    }
+    return RefreshSessionResponse.fromRefreshSessionResult(result);
   }
 
   /**

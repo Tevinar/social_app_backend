@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import postgres from 'postgres';
 import { requireSecretFile } from '../config/require-secret-file';
 import { buildDatabaseUrl } from './build-database-url';
+import { EnvVariable } from '../config/env-variable';
 
 /**
  * Runtime key under which Nest stores the shared Postgres.js client.
@@ -44,10 +45,12 @@ export const databaseProvider: Provider = {
   provide: DATABASE_CLIENT,
   inject: [ConfigService],
   useFactory: (configService: ConfigService): DatabaseClient => {
-    const host = configService.getOrThrow<string>('POSTGRES_HOST');
-    const port = Number(configService.getOrThrow<string>('POSTGRES_PORT'));
-    const database = configService.getOrThrow<string>('POSTGRES_DB');
-    const username = configService.getOrThrow<string>('POSTGRES_USER');
+    const host = configService.getOrThrow<string>(EnvVariable.PostgresHost);
+    const port = Number(
+      configService.getOrThrow<string>(EnvVariable.PostgresPort),
+    );
+    const database = configService.getOrThrow<string>(EnvVariable.PostgresDb);
+    const username = configService.getOrThrow<string>(EnvVariable.PostgresUser);
     const password = requireSecretFile(POSTGRES_PASSWORD_SECRET_FILE_NAME);
 
     const url = buildDatabaseUrl({

@@ -1,12 +1,18 @@
 import { Module } from '@nestjs/common';
+import { APP_FILTER } from '@nestjs/core';
 import { DatabaseModule } from '../../core/database/database.module';
+import { ErrorToExceptionMapper } from '../../core/filters/error-to-exception.mapper';
+import { GlobalHttpRequestExceptionFilter } from '../../core/filters/global-http-request-exception.filter';
 import { StorageModule } from '../../core/storage/storage.module';
 import { AuthModule } from '../../features/auth/auth.module';
-import { ConfigModule } from '@nestjs/config';
-
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { LoggerModule } from 'nestjs-pino';
+import { Environment } from '../../core/config/environment';
+import { LogLevel } from '../../core/config/log-level';
+import { EnvVariable } from '../../core/config/env-variable';
 /**
  * Root application module that composes the shared infrastructure modules and
- * the starter controller/service pair.
+ * global application-level providers.
  */
 @Module({
   imports: [
@@ -14,11 +20,56 @@ import { ConfigModule } from '@nestjs/config';
       isGlobal: true,
       envFilePath: '.env',
     }),
+    LoggerModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        const environment =
+          configService.get<Environment>(EnvVariable.NodeEnv) ??
+          Environment.Local;
+
+        const logLevel =
+          configService.get<LogLevel>(EnvVariable.LogLevel) ?? LogLevel.Info;
+
+        return {
+          pinoHttp: {
+            level: logLevel,
+            ...(environment === Environment.Production
+              ? {}
+              : {
+                  transport: {
+                    target: 'pino-pretty',
+                    options: {
+                      colorize: true,
+                      singleLine: true,
+                      translateTime: 'SYS:standard',
+                    },
+                  },
+                }),
+            redact: {
+              paths: [
+                'req.headers.authorization',
+                'req.headers.cookie',
+                'password',
+                'accessToken',
+                'refreshToken',
+              ],
+              censor: '[REDACTED]',
+            },
+          },
+        };
+      },
+    }),
     DatabaseModule,
     StorageModule,
     AuthModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [
+    ErrorToExceptionMapper,
+    {
+      provide: APP_FILTER,
+      useClass: GlobalHttpRequestExceptionFilter,
+    },
+  ],
 })
 export class AppModule {}

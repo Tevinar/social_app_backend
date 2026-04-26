@@ -1,6 +1,7 @@
 import { type Provider } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Storage } from '@google-cloud/storage';
+import { EnvVariable } from '../config/env-variable';
 
 /**
  * Nest dependency-injection token for the shared Google Cloud Storage client.
@@ -23,8 +24,8 @@ export type StorageClient = Storage;
 function getStorageApiEndpoint(
   configService: ConfigService,
 ): string | undefined {
-  const host = configService.get<string>('GCS_HOST');
-  const port = configService.get<string>('GCS_PORT');
+  const host = configService.get<string>(EnvVariable.GcsHost);
+  const port = configService.get<string>(EnvVariable.GcsPort);
 
   return host && port ? `https://${host}:${port}` : undefined;
 }
@@ -37,7 +38,9 @@ export const storageProvider: Provider = {
   provide: STORAGE_CLIENT,
   inject: [ConfigService],
   useFactory: (configService: ConfigService): StorageClient => {
-    const projectId = configService.getOrThrow<string>('GCS_PROJECT_ID');
+    const projectId = configService.getOrThrow<string>(
+      EnvVariable.GcsProjectId,
+    );
     const apiEndpoint = getStorageApiEndpoint(configService);
     const options = {
       projectId,

@@ -1,7 +1,4 @@
-import {
-  InvalidNameError,
-  Name,
-} from './name';
+import { InvalidNameError, Name } from './name';
 
 describe('Name', () => {
   it('trims surrounding whitespace', () => {

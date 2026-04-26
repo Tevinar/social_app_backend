@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { requireSecretFile } from '../../../../core/config/require-secret-file';
 import { type TokenCreator } from '../../application/ports/tokens/token-creator';
+import { EnvVariable } from '../../../../core/config/env-variable';
 
 /**
  * Secret file that stores the HMAC key used to sign access tokens.
@@ -13,16 +14,6 @@ const ACCESS_TOKEN_SECRET_FILE_NAME = 'jwt_access_secret.txt';
  * Secret file that stores the HMAC key used to sign refresh tokens.
  */
 const REFRESH_TOKEN_SECRET_FILE_NAME = 'jwt_refresh_secret.txt';
-
-/**
- * Environment variable that defines the access-token lifetime in minutes.
- */
-const ACCESS_TOKEN_TTL_MINUTES_ENV_NAME = 'AUTH_ACCESS_TTL_MINUTES';
-
-/**
- * Environment variable that defines the refresh-token lifetime in days.
- */
-const REFRESH_TOKEN_TTL_DAYS_ENV_NAME = 'AUTH_REFRESH_TTL_DAYS';
 
 /**
  * Decoded JWT payload shape required to derive the expiration timestamp from a
@@ -133,11 +124,11 @@ export class JwtTokenCreator implements TokenCreator {
   constructor(private readonly configService: ConfigService) {
     const accessTokenTtlMinutes = requirePositiveIntegerConfig(
       this.configService,
-      ACCESS_TOKEN_TTL_MINUTES_ENV_NAME,
+      EnvVariable.AuthAccessTtlMinutes,
     );
     const refreshTokenTtlDays = requirePositiveIntegerConfig(
       this.configService,
-      REFRESH_TOKEN_TTL_DAYS_ENV_NAME,
+      EnvVariable.AuthRefreshTtlDays,
     );
 
     this.accessTokenTtlSeconds = accessTokenTtlMinutes * 60;
