@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app/bootstrap/app.module';
 import { ConfigService } from '@nestjs/config';
 import { Logger } from 'nestjs-pino';
+import { EnvVariable } from './core/config/env-variable';
 
 /**
  * Boots the Nest application, enables graceful shutdown hooks, and starts the
@@ -18,7 +19,7 @@ async function bootstrap(): Promise<void> {
 
   const configService = app.get(ConfigService);
   app.enableShutdownHooks();
-  await app.listen(configService.get<number>('PORT') ?? 3000);
+  await app.listen(configService.getOrThrow<number>(EnvVariable.port));
 }
 
 void bootstrap();

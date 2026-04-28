@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { type Bucket } from '@google-cloud/storage';
 import { STORAGE_CLIENT, type StorageClient } from './storage.provider';
+import { EnvVariable } from '../config/env-variable';
 
 /**
  * Thin Nest wrapper around the shared Google Cloud Storage client.
@@ -30,7 +31,7 @@ export class StorageService {
    */
   bucket(): Bucket {
     return this.client.bucket(
-      this.configService.getOrThrow<string>('GCS_BUCKET_NAME'),
+      this.configService.getOrThrow<string>(EnvVariable.GcsBucketName),
     );
   }
 }

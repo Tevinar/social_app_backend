@@ -2,6 +2,8 @@ export enum EnvVariable {
   NodeEnv = 'NODE_ENV',
   LogLevel = 'LOG_LEVEL',
 
+  port = 'PORT',
+
   PostgresHost = 'POSTGRES_HOST',
   PostgresPort = 'POSTGRES_PORT',
   PostgresDb = 'POSTGRES_DB',
