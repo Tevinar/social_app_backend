@@ -31,9 +31,7 @@ describe('ValidateAccessTokenUseCase', () => {
 
     tokenVerifier.verifyAccessToken.mockResolvedValue(claims);
 
-    await expect(
-      useCase.execute({ accessToken: 'access-token' }),
-    ).resolves.toEqual(claims);
+    await expect(useCase.execute('access-token')).resolves.toEqual(claims);
 
     expect(tokenVerifier.verifyAccessToken).toHaveBeenCalledWith(
       'access-token',
@@ -45,8 +43,8 @@ describe('ValidateAccessTokenUseCase', () => {
 
     tokenVerifier.verifyAccessToken.mockResolvedValue(null);
 
-    await expect(
-      useCase.execute({ accessToken: 'invalid-access-token' }),
-    ).rejects.toThrow(InvalidAccessTokenError);
+    await expect(useCase.execute('invalid-access-token')).rejects.toThrow(
+      InvalidAccessTokenError,
+    );
   });
 });

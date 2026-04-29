@@ -29,8 +29,8 @@ export class InvalidAccessTokenError extends Error {
  */
 @Injectable()
 export class ValidateAccessTokenUseCase implements UseCase<
-  ValidateAccessTokenParams,
-  ValidateAccessTokenResult
+  string,
+  TokenClaims
 > {
   /**
    * Receives the token-verification capability required by the use case.
@@ -45,16 +45,12 @@ export class ValidateAccessTokenUseCase implements UseCase<
   /**
    * Validates an access token and returns its authenticated identity claims.
    *
-   * @param params Validation request submitted by the caller.
+   * @param accessToken Raw access token submitted by the caller.
    * @returns Validated user and session identifiers extracted from the token.
    * @throws {InvalidAccessTokenError} Thrown when the access token is invalid.
    */
-  async execute(
-    params: ValidateAccessTokenParams,
-  ): Promise<ValidateAccessTokenResult> {
-    const claims = await this.tokenVerifier.verifyAccessToken(
-      params.accessToken,
-    );
+  async execute(accessToken: string): Promise<TokenClaims> {
+    const claims = await this.tokenVerifier.verifyAccessToken(accessToken);
 
     if (!claims) {
       throw new InvalidAccessTokenError();
@@ -63,15 +59,3 @@ export class ValidateAccessTokenUseCase implements UseCase<
     return claims;
   }
 }
-
-/**
- * Input required to validate an access token.
- */
-export type ValidateAccessTokenParams = {
-  accessToken: string;
-};
-
-/**
- * Authenticated identity claims returned after access-token validation.
- */
-export type ValidateAccessTokenResult = TokenClaims;

@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { type Bucket } from '@google-cloud/storage';
-import { STORAGE_CLIENT, type StorageClient } from './storage.provider';
+import { type Bucket, type Storage } from '@google-cloud/storage';
+import { STORAGE_CLIENT } from './storage.provider';
 import { EnvVariable } from '../config/env-variable';
 
 /**
@@ -20,7 +20,7 @@ export class StorageService {
    */
   constructor(
     @Inject(STORAGE_CLIENT)
-    readonly client: StorageClient,
+    readonly client: Storage,
     private readonly configService: ConfigService,
   ) {}
 

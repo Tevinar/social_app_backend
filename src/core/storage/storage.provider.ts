@@ -9,11 +9,6 @@ import { EnvVariable } from '../config/env-variable';
 export const STORAGE_CLIENT = Symbol('STORAGE_CLIENT');
 
 /**
- * Concrete Google Cloud Storage client type used across the application.
- */
-export type StorageClient = Storage;
-
-/**
  * Builds the custom storage endpoint used when a local GCS-compatible server
  * is configured through environment variables.
  *
@@ -37,7 +32,7 @@ function getStorageApiEndpoint(
 export const storageProvider: Provider = {
   provide: STORAGE_CLIENT,
   inject: [ConfigService],
-  useFactory: (configService: ConfigService): StorageClient => {
+  useFactory: (configService: ConfigService): Storage => {
     const projectId = configService.getOrThrow<string>(
       EnvVariable.GcsProjectId,
     );

@@ -5,6 +5,7 @@ import { ErrorToExceptionMapper } from '../../core/filters/error-to-exception.ma
 import { GlobalHttpRequestExceptionFilter } from '../../core/filters/global-http-request-exception.filter';
 import { StorageModule } from '../../core/storage/storage.module';
 import { AuthModule } from '../../features/auth/auth.module';
+import { BlogModule } from '../../features/blog/blog.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { LoggerModule } from 'nestjs-pino';
 import { Environment } from '../../core/config/environment';
@@ -62,6 +63,7 @@ import { EnvVariable } from '../../core/config/env-variable';
     DatabaseModule,
     StorageModule,
     AuthModule,
+    BlogModule,
   ],
   controllers: [],
   providers: [
