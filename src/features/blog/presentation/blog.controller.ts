@@ -10,11 +10,17 @@ import {
   UploadedFile,
   BadRequestException,
   Headers,
+  Get,
+  Query,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CreateBlogUseCase } from '../application/use-cases/create-blog';
 import { CreateBlogRequest } from './dto/create-blog-request';
 import { CreateBlogResponse } from './dto/create-blog-response';
+import { extractBearerToken } from '../../../core/presentation/http/extract-bearer-token';
+import { ListBlogsQuery } from './dto/list-blogs-query';
+import { ListBlogsResponse } from './dto/list-blogs-response';
+import { ListBlogsByPageUseCase } from '../application/use-cases/list-blogs-by-page';
 
 /**
  * HTTP controller exposing blog endpoints.
@@ -34,8 +40,12 @@ export class BlogController {
    * Receives the blog use cases used by the controller actions.
    *
    * @param createBlog Blog application service for blog creation.
+   * @param listBlogsByPage Blog application service for listing blogs by page.
    */
-  constructor(private readonly createBlog: CreateBlogUseCase) {}
+  constructor(
+    private readonly createBlog: CreateBlogUseCase,
+    private readonly listBlogsByPage: ListBlogsByPageUseCase,
+  ) {}
 
   /**
    * Creates a blog for the authenticated caller.
@@ -72,19 +82,21 @@ export class BlogController {
 
     return CreateBlogResponse.fromCreatedBlog(blog);
   }
-}
 
-/**
- * Extracts the raw bearer token value from the Authorization header.
- *
- * @param authorization Authorization header submitted by the caller.
- * @returns Raw access token.
- * @throws {BadRequestException} Thrown when the header is missing or malformed.
- */
-function extractBearerToken(authorization: string | undefined): string {
-  if (!authorization?.startsWith('Bearer ')) {
-    throw new BadRequestException('Missing bearer token');
+  /**
+   * Returns one page of blogs for the submitted pagination query.
+   *
+   * @param query Validated pagination query string.
+   * @returns HTTP response DTO containing the requested page of blogs.
+   */
+  @Get()
+  @HttpCode(HttpStatus.OK)
+  async list(@Query() query: ListBlogsQuery): Promise<ListBlogsResponse> {
+    const page = await this.listBlogsByPage.execute({
+      page: query.page,
+      pageSize: query.pageSize,
+    });
+
+    return ListBlogsResponse.fromPaginatedBlogs(page);
   }
-
-  return authorization.slice('Bearer '.length);
 }

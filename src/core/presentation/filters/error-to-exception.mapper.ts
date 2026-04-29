@@ -1,15 +1,15 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
-import { InvalidRefreshTokenError } from '../../features/auth/application/use-cases/refresh-session';
+import { InvalidRefreshTokenError } from '../../../features/auth/application/use-cases/refresh-session';
 import {
   InvalidCredentialsError,
   UserAlreadySignedInOnDeviceError,
-} from '../../features/auth/application/use-cases/sign-in-with-email-password';
-import { EmailAlreadyInUseError } from '../../features/auth/application/use-cases/sign-up-with-email-password';
-import { InvalidAccessTokenError } from '../../features/auth/application/use-cases/validate-access-token';
-import { InvalidDeviceIdError } from '../../features/auth/domain/value-objects/device-id';
-import { InvalidEmailError } from '../../features/auth/domain/value-objects/email';
-import { InvalidNameError } from '../../features/auth/domain/value-objects/name';
-import { InvalidNewPasswordError } from '../../features/auth/domain/value-objects/new-password';
+} from '../../../features/auth/application/use-cases/sign-in-with-email-password';
+import { EmailAlreadyInUseError } from '../../../features/auth/application/use-cases/sign-up-with-email-password';
+import { InvalidAccessTokenError } from '../../../features/auth/application/use-cases/validate-access-token';
+import { InvalidDeviceIdError } from '../../../features/auth/domain/value-objects/device-id';
+import { InvalidEmailError } from '../../../features/auth/domain/value-objects/email';
+import { InvalidNameError } from '../../../features/auth/domain/value-objects/name';
+import { InvalidNewPasswordError } from '../../../features/auth/domain/value-objects/new-password';
 
 /**
  * Maps thrown errors to a transport-neutral public error description.

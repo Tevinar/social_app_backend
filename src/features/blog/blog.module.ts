@@ -7,15 +7,20 @@ import { BLOG_IMAGE_STORAGE } from './application/ports/blog-image-storage';
 import { CreateBlogUseCase } from './application/use-cases/create-blog';
 import { PostgresBlogCreator } from './infrastructure/persistence/postgres-blog-creator';
 import { GcsBlogImageStorage } from './infrastructure/storage/gcs-blog-image-storage';
+import { BLOG_READER } from './application/ports/blog-reader';
+import { PostgresBlogReader } from './infrastructure/persistence/postgres-blog-reader';
+import { BlogController } from './presentation/blog.controller';
+import { ListBlogsByPageUseCase } from './application/use-cases/list-blogs-by-page';
 
 /**
  * Feature module that wires blog creation into Nest's DI graph.
  */
 @Module({
   imports: [AuthModule, DatabaseModule, StorageModule],
-  controllers: [],
+  controllers: [BlogController],
   providers: [
     CreateBlogUseCase,
+    ListBlogsByPageUseCase,
     {
       provide: BLOG_CREATOR,
       useClass: PostgresBlogCreator,
@@ -24,7 +29,10 @@ import { GcsBlogImageStorage } from './infrastructure/storage/gcs-blog-image-sto
       provide: BLOG_IMAGE_STORAGE,
       useClass: GcsBlogImageStorage,
     },
+    {
+      provide: BLOG_READER,
+      useClass: PostgresBlogReader,
+    },
   ],
-  exports: [CreateBlogUseCase],
 })
 export class BlogModule {}

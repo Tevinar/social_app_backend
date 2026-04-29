@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
 import { DatabaseModule } from '../../core/database/database.module';
-import { ErrorToExceptionMapper } from '../../core/filters/error-to-exception.mapper';
-import { GlobalHttpRequestExceptionFilter } from '../../core/filters/global-http-request-exception.filter';
+import { ErrorToExceptionMapper } from '../../core/presentation/filters/error-to-exception.mapper';
+import { GlobalHttpRequestExceptionFilter } from '../../core/presentation/filters/global-http-request-exception.filter';
 import { StorageModule } from '../../core/storage/storage.module';
 import { AuthModule } from '../../features/auth/auth.module';
 import { BlogModule } from '../../features/blog/blog.module';

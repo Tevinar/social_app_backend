@@ -3,6 +3,7 @@ export enum EnvVariable {
   LogLevel = 'LOG_LEVEL',
 
   port = 'PORT',
+  ApiBaseUrl = 'API_BASE_URL',
 
   PostgresHost = 'POSTGRES_HOST',
   PostgresPort = 'POSTGRES_PORT',
