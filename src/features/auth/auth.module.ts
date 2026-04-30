@@ -87,6 +87,6 @@ import { AuthController } from './presentation/auth.controller';
       useClass: JwtTokenVerifier,
     },
   ],
-  exports: [ValidateAccessTokenUseCase],
+  exports: [],
 })
 export class AuthModule {}

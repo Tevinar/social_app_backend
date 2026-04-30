@@ -48,6 +48,7 @@ export default defineConfig(
             'FunctionDeclaration',
             'MethodDefinition',
             'TSInterfaceDeclaration',
+            'TSMethodSignature',
           ],
         },
       ],

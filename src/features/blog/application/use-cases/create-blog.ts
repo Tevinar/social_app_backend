@@ -61,7 +61,6 @@ export class CreateBlogUseCase implements UseCase<
    * authenticated identifier.
    */
   async execute(params: CreateBlogParams): Promise<CreatedBlog> {
-    const claims = await this.validateAccessToken.execute(params.accessToken);
     const blogId = randomUUID();
     const title = BlogTitle.from(params.title);
     const content = BlogContent.from(params.content);
@@ -75,7 +74,7 @@ export class CreateBlogUseCase implements UseCase<
     try {
       const blog = await this.blogCreator.create({
         id: blogId,
-        posterId: claims.userId,
+        posterId: params.userId,
         title: title.value,
         content: content.value,
         imageKey,
@@ -94,7 +93,7 @@ export class CreateBlogUseCase implements UseCase<
  * Input required to create a blog.
  */
 export type CreateBlogParams = {
-  accessToken: string;
+  userId: string;
   title: string;
   content: string;
   imageBuffer: Buffer;

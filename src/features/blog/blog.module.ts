@@ -11,6 +11,9 @@ import { BLOG_READER } from './application/ports/blog-reader';
 import { PostgresBlogReader } from './infrastructure/persistence/postgres-blog-reader';
 import { BlogController } from './presentation/blog.controller';
 import { ListBlogsByPageUseCase } from './application/use-cases/list-blogs-by-page';
+import { GetBlogImageUseCase } from './application/use-cases/get-blog-image-use-case';
+import { GcsBlogImageUrlSigner } from './infrastructure/storage/gcs-blog-image-url-signer';
+import { BLOG_IMAGE_URL_SIGNER } from './application/ports/blog-image-url-signer';
 
 /**
  * Feature module that wires blog creation into Nest's DI graph.
@@ -21,6 +24,7 @@ import { ListBlogsByPageUseCase } from './application/use-cases/list-blogs-by-pa
   providers: [
     CreateBlogUseCase,
     ListBlogsByPageUseCase,
+    GetBlogImageUseCase,
     {
       provide: BLOG_CREATOR,
       useClass: PostgresBlogCreator,
@@ -32,6 +36,10 @@ import { ListBlogsByPageUseCase } from './application/use-cases/list-blogs-by-pa
     {
       provide: BLOG_READER,
       useClass: PostgresBlogReader,
+    },
+    {
+      provide: BLOG_IMAGE_URL_SIGNER,
+      useClass: GcsBlogImageUrlSigner,
     },
   ],
 })

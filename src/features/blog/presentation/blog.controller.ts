@@ -9,18 +9,23 @@ import {
   Body,
   UploadedFile,
   BadRequestException,
-  Headers,
   Get,
   Query,
+  Param,
+  Res,
+  UseGuards,
 } from '@nestjs/common';
+import { type Response } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CreateBlogUseCase } from '../application/use-cases/create-blog';
 import { CreateBlogRequest } from './dto/create-blog-request';
 import { CreateBlogResponse } from './dto/create-blog-response';
-import { extractBearerToken } from '../../../core/presentation/http/extract-bearer-token';
 import { ListBlogsQuery } from './dto/list-blogs-query';
 import { ListBlogsResponse } from './dto/list-blogs-response';
 import { ListBlogsByPageUseCase } from '../application/use-cases/list-blogs-by-page';
+import { GetBlogImageUseCase } from '../application/use-cases/get-blog-image-use-case';
+import { AccessTokenGuard } from '../../auth/presentation/guards/access-tokens';
+import { AuthenticatedUser } from '../../auth/presentation/decorators/authenticated-user';
 
 /**
  * HTTP controller exposing blog endpoints.
@@ -28,6 +33,7 @@ import { ListBlogsByPageUseCase } from '../application/use-cases/list-blogs-by-p
  * This presentation adapter is responsible for request validation, file
  * extraction, and mapping use-case results into response DTOs.
  */
+@UseGuards(AccessTokenGuard)
 @Controller('blogs')
 @UsePipes(
   new ValidationPipe({
@@ -41,10 +47,12 @@ export class BlogController {
    *
    * @param createBlog Blog application service for blog creation.
    * @param listBlogsByPage Blog application service for listing blogs by page.
+   * @param getBlogImage Blog application service for resolving blog image redirects.
    */
   constructor(
     private readonly createBlog: CreateBlogUseCase,
     private readonly listBlogsByPage: ListBlogsByPageUseCase,
+    private readonly getBlogImage: GetBlogImageUseCase,
   ) {}
 
   /**
@@ -55,7 +63,8 @@ export class BlogController {
    *
    * @param body Validated blog creation request body.
    * @param image Uploaded image file extracted from the multipart request.
-   * @param authorization Authorization header containing the bearer token.
+   * @param auth Authenticated user identity resolved by the access-token guard.
+   * @param auth.userId Stable identifier of the authenticated blog author.
    * @returns HTTP response DTO containing the created blog data.
    */
   @Post()
@@ -64,16 +73,15 @@ export class BlogController {
   async create(
     @Body() body: CreateBlogRequest,
     @UploadedFile() image: Express.Multer.File | undefined,
-    @Headers('authorization') authorization: string | undefined,
+    @AuthenticatedUser()
+    auth: { userId: string },
   ): Promise<CreateBlogResponse> {
     if (!image?.buffer) {
       throw new BadRequestException('Image file is required');
     }
 
-    const accessToken = extractBearerToken(authorization);
-
     const blog = await this.createBlog.execute({
-      accessToken,
+      userId: auth.userId,
       title: body.title,
       content: body.content,
       imageBuffer: image.buffer,
@@ -98,5 +106,20 @@ export class BlogController {
     });
 
     return ListBlogsResponse.fromPaginatedBlogs(page);
+  }
+
+  /**
+   * Redirects the caller to a temporary signed URL for one blog image.
+   *
+   * @param blogId Stable identifier of the target blog.
+   * @param response Express response object used to send the redirect.
+   */
+  @Get(':blogId/image')
+  async getImage(
+    @Param('blogId') blogId: string,
+    @Res() response: Response,
+  ): Promise<void> {
+    const result = await this.getBlogImage.execute({ blogId });
+    response.redirect(HttpStatus.TEMPORARY_REDIRECT, result.signedUrl);
   }
 }

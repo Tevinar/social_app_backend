@@ -1,24 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '../../../../core/database/database.service';
 import {
+  BlogImageRecord,
   type BlogReader,
   type FindRecentBlogPageParams,
   type RecentBlogsPage,
 } from '../../application/ports/blog-reader';
-
-type BlogPageRow = {
-  id: string;
-  posterId: string;
-  posterName: string;
-  title: string;
-  content: string;
-  topics: string[];
-};
-
-type BlogCountRow = {
-  totalCount: number;
-};
-
 /**
  * Postgres-backed implementation of the blog reader port.
  */
@@ -77,4 +64,41 @@ export class PostgresBlogReader implements BlogReader {
       totalCount: countRows[0]?.totalCount ?? 0,
     };
   }
+
+  /**
+   * Returns the image record associated with one blog.
+   *
+   * @param blogId Stable blog identifier.
+   * @returns Blog image record when found, otherwise null.
+   */
+  async findImageByBlogId(blogId: string): Promise<BlogImageRecord | null> {
+    const rows = await this.database.sql<BlogImageRow[]>`
+    select
+      id as "blogId",
+      image_key as "imageKey"
+    from blogs
+    where id = ${blogId}
+    limit 1
+  `;
+
+    return rows[0] ?? null;
+  }
 }
+
+type BlogPageRow = {
+  id: string;
+  posterId: string;
+  posterName: string;
+  title: string;
+  content: string;
+  topics: string[];
+};
+
+type BlogCountRow = {
+  totalCount: number;
+};
+
+type BlogImageRow = {
+  blogId: string;
+  imageKey: string;
+};
