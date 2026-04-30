@@ -49,7 +49,7 @@ services:
       - "${GCS_HOST}:${GCS_PORT}:4443"
     # Bind local fake storage data to a project folder for easy inspection/reset.
     volumes:
-      - fake_gcs_data:/data
+      - fake_gcs_data:/storage
 
 # Declare the named volume used to store PostgreSQL data files.
 volumes:
