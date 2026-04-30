@@ -30,7 +30,9 @@ export class BlogImage {
    */
   static async from(imageBuffer: Buffer): Promise<BlogImage> {
     if (!Buffer.isBuffer(imageBuffer) || imageBuffer.length === 0) {
-      throw new InvalidBlogImageError();
+      throw new InvalidBlogImageError(
+        `Image data is not a valid non-empty buffer`,
+      );
     }
 
     const detected = await fileTypeFromBuffer(imageBuffer);
@@ -41,7 +43,9 @@ export class BlogImage {
         detected.mime,
       )
     ) {
-      throw new InvalidBlogImageError();
+      throw new InvalidBlogImageError(
+        `Image data is not a valid supported image type. Current image buffer type: ${detected!.mime}`,
+      );
     }
 
     return new BlogImage(imageBuffer, detected.mime);
@@ -55,7 +59,7 @@ class InvalidBlogImageError extends Error {
   /**
    * Creates a stable validation error for rejected blog images.
    */
-  constructor() {
-    super('Invalid blog image');
+  constructor(message: string) {
+    super(message);
   }
 }

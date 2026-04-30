@@ -1,7 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { UseCase } from '../../../../core/contracts/use-case';
-import { ValidateAccessTokenUseCase } from '../../../auth/application/use-cases/validate-access-token';
 import { BlogContent } from '../../domain/value-objects/blog-content';
 import { BlogImage } from '../../domain/value-objects/blog-image';
 import { BlogTitle } from '../../domain/value-objects/blog-title';
@@ -35,7 +34,6 @@ export class CreateBlogUseCase implements UseCase<
    * @param blogImageStorage Stores and removes blog image objects.
    */
   constructor(
-    private readonly validateAccessToken: ValidateAccessTokenUseCase,
     @Inject(BLOG_CREATOR)
     private readonly blogCreator: BlogCreator,
     @Inject(BLOG_IMAGE_STORAGE)

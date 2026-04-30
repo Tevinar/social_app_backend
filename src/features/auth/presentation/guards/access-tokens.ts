@@ -9,7 +9,8 @@ import { ValidateAccessTokenUseCase } from '../../application/use-cases/validate
 
 /**
  * HTTP auth guard that validates bearer access tokens and enriches the request
- * with the authenticated user identity.
+ * with the authenticated user identity. Does not need to be declared in providers
+ * because it's only used as a class reference in `@UseGuards()`.
  */
 @Injectable()
 export class AccessTokenGuard implements CanActivate {

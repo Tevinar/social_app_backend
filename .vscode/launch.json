@@ -7,7 +7,10 @@
       "request": "launch",
       "command": "npm run start:debug",
       "cwd": "${workspaceFolder}",
-      "preLaunchTask": "docker: postgres up"
+      "preLaunchTask": "docker: infra up",
+      "env": {
+        "NODE_EXTRA_CA_CERTS": "${workspaceFolder}/.certs/fake-gcs.pem"
+      }
     }
   ],
 }

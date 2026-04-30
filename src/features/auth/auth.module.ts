@@ -28,7 +28,6 @@ import { HmacTokenHasher } from './infrastructure/security/hmac-token-hasher';
 import { JwtTokenCreator } from './infrastructure/security/jwt-token-creator';
 import { JwtTokenVerifier } from './infrastructure/security/jwt-token-verifier';
 import { AuthController } from './presentation/auth.controller';
-
 /**
  * Feature module that wires the authentication slice into Nest's DI graph.
  */
@@ -41,7 +40,6 @@ import { AuthController } from './presentation/auth.controller';
     RefreshSessionUseCase,
     SignOutCurrentSessionUseCase,
     ValidateAccessTokenUseCase,
-
     {
       provide: AUTH_REGISTRATION_CREATOR,
       useClass: PostgresAuthRegistrationCreator,
@@ -87,6 +85,6 @@ import { AuthController } from './presentation/auth.controller';
       useClass: JwtTokenVerifier,
     },
   ],
-  exports: [],
+  exports: [ValidateAccessTokenUseCase],
 })
 export class AuthModule {}

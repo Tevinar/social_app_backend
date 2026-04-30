@@ -1,3 +1,4 @@
+import { Transform } from 'class-transformer';
 import { IsArray, IsString, MinLength } from 'class-validator';
 
 /**
@@ -21,6 +22,17 @@ export class CreateBlogRequest {
   /**
    * Topic names submitted for the blog.
    */
+  @Transform(({ value }) => {
+    if (Array.isArray(value)) {
+      return value as string[];
+    }
+
+    if (typeof value === 'string') {
+      return [value];
+    }
+
+    return [];
+  })
   @IsArray()
   @IsString({ each: true })
   topics!: string[];
