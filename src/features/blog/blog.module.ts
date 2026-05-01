@@ -14,6 +14,10 @@ import { ListBlogsByPageUseCase } from './application/use-cases/list-blogs-by-pa
 import { GetBlogImageUseCase } from './application/use-cases/get-blog-image-use-case';
 import { GcsBlogImageUrlSigner } from './infrastructure/storage/gcs-blog-image-url-signer';
 import { BLOG_IMAGE_URL_SIGNER } from './application/ports/blog-image-url-signer';
+import { ConfigService } from '@nestjs/config';
+import { EnvVariable } from '../../core/config/env-variable';
+import { LocalBlogImageUrlSigner } from './infrastructure/storage/local-blog-image-url-signer';
+import { Environment } from '../../core/config/environment';
 
 /**
  * Feature module that wires blog creation into Nest's DI graph.
@@ -25,6 +29,8 @@ import { BLOG_IMAGE_URL_SIGNER } from './application/ports/blog-image-url-signer
     CreateBlogUseCase,
     ListBlogsByPageUseCase,
     GetBlogImageUseCase,
+    GcsBlogImageUrlSigner, // Must be provided directly to be conditionally injected by the factory.
+    LocalBlogImageUrlSigner, // Must be provided directly to be conditionally injected by the factory.
     {
       provide: BLOG_CREATOR,
       useClass: PostgresBlogCreator,
@@ -39,7 +45,20 @@ import { BLOG_IMAGE_URL_SIGNER } from './application/ports/blog-image-url-signer
     },
     {
       provide: BLOG_IMAGE_URL_SIGNER,
-      useClass: GcsBlogImageUrlSigner,
+      inject: [ConfigService, GcsBlogImageUrlSigner, LocalBlogImageUrlSigner],
+      useFactory: (
+        configService: ConfigService,
+        gcsSigner: GcsBlogImageUrlSigner,
+        localSigner: LocalBlogImageUrlSigner,
+      ) => {
+        const environment = configService.getOrThrow<string>(
+          EnvVariable.NodeEnv,
+        );
+
+        return environment === Environment.Local.toString()
+          ? localSigner
+          : gcsSigner;
+      },
     },
   ],
 })
