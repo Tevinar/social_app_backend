@@ -1,16 +1,18 @@
+import { type BlogCursor } from '../blog-cursor/blog-cursor';
+
 export const BLOG_READER = Symbol('BLOG_READER');
 
 /**
- * Application port used to read paginated blog projections.
+ * Application port used to read recent blog projections.
  */
 export interface BlogReader {
   /**
-   * Reads one page of blogs ordered from most recent to least recent.
+   * Reads one recent slice of blogs ordered from most recent to least recent.
    *
-   * @param params Pagination window requested by the caller.
-   * @returns Current page of blogs together with the total row count.
+   * @param params Cursor window requested by the caller.
+   * @returns Current slice of blogs.
    */
-  findRecentPage(params: FindRecentBlogPageParams): Promise<RecentBlogsPage>;
+  findRecentSlice(params: FindRecentBlogSliceParams): Promise<RecentBlogsSlice>;
 
   /**
    * Returns the image record associated with one blog.
@@ -21,13 +23,14 @@ export interface BlogReader {
   findImageByBlogId(blogId: string): Promise<BlogImageRecord | null>;
 }
 
-export type FindRecentBlogPageParams = {
+export type FindRecentBlogSliceParams = {
   limit: number;
-  offset: number;
+  cursor?: BlogCursor;
 };
 
 export type ListedBlogRecord = {
   id: string;
+  createdAt: Date;
   poster: {
     id: string;
     name: string;
@@ -38,9 +41,8 @@ export type ListedBlogRecord = {
   topics: string[];
 };
 
-export type RecentBlogsPage = {
+export type RecentBlogsSlice = {
   items: ListedBlogRecord[];
-  totalCount: number;
 };
 
 export type BlogImageRecord = {

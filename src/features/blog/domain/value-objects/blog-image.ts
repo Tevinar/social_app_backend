@@ -55,11 +55,4 @@ export class BlogImage {
 /**
  * Signals that the submitted blog image cannot be accepted.
  */
-class InvalidBlogImageError extends Error {
-  /**
-   * Creates a stable validation error for rejected blog images.
-   */
-  constructor(message: string) {
-    super(message);
-  }
-}
+class InvalidBlogImageError extends Error {}

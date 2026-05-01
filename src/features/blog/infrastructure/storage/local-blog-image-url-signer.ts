@@ -9,8 +9,22 @@ import { BlogImageUrlSigner } from '../../application/ports/blog-image-url-signe
  */
 @Injectable()
 export class LocalBlogImageUrlSigner implements BlogImageUrlSigner {
+  /**
+   * Receives runtime configuration needed to build fake GCS object URLs.
+   *
+   * @param configService Shared Nest config service.
+   */
   constructor(private readonly configService: ConfigService) {}
 
+  /**
+   * Returns a direct fake GCS object URL for one blog image in local
+   * development.
+   *
+   * @param params Storage object key and expiration settings.
+   * @param params.imageKey Storage object key to expose locally.
+   * @param params.expiresInSeconds Requested signed URL lifetime in seconds.
+   * @returns Direct fake GCS object URL.
+   */
   signReadUrl(params: {
     imageKey: string;
     expiresInSeconds: number;

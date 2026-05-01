@@ -3,8 +3,8 @@ import { DatabaseService } from '../../../../core/database/database.service';
 import {
   BlogImageRecord,
   type BlogReader,
-  type FindRecentBlogPageParams,
-  type RecentBlogsPage,
+  type FindRecentBlogSliceParams,
+  type RecentBlogsSlice,
 } from '../../application/ports/blog-reader';
 /**
  * Postgres-backed implementation of the blog reader port.
@@ -19,18 +19,35 @@ export class PostgresBlogReader implements BlogReader {
   constructor(private readonly database: DatabaseService) {}
 
   /**
-   * Reads one page of blogs ordered from most recent to least recent.
+   * Reads one recent slice of blogs ordered from most recent to least recent.
    *
-   * @param params Pagination window requested by the caller.
-   * @returns Current page of blogs together with the total row count.
+   * @param params Cursor window requested by the caller.
+   * @returns Current slice of blogs.
    */
-  async findRecentPage(
-    params: FindRecentBlogPageParams,
-  ): Promise<RecentBlogsPage> {
-    const [rows, countRows] = await Promise.all([
-      this.database.sql<BlogPageRow[]>`
+  async findRecentSlice(
+    params: FindRecentBlogSliceParams,
+  ): Promise<RecentBlogsSlice> {
+    const rows = params.cursor
+      ? await this.database.sql<BlogRow[]>`
         select
           b.id,
+          b.created_at as "createdAt",
+          b.author_id as "posterId",
+          p.name as "posterName",
+          b.title,
+          b.content,
+          b.topics
+        from blogs b
+        join profiles p
+          on p.user_id = b.author_id
+        where (b.created_at, b.id) < (${params.cursor.createdAt}, ${params.cursor.id})
+        order by b.created_at desc, b.id desc
+        limit ${params.limit}
+      `
+      : await this.database.sql<BlogRow[]>`
+        select
+          b.id,
+          b.created_at as "createdAt",
           b.author_id as "posterId",
           p.name as "posterName",
           b.title,
@@ -41,17 +58,12 @@ export class PostgresBlogReader implements BlogReader {
           on p.user_id = b.author_id
         order by b.created_at desc, b.id desc
         limit ${params.limit}
-        offset ${params.offset}
-      `,
-      this.database.sql<BlogCountRow[]>`
-        select count(*)::int as "totalCount"
-        from blogs
-      `,
-    ]);
+      `;
 
     return {
       items: rows.map((row) => ({
         id: row.id,
+        createdAt: row.createdAt,
         poster: {
           id: row.posterId,
           name: row.posterName,
@@ -61,7 +73,6 @@ export class PostgresBlogReader implements BlogReader {
         imagePath: `/blogs/${row.id}/image`,
         topics: row.topics,
       })),
-      totalCount: countRows[0]?.totalCount ?? 0,
     };
   }
 
@@ -85,17 +96,14 @@ export class PostgresBlogReader implements BlogReader {
   }
 }
 
-type BlogPageRow = {
+type BlogRow = {
   id: string;
+  createdAt: Date;
   posterId: string;
   posterName: string;
   title: string;
   content: string;
   topics: string[];
-};
-
-type BlogCountRow = {
-  totalCount: number;
 };
 
 type BlogImageRow = {

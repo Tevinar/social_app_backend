@@ -3,21 +3,21 @@ import { UseCase } from '../../../../core/contracts/use-case';
 import { BLOG_READER, type BlogReader } from '../ports/blog-reader';
 import { EnvVariable } from '../../../../core/config/env-variable';
 import { ConfigService } from '@nestjs/config';
-import { Pagination } from '../../../../core/pagination/pagination';
+import { BlogCursorPagination } from '../blog-cursor/blog-cursor';
 
 /**
- * Application use case responsible for listing blog posts by page.
+ * Application use case responsible for listing recent blog slices.
  */
 @Injectable()
-export class ListBlogsByPageUseCase implements UseCase<
-  ListBlogsByPageParams,
-  PaginatedBlogs
+export class ListBlogsUseCase implements UseCase<
+  ListBlogsParams,
+  ListedBlogsSlice
 > {
   /**
-   * Receives the capabilities required to read blog pages and build public
+   * Receives the capabilities required to read blog slices and build public
    * image URLs.
    *
-   * @param blogReader Reads paginated blog records from persistence.
+   * @param blogReader Reads recent blog records from persistence.
    * @param configService Reads runtime configuration values.
    */
   constructor(
@@ -27,18 +27,23 @@ export class ListBlogsByPageUseCase implements UseCase<
   ) {}
 
   /**
-   * Returns one page of blogs ordered by recency.
+   * Returns one cursor-based slice of blogs ordered by recency.
    *
-   * @param params Requested page number and page size.
-   * @returns Paginated blog data ready for presentation.
+   * @param params Requested cursor and slice size.
+   * @returns Blog slice data ready for presentation.
    */
-  async execute(params: ListBlogsByPageParams): Promise<PaginatedBlogs> {
-    const pagination = Pagination.from(params.page, params.pageSize);
+  async execute(params: ListBlogsParams): Promise<ListedBlogsSlice> {
+    const pagination = BlogCursorPagination.from(params.limit, params.cursor);
 
-    const result = await this.blogReader.findRecentPage({
-      limit: pagination.pageSize,
-      offset: pagination.offset,
+    const result = await this.blogReader.findRecentSlice({
+      limit: pagination.limit,
+      ...(pagination.cursor ? { cursor: pagination.cursor } : {}),
     });
+
+    const lastItem = result.items.at(-1);
+    const nextCursor = lastItem
+      ? BlogCursorPagination.encodeCursor(lastItem.createdAt, lastItem.id)
+      : undefined;
 
     return {
       items: result.items.map((blogRecord) => ({
@@ -54,17 +59,14 @@ export class ListBlogsByPageUseCase implements UseCase<
         )}${blogRecord.imagePath}`,
         topics: blogRecord.topics,
       })),
-      page: params.page,
-      pageSize: params.pageSize,
-      totalCount: result.totalCount,
-      totalPages: Math.ceil(result.totalCount / params.pageSize),
+      ...(nextCursor ? { nextCursor } : {}),
     };
   }
 }
 
-export type ListBlogsByPageParams = {
-  page: number;
-  pageSize: number;
+export type ListBlogsParams = {
+  limit: number;
+  cursor?: string;
 };
 
 export type ListedBlog = {
@@ -79,10 +81,7 @@ export type ListedBlog = {
   topics: string[];
 };
 
-export type PaginatedBlogs = {
+export type ListedBlogsSlice = {
   items: ListedBlog[];
-  page: number;
-  pageSize: number;
-  totalCount: number;
-  totalPages: number;
+  nextCursor?: string;
 };

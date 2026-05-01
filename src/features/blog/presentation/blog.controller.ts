@@ -14,18 +14,22 @@ import {
   Param,
   Res,
   UseGuards,
+  Sse,
+  type MessageEvent,
 } from '@nestjs/common';
 import { type Response } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CreateBlogUseCase } from '../application/use-cases/create-blog';
 import { CreateBlogRequest } from './dto/create-blog-request';
 import { CreateBlogResponse } from './dto/create-blog-response';
-import { ListBlogsQuery } from './dto/list-blogs-query';
+import { ListBlogsCursorQuery } from './dto/list-blogs-query';
 import { ListBlogsResponse } from './dto/list-blogs-response';
-import { ListBlogsByPageUseCase } from '../application/use-cases/list-blogs-by-page';
+import { ListBlogsUseCase } from '../application/use-cases/list-blogs';
 import { GetBlogImageUseCase } from '../application/use-cases/get-blog-image-use-case';
 import { AccessTokenGuard } from '../../auth/presentation/guards/access-tokens';
 import { AuthenticatedUser } from '../../auth/presentation/decorators/authenticated-user';
+import { Observable, map } from 'rxjs';
+import { SubscribeToBlogFeedUseCase } from '../application/use-cases/subscribe-to-blog-feed-use-case';
 
 /**
  * HTTP controller exposing blog endpoints.
@@ -46,13 +50,16 @@ export class BlogController {
    * Receives the blog use cases used by the controller actions.
    *
    * @param createBlog Blog application service for blog creation.
-   * @param listBlogsByPage Blog application service for listing blogs by page.
+   * @param listBlogs Blog application service for listing blog slices.
    * @param getBlogImage Blog application service for resolving blog image redirects.
+   * @param subscribeToBlogFeed Blog application service for opening the live
+   * blog feed event stream.
    */
   constructor(
     private readonly createBlog: CreateBlogUseCase,
-    private readonly listBlogsByPage: ListBlogsByPageUseCase,
+    private readonly listBlogs: ListBlogsUseCase,
     private readonly getBlogImage: GetBlogImageUseCase,
+    private readonly subscribeToBlogFeed: SubscribeToBlogFeedUseCase,
   ) {}
 
   /**
@@ -92,20 +99,20 @@ export class BlogController {
   }
 
   /**
-   * Returns one page of blogs for the submitted pagination query.
+   * Returns one cursor-based slice of blogs for the submitted query.
    *
-   * @param query Validated pagination query string.
-   * @returns HTTP response DTO containing the requested page of blogs.
+   * @param query Validated cursor-pagination query string.
+   * @returns HTTP response DTO containing the requested blog slice.
    */
   @Get()
   @HttpCode(HttpStatus.OK)
-  async list(@Query() query: ListBlogsQuery): Promise<ListBlogsResponse> {
-    const page = await this.listBlogsByPage.execute({
-      page: query.page,
-      pageSize: query.pageSize,
+  async list(@Query() query: ListBlogsCursorQuery): Promise<ListBlogsResponse> {
+    const slice = await this.listBlogs.execute({
+      limit: query.limit,
+      ...(query.cursor ? { cursor: query.cursor } : {}),
     });
 
-    return ListBlogsResponse.fromPaginatedBlogs(page);
+    return ListBlogsResponse.fromListedBlogsSlice(slice);
   }
 
   /**
@@ -121,5 +128,21 @@ export class BlogController {
   ): Promise<void> {
     const result = await this.getBlogImage.execute({ blogId });
     response.redirect(HttpStatus.TEMPORARY_REDIRECT, result.signedUrl);
+  }
+
+  /**
+   * Opens a server-sent event stream that notifies clients when the blog feed
+   * has newer content available.
+   *
+   * @returns Observable SSE stream of blog feed events.
+   */
+  @Sse('events')
+  stream(): Observable<MessageEvent> {
+    return this.subscribeToBlogFeed.execute().pipe(
+      map((event) => ({
+        type: event.type,
+        data: event,
+      })),
+    );
   }
 }

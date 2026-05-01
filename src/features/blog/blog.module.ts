@@ -10,7 +10,7 @@ import { GcsBlogImageStorage } from './infrastructure/storage/gcs-blog-image-sto
 import { BLOG_READER } from './application/ports/blog-reader';
 import { PostgresBlogReader } from './infrastructure/persistence/postgres-blog-reader';
 import { BlogController } from './presentation/blog.controller';
-import { ListBlogsByPageUseCase } from './application/use-cases/list-blogs-by-page';
+import { ListBlogsUseCase } from './application/use-cases/list-blogs';
 import { GetBlogImageUseCase } from './application/use-cases/get-blog-image-use-case';
 import { GcsBlogImageUrlSigner } from './infrastructure/storage/gcs-blog-image-url-signer';
 import { BLOG_IMAGE_URL_SIGNER } from './application/ports/blog-image-url-signer';
@@ -18,6 +18,8 @@ import { ConfigService } from '@nestjs/config';
 import { EnvVariable } from '../../core/config/env-variable';
 import { LocalBlogImageUrlSigner } from './infrastructure/storage/local-blog-image-url-signer';
 import { Environment } from '../../core/config/environment';
+import { InMemoryBlogFeedEventBus } from './infrastructure/events/in-memory-blog-feed-event-bus';
+import { BLOG_FEED_EVENT_BUS } from './application/ports/blog-feed-event-bus';
 
 /**
  * Feature module that wires blog creation into Nest's DI graph.
@@ -27,7 +29,7 @@ import { Environment } from '../../core/config/environment';
   controllers: [BlogController],
   providers: [
     CreateBlogUseCase,
-    ListBlogsByPageUseCase,
+    ListBlogsUseCase,
     GetBlogImageUseCase,
     GcsBlogImageUrlSigner, // Must be provided directly to be conditionally injected by the factory.
     LocalBlogImageUrlSigner, // Must be provided directly to be conditionally injected by the factory.
@@ -59,6 +61,10 @@ import { Environment } from '../../core/config/environment';
           ? localSigner
           : gcsSigner;
       },
+    },
+    {
+      provide: BLOG_FEED_EVENT_BUS,
+      useClass: InMemoryBlogFeedEventBus,
     },
   ],
 })

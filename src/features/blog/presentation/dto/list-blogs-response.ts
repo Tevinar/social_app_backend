@@ -1,4 +1,4 @@
-import { type PaginatedBlogs } from '../../application/use-cases/list-blogs-by-page';
+import { type ListedBlogsSlice } from '../../application/use-cases/list-blogs';
 
 /**
  * One blog item returned by the list-blogs endpoint.
@@ -16,24 +16,21 @@ class ListedBlogResponse {
 }
 
 /**
- * HTTP response body returned by the paginated list-blogs endpoint.
+ * HTTP response body returned by the cursor-based list-blogs endpoint.
  */
 export class ListBlogsResponse {
   items!: ListedBlogResponse[];
-  page!: number;
-  pageSize!: number;
-  totalCount!: number;
-  totalPages!: number;
+  nextCursor?: string;
 
   /**
-   * Builds the HTTP response DTO from the application-layer page result.
+   * Builds the HTTP response DTO from the application-layer slice result.
    *
-   * @param page Paginated blog result returned by the use case.
+   * @param slice Cursor-based blog result returned by the use case.
    * @returns Response DTO ready for JSON serialization.
    */
-  static fromPaginatedBlogs(page: PaginatedBlogs): ListBlogsResponse {
+  static fromListedBlogsSlice(slice: ListedBlogsSlice): ListBlogsResponse {
     return {
-      items: page.items.map((blog) => ({
+      items: slice.items.map((blog) => ({
         id: blog.id,
         poster: blog.poster,
         title: blog.title,
@@ -41,10 +38,7 @@ export class ListBlogsResponse {
         imageUrl: blog.imageUrl,
         topics: blog.topics,
       })),
-      page: page.page,
-      pageSize: page.pageSize,
-      totalCount: page.totalCount,
-      totalPages: page.totalPages,
+      ...(slice.nextCursor ? { nextCursor: slice.nextCursor } : {}),
     };
   }
 }

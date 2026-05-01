@@ -1,23 +1,29 @@
 import { Type } from 'class-transformer';
-import { IsInt, Max, Min } from 'class-validator';
+import { IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
 import {
-  DEFAULT_PAGE,
-  DEFAULT_PAGE_SIZE,
-  MAX_PAGE_SIZE,
-} from '../../../../core/pagination/pagination.constants';
+  MIN_LIMIT,
+  MAX_LIMIT,
+  DEFAULT_LIMIT,
+} from '../../application/blog-cursor/blog-cursor.constants';
 
 /**
  * HTTP query string accepted by the list-blogs endpoint.
  */
-export class ListBlogsQuery {
+export class ListBlogsCursorQuery {
+  /**
+   * Maximum number of blogs to return in the current slice.
+   */
   @Type(() => Number)
   @IsInt()
-  @Min(1)
-  page = DEFAULT_PAGE;
+  @Min(MIN_LIMIT)
+  @Max(MAX_LIMIT)
+  limit = DEFAULT_LIMIT;
 
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  @Max(MAX_PAGE_SIZE)
-  pageSize = DEFAULT_PAGE_SIZE;
+  /**
+   * Opaque cursor returned by the previous list response.
+   * Clients must pass it back unchanged to fetch the next slice.
+   */
+  @IsOptional()
+  @IsString()
+  cursor?: string;
 }
