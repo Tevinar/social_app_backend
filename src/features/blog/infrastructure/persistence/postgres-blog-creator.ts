@@ -1,29 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '../../../../core/database/database.service';
 import {
-  CreatedBlog,
   type BlogCreator,
   type CreateBlogRecordParams,
 } from '../../application/ports/blog-creator';
-
-/**
- * PostgreSQL object identifier for the `text` type.
- */
-const POSTGRES_TEXT_OID = 25;
-
-/**
- * Row shape returned by the blog creation query.
- */
-type BlogRow = {
-  id: string;
-  posterId: string;
-  title: string;
-  content: string;
-  imageKey: string;
-  topics: string[];
-  createdAt: Date;
-  updatedAt: Date;
-};
+import { BlogRow, mapBlogRowToRecord } from './blog-row';
+import { BlogRecord } from '../../application/records/blog';
 
 /**
  * Postgres-backed implementation of the blog creator port.
@@ -44,40 +26,53 @@ export class PostgresBlogCreator implements BlogCreator {
    * @param params Blog data to persist.
    * @returns The outcome of the blog creation attempt.
    */
-  async create(params: CreateBlogRecordParams): Promise<CreatedBlog> {
+  async create(params: CreateBlogRecordParams): Promise<BlogRecord> {
     const rows = await this.database.sql<BlogRow[]>`
-        insert into blogs (
-          id,
-          author_id,
-          title,
-          topics,
-          image_key,
-          content
-        )
-        values (
-          ${params.id},
-          ${params.posterId},
-          ${params.title},
-          ${this.database.sql.array(params.topics, POSTGRES_TEXT_OID)}::text[],
-          ${params.imageKey},
-          ${params.content}
-        )
-        returning
-          id,
-          author_id as "posterId",
-          title,
-          content,
-          image_key as "imageKey",
-          topics,
-          created_at as "createdAt",
-          updated_at as "updatedAt"
-      `;
-    const blog = rows[0];
+    with inserted as (
+      insert into blogs (
+        id,
+        author_id,
+        title,
+        content,
+        image_key,
+        topics
+      )
+      values (
+        ${params.id},
+        ${params.posterId},
+        ${params.title},
+        ${params.content},
+        ${params.imageKey},
+        ${params.topics}
+      )
+      returning
+        id,
+        author_id,
+        title,
+        content,
+        topics,
+        created_at,
+        updated_at
+    )
+    select
+      i.id,
+      i.author_id as "posterId",
+      p.name as "posterName",
+      i.title,
+      i.content,
+      i.topics,
+      i.created_at as "createdAt",
+      i.updated_at as "updatedAt"
+    from inserted i
+    join profiles p on p.user_id = i.author_id
+  `;
 
-    if (!blog) {
-      throw new Error('Blog creation did not return a created row');
+    const row = rows[0];
+
+    if (!row) {
+      throw new Error('Blog creation failed');
     }
 
-    return blog;
+    return mapBlogRowToRecord(row);
   }
 }

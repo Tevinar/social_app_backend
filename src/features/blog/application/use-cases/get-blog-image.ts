@@ -5,6 +5,7 @@ import {
   type BlogImageUrlSigner,
 } from '../ports/blog-image-url-signer';
 import { BLOG_READER, type BlogReader } from '../ports/blog-reader';
+import { BlogNotFoundError } from '../errors/blog-not-found';
 
 /**
  * Application use case responsible for granting temporary access to one blog
@@ -65,15 +66,3 @@ export type GetBlogImageParams = {
 export type BlogImageRedirect = {
   signedUrl: string;
 };
-
-/**
- * Signals that the requested blog does not exist.
- */
-export class BlogNotFoundError extends Error {
-  /**
-   * Creates a stable not-found error for missing blogs.
-   */
-  constructor() {
-    super('Blog not found');
-  }
-}

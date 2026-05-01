@@ -4,6 +4,7 @@ import { BLOG_READER, type BlogReader } from '../ports/blog-reader';
 import { EnvVariable } from '../../../../core/config/env-variable';
 import { ConfigService } from '@nestjs/config';
 import { BlogCursorPagination } from '../blog-cursor/blog-cursor';
+import { Blog } from '../records/blog';
 
 /**
  * Application use case responsible for listing recent blog slices.
@@ -58,6 +59,8 @@ export class ListBlogsUseCase implements UseCase<
           EnvVariable.ApiBaseUrl,
         )}${blogRecord.imagePath}`,
         topics: blogRecord.topics,
+        createdAt: blogRecord.createdAt,
+        updatedAt: blogRecord.updatedAt,
       })),
       ...(nextCursor ? { nextCursor } : {}),
     };
@@ -69,19 +72,7 @@ export type ListBlogsParams = {
   cursor?: string;
 };
 
-export type ListedBlog = {
-  id: string;
-  poster: {
-    id: string;
-    name: string;
-  };
-  title: string;
-  content: string;
-  imageUrl: string;
-  topics: string[];
-};
-
 export type ListedBlogsSlice = {
-  items: ListedBlog[];
+  items: Blog[];
   nextCursor?: string;
 };

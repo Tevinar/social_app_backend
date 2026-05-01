@@ -1,21 +1,18 @@
-import { type CreatedBlog } from '../../application/ports/blog-creator';
+import { Blog } from '../../application/records/blog';
 
 /**
- * HTTP response body returned after a successful blog creation.
- *
- * The DTO exposes timestamps as ISO strings so the transport shape matches the
- * JSON representation sent over HTTP.
+ * HTTP response body representing one blog.
  */
-export class CreateBlogResponse {
+export class BlogResponse {
   /**
    * Stable blog identifier.
    */
   id!: string;
 
-  /**
-   * Stable identifier of the blog author.
-   */
-  posterId!: string;
+  poster!: {
+    id: string;
+    name: string;
+  };
 
   /**
    * Created blog title.
@@ -28,9 +25,9 @@ export class CreateBlogResponse {
   content!: string;
 
   /**
-   * Storage key of the uploaded blog image.
+   * URL of the uploaded blog image.
    */
-  imageKey!: string;
+  imageUrl!: string;
 
   /**
    * Topics associated with the created blog.
@@ -48,18 +45,18 @@ export class CreateBlogResponse {
   updatedAt!: string;
 
   /**
-   * Builds the HTTP response DTO from the application-layer blog projection.
+   * Builds the response DTO from one application blog record.
    *
-   * @param blog Created blog returned by the use case.
+   * @param blog Application blog record.
    * @returns Response DTO ready for JSON serialization.
    */
-  static fromCreatedBlog(blog: CreatedBlog): CreateBlogResponse {
+  static fromBlog(blog: Blog): BlogResponse {
     return {
       id: blog.id,
-      posterId: blog.posterId,
+      poster: blog.poster,
       title: blog.title,
       content: blog.content,
-      imageKey: blog.imageKey,
+      imageUrl: blog.imageUrl,
       topics: blog.topics,
       createdAt: blog.createdAt.toISOString(),
       updatedAt: blog.updatedAt.toISOString(),

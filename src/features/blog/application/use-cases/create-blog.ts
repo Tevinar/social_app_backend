@@ -5,11 +5,7 @@ import { BlogContent } from '../../domain/value-objects/blog-content';
 import { BlogImage } from '../../domain/value-objects/blog-image';
 import { BlogTitle } from '../../domain/value-objects/blog-title';
 import { BlogTopic } from '../../domain/value-objects/blog-topic';
-import {
-  BLOG_CREATOR,
-  type BlogCreator,
-  type CreatedBlog,
-} from '../ports/blog-creator';
+import { BLOG_CREATOR, type BlogCreator } from '../ports/blog-creator';
 import {
   BLOG_IMAGE_STORAGE,
   type BlogImageStorage,
@@ -18,16 +14,16 @@ import {
   BLOG_FEED_EVENT_BUS,
   type BlogFeedEventBus,
 } from '../ports/blog-feed-event-bus';
+import { Blog } from '../records/blog';
+import { ConfigService } from '@nestjs/config';
+import { EnvVariable } from '../../../../core/config/env-variable';
 
 /**
  * Application use case responsible for creating a blog post and storing its
  * image object.
  */
 @Injectable()
-export class CreateBlogUseCase implements UseCase<
-  CreateBlogParams,
-  CreatedBlog
-> {
+export class CreateBlogUseCase implements UseCase<CreateBlogParams, Blog> {
   /**
    * Receives the capabilities required to authenticate the caller, store a
    * blog image, and persist the blog record.
@@ -35,6 +31,7 @@ export class CreateBlogUseCase implements UseCase<
    * @param blogCreator Persists the blog record.
    * @param blogImageStorage Stores and removes blog image objects.
    * @param blogFeedEventBus Publishes feed-level blog creation signals.
+   * @param configService Reads runtime configuration values.
    */
   constructor(
     @Inject(BLOG_CREATOR)
@@ -43,6 +40,7 @@ export class CreateBlogUseCase implements UseCase<
     private readonly blogImageStorage: BlogImageStorage,
     @Inject(BLOG_FEED_EVENT_BUS)
     private readonly blogFeedEventBus: BlogFeedEventBus,
+    private readonly configService: ConfigService,
   ) {}
 
   /**
@@ -63,7 +61,7 @@ export class CreateBlogUseCase implements UseCase<
    * @throws {BlogPosterNotFoundError} Thrown when no user owns the token's
    * authenticated identifier.
    */
-  async execute(params: CreateBlogParams): Promise<CreatedBlog> {
+  async execute(params: CreateBlogParams): Promise<Blog> {
     const blogId = randomUUID();
     const title = BlogTitle.from(params.title);
     const content = BlogContent.from(params.content);
@@ -90,7 +88,18 @@ export class CreateBlogUseCase implements UseCase<
         blogId: blog.id,
       });
 
-      return blog;
+      return {
+        id: blog.id,
+        poster: blog.poster,
+        title: blog.title,
+        content: blog.content,
+        imageUrl: `${this.configService.getOrThrow<string>(
+          EnvVariable.ApiBaseUrl,
+        )}${blog.imagePath}`,
+        topics: blog.topics,
+        createdAt: blog.createdAt,
+        updatedAt: blog.updatedAt,
+      };
     } catch (error: unknown) {
       await this.blogImageStorage.delete(imageKey);
       throw error;

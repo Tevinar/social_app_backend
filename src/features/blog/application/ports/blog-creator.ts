@@ -1,3 +1,5 @@
+import { BlogRecord } from '../records/blog';
+
 export const BLOG_CREATOR = Symbol('BLOG_CREATOR');
 
 /**
@@ -10,7 +12,7 @@ export interface BlogCreator {
    * @param params Blog data to store.
    * @returns The outcome of the creation attempt.
    */
-  create(params: CreateBlogRecordParams): Promise<CreatedBlog>;
+  create(params: CreateBlogRecordParams): Promise<BlogRecord>;
 }
 
 /**
@@ -23,20 +25,6 @@ export type CreateBlogRecordParams = {
   content: string;
   imageKey: string;
   topics: string[];
-};
-
-/**
- * Successful blog projection returned after creation.
- */
-export type CreatedBlog = {
-  id: string;
-  posterId: string;
-  title: string;
-  content: string;
-  imageKey: string;
-  topics: string[];
-  createdAt: Date;
-  updatedAt: Date;
 };
 
 /**

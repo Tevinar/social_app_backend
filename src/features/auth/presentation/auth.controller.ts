@@ -59,7 +59,6 @@ export class AuthController {
    * @returns HTTP response DTO containing the created auth session data.
    */
   @Post('sign-up')
-  @HttpCode(HttpStatus.CREATED)
   async signUp(@Body() body: SignUpRequest): Promise<SignUpResponse> {
     const session = await this.signUpWithEmailPassword.execute({
       email: body.email,
@@ -81,7 +80,6 @@ export class AuthController {
    * @returns HTTP response DTO containing the issued auth session data.
    */
   @Post('sign-in')
-  @HttpCode(HttpStatus.OK)
   async signIn(@Body() body: SignInRequest): Promise<SignInResponse> {
     const session = await this.signInWithEmailPassword.execute({
       email: body.email,

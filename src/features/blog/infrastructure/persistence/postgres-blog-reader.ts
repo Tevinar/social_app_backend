@@ -6,6 +6,8 @@ import {
   type FindRecentBlogSliceParams,
   type RecentBlogsSlice,
 } from '../../application/ports/blog-reader';
+import { BlogRow, mapBlogRowToRecord } from './blog-row';
+import { BlogRecord } from '../../application/records/blog';
 /**
  * Postgres-backed implementation of the blog reader port.
  */
@@ -36,7 +38,8 @@ export class PostgresBlogReader implements BlogReader {
           p.name as "posterName",
           b.title,
           b.content,
-          b.topics
+          b.topics,
+          b.updated_at as "updatedAt"
         from blogs b
         join profiles p
           on p.user_id = b.author_id
@@ -52,7 +55,8 @@ export class PostgresBlogReader implements BlogReader {
           p.name as "posterName",
           b.title,
           b.content,
-          b.topics
+          b.topics,
+          b.updated_at as "updatedAt"
         from blogs b
         join profiles p
           on p.user_id = b.author_id
@@ -64,6 +68,7 @@ export class PostgresBlogReader implements BlogReader {
       items: rows.map((row) => ({
         id: row.id,
         createdAt: row.createdAt,
+        updatedAt: row.updatedAt,
         poster: {
           id: row.posterId,
           name: row.posterName,
@@ -94,17 +99,37 @@ export class PostgresBlogReader implements BlogReader {
 
     return rows[0] ?? null;
   }
-}
 
-type BlogRow = {
-  id: string;
-  createdAt: Date;
-  posterId: string;
-  posterName: string;
-  title: string;
-  content: string;
-  topics: string[];
-};
+  /**
+   * Reads one blog by its stable identifier.
+   *
+   * @param blogId Stable blog identifier.
+   * @returns Blog record when found, otherwise null.
+   */
+  async findById(blogId: string): Promise<BlogRecord | null> {
+    const rows = await this.database.sql<BlogRow[]>`
+    select
+      b.id,
+      b.author_id as "posterId",
+      p.name as "posterName",
+      b.title,
+      b.content,
+      b.topics,
+      b.created_at as "createdAt",
+      b.updated_at as "updatedAt"
+    from blogs b
+    join profiles p on p.user_id = b.author_id
+    where b.id = ${blogId}
+    limit 1`;
+    const row = rows[0];
+
+    if (!row) {
+      return null;
+    }
+
+    return mapBlogRowToRecord(row);
+  }
+}
 
 type BlogImageRow = {
   blogId: string;

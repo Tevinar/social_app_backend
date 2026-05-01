@@ -1,4 +1,5 @@
 import { type BlogCursor } from '../blog-cursor/blog-cursor';
+import { BlogRecord } from '../records/blog';
 
 export const BLOG_READER = Symbol('BLOG_READER');
 
@@ -21,6 +22,14 @@ export interface BlogReader {
    * @returns Blog image record when found, otherwise null.
    */
   findImageByBlogId(blogId: string): Promise<BlogImageRecord | null>;
+
+  /**
+   * Reads one blog by its stable identifier.
+   *
+   * @param blogId Stable blog identifier.
+   * @returns Blog record when found, otherwise null.
+   */
+  findById(blogId: string): Promise<BlogRecord | null>;
 }
 
 export type FindRecentBlogSliceParams = {
@@ -28,21 +37,8 @@ export type FindRecentBlogSliceParams = {
   cursor?: BlogCursor;
 };
 
-export type ListedBlogRecord = {
-  id: string;
-  createdAt: Date;
-  poster: {
-    id: string;
-    name: string;
-  };
-  title: string;
-  content: string;
-  imagePath: string;
-  topics: string[];
-};
-
 export type RecentBlogsSlice = {
-  items: ListedBlogRecord[];
+  items: BlogRecord[];
 };
 
 export type BlogImageRecord = {
