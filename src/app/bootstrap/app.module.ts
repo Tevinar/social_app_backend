@@ -11,6 +11,7 @@ import { LoggerModule } from 'nestjs-pino';
 import { Environment } from '../../core/config/environment';
 import { LogLevel } from '../../core/config/log-level';
 import { EnvVariable } from '../../core/config/env-variable';
+import { ChatModule } from '../../features/chat/chat.module';
 /**
  * Root application module that composes the shared infrastructure modules and
  * global application-level providers.
@@ -64,6 +65,7 @@ import { EnvVariable } from '../../core/config/env-variable';
     StorageModule,
     AuthModule,
     BlogModule,
+    ChatModule,
   ],
   controllers: [],
   providers: [

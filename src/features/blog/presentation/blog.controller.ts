@@ -127,7 +127,7 @@ export class BlogController {
    * @param response Express response object used to send the redirect.
    */
   @Get(':blogId/image')
-  async getBlogImageByBlogId(
+  async getBlogImage(
     @Param('blogId') blogId: string,
     @Res() response: Response,
   ): Promise<void> {
