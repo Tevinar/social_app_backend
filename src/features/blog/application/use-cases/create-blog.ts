@@ -14,7 +14,7 @@ import {
   BLOG_FEED_EVENT_BUS,
   type BlogFeedEventBus,
 } from '../ports/blog-feed-event-bus';
-import { Blog } from '../records/blog';
+import { BlogReadModel } from '../models/blog.model';
 import { ConfigService } from '@nestjs/config';
 import { EnvVariable } from '../../../../core/config/env-variable';
 
@@ -23,7 +23,10 @@ import { EnvVariable } from '../../../../core/config/env-variable';
  * image object.
  */
 @Injectable()
-export class CreateBlogUseCase implements UseCase<CreateBlogParams, Blog> {
+export class CreateBlogUseCase implements UseCase<
+  CreateBlogParams,
+  BlogReadModel
+> {
   /**
    * Receives the capabilities required to authenticate the caller, store a
    * blog image, and persist the blog record.
@@ -61,7 +64,7 @@ export class CreateBlogUseCase implements UseCase<CreateBlogParams, Blog> {
    * @throws {BlogPosterNotFoundError} Thrown when no user owns the token's
    * authenticated identifier.
    */
-  async execute(params: CreateBlogParams): Promise<Blog> {
+  async execute(params: CreateBlogParams): Promise<BlogReadModel> {
     const blogId = randomUUID();
     const title = BlogTitle.from(params.title);
     const content = BlogContent.from(params.content);

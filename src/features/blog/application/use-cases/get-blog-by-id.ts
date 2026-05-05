@@ -3,14 +3,14 @@ import { ConfigService } from '@nestjs/config';
 import { EnvVariable } from '../../../../core/config/env-variable';
 import { UseCase } from '../../../../core/contracts/use-case';
 import { BLOG_READER, type BlogReader } from '../ports/blog-reader';
-import { Blog } from '../records/blog';
+import { BlogReadModel } from '../models/blog.model';
 import { BlogNotFoundError } from '../errors/blog-not-found';
 
 /**
  * Application use case responsible for retrieving one blog by id.
  */
 @Injectable()
-export class GetBlogByIdUseCase implements UseCase<string, Blog> {
+export class GetBlogByIdUseCase implements UseCase<string, BlogReadModel> {
   /**
    * Receives the dependencies required to read one blog and build its public
    * image URL.
@@ -31,7 +31,7 @@ export class GetBlogByIdUseCase implements UseCase<string, Blog> {
    * @returns Public blog representation.
    * @throws {BlogNotFoundError} Thrown when the requested blog does not exist.
    */
-  async execute(blogId: string): Promise<Blog> {
+  async execute(blogId: string): Promise<BlogReadModel> {
     const blog = await this.blogReader.findById(blogId);
 
     if (!blog) {

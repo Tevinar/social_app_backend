@@ -1,5 +1,5 @@
 import { type BlogCursor } from '../blog-cursor/blog-cursor';
-import { BlogRecord } from '../records/blog';
+import { BlogRecord } from '../models/blog.model';
 
 export const BLOG_READER = Symbol('BLOG_READER');
 

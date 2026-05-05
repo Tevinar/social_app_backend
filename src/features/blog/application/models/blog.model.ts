@@ -12,7 +12,7 @@ export type BlogRecord = {
   updatedAt: Date;
 };
 
-export type Blog = {
+export type BlogReadModel = {
   id: string;
   poster: {
     id: string;

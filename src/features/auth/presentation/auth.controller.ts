@@ -11,13 +11,12 @@ import { SignInWithEmailPasswordUseCase } from '../application/use-cases/sign-in
 import { RefreshSessionUseCase } from '../application/use-cases/refresh-session';
 import { SignOutCurrentSessionUseCase } from '../application/use-cases/sign-out-current-session';
 import { SignUpWithEmailPasswordUseCase } from '../application/use-cases/sign-up-with-email-password';
-import { RefreshSessionRequest } from './dto/refresh-session-request';
-import { RefreshSessionResponse } from './dto/refresh-session-response';
-import { SignInRequest } from './dto/sign-in-request';
-import { SignInResponse } from './dto/sign-in-response';
-import { SignOutCurrentSessionRequest } from './dto/sign-out-current-session-request';
-import { SignUpRequest } from './dto/sign-up-request';
-import { SignUpResponse } from './dto/sign-up-response';
+import { RefreshSessionRequest } from './dto/requests/refresh-session.request';
+import { SignInRequest } from './dto/requests/sign-in.request';
+import { SignOutCurrentSessionRequest } from './dto/requests/sign-out-current-session.request';
+import { SignUpRequest } from './dto/requests/sign-up.request';
+import { AuthResponse } from './dto/responses/auth.response';
+import { RefreshSessionResponse } from './dto/responses/refresh-session.response';
 
 /**
  * HTTP controller exposing authentication endpoints.
@@ -59,7 +58,7 @@ export class AuthController {
    * @returns HTTP response DTO containing the created auth session data.
    */
   @Post('sign-up')
-  async signUp(@Body() body: SignUpRequest): Promise<SignUpResponse> {
+  async signUp(@Body() body: SignUpRequest): Promise<AuthResponse> {
     const session = await this.signUpWithEmailPassword.execute({
       email: body.email,
       password: body.password,
@@ -67,7 +66,7 @@ export class AuthController {
       deviceId: body.deviceId,
     });
 
-    return SignUpResponse.fromSignUpResult(session);
+    return AuthResponse.fromAuthModel(session);
   }
 
   /**
@@ -80,14 +79,14 @@ export class AuthController {
    * @returns HTTP response DTO containing the issued auth session data.
    */
   @Post('sign-in')
-  async signIn(@Body() body: SignInRequest): Promise<SignInResponse> {
+  async signIn(@Body() body: SignInRequest): Promise<AuthResponse> {
     const session = await this.signInWithEmailPassword.execute({
       email: body.email,
       password: body.password,
       deviceId: body.deviceId,
     });
 
-    return SignInResponse.fromAuthSession(session);
+    return AuthResponse.fromAuthModel(session);
   }
 
   /**

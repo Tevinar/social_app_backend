@@ -4,7 +4,7 @@ import { BLOG_READER, type BlogReader } from '../ports/blog-reader';
 import { EnvVariable } from '../../../../core/config/env-variable';
 import { ConfigService } from '@nestjs/config';
 import { BlogCursorPagination } from '../blog-cursor/blog-cursor';
-import { Blog } from '../records/blog';
+import { BlogReadModel } from '../models/blog.model';
 
 /**
  * Application use case responsible for listing recent blog slices.
@@ -73,6 +73,6 @@ export type ListBlogsParams = {
 };
 
 export type ListedBlogsSlice = {
-  items: Blog[];
+  items: BlogReadModel[];
   nextCursor?: string;
 };

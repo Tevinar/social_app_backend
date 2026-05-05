@@ -21,17 +21,17 @@ import {
 import { type Response } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CreateBlogUseCase } from '../application/use-cases/create-blog';
-import { CreateBlogRequest } from './dto/create-blog-request';
-import { ListBlogsCursorQuery } from './dto/list-blogs-query';
-import { ListBlogsResponse } from './dto/list-blogs-response';
+import { CreateBlogRequest } from './dto/requests/create-blog.request';
 import { ListBlogsUseCase } from '../application/use-cases/list-blogs';
 import { GetBlogImageUseCase } from '../application/use-cases/get-blog-image';
 import { AccessTokenGuard } from '../../auth/presentation/guards/access-tokens';
 import { AuthenticatedUser } from '../../auth/presentation/decorators/authenticated-user';
 import { Observable, map } from 'rxjs';
 import { SubscribeToBlogFeedUseCase } from '../application/use-cases/subscribe-to-blog-feed-use-case';
-import { BlogResponse } from './dto/blog-response';
 import { GetBlogByIdUseCase } from '../application/use-cases/get-blog-by-id';
+import { ListBlogsCursorRequest } from './dto/requests/list-blogs.request';
+import { BlogResponse } from './dto/responses/blog.response';
+import { ListBlogsResponse } from './dto/responses/list-blogs.response';
 
 /**
  * HTTP controller exposing blog endpoints.
@@ -109,7 +109,9 @@ export class BlogController {
    * @returns HTTP response DTO containing the requested blog slice.
    */
   @Get()
-  async list(@Query() query: ListBlogsCursorQuery): Promise<ListBlogsResponse> {
+  async list(
+    @Query() query: ListBlogsCursorRequest,
+  ): Promise<ListBlogsResponse> {
     const slice = await this.listBlogs.execute({
       limit: query.limit,
       ...(query.cursor ? { cursor: query.cursor } : {}),

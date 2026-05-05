@@ -1,6 +1,6 @@
 import { IsEmail, IsString, IsUUID, Matches, MinLength } from 'class-validator';
-import { NEW_PASSWORD_MIN_LENGTH } from '../../domain/value-objects/new-password';
-import { NAME_MIN_NON_BLANK_CHARACTERS_REGEX } from '../../domain/value-objects/name';
+import { NEW_PASSWORD_MIN_LENGTH } from '../../../domain/value-objects/new-password';
+import { NAME_MIN_NON_BLANK_CHARACTERS_REGEX } from '../../../domain/value-objects/name';
 
 /**
  * HTTP request body accepted by the sign-up endpoint.

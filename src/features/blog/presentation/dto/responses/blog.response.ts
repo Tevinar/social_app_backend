@@ -1,4 +1,4 @@
-import { Blog } from '../../application/records/blog';
+import { BlogReadModel } from '../../../application/models/blog.model';
 
 /**
  * HTTP response body representing one blog.
@@ -50,7 +50,7 @@ export class BlogResponse {
    * @param blog Application blog record.
    * @returns Response DTO ready for JSON serialization.
    */
-  static fromBlog(blog: Blog): BlogResponse {
+  static fromBlog(blog: BlogReadModel): BlogResponse {
     return {
       id: blog.id,
       poster: blog.poster,

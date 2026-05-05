@@ -4,12 +4,12 @@ import {
   MIN_LIMIT,
   MAX_LIMIT,
   DEFAULT_LIMIT,
-} from '../../application/blog-cursor/blog-cursor.constants';
+} from '../../../application/blog-cursor/blog-cursor.constants';
 
 /**
  * HTTP query string accepted by the list-blogs endpoint.
  */
-export class ListBlogsCursorQuery {
+export class ListBlogsCursorRequest {
   /**
    * Maximum number of blogs to return in the current slice.
    */

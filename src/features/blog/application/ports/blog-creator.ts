@@ -1,4 +1,4 @@
-import { BlogRecord } from '../records/blog';
+import { BlogRecord } from '../models/blog.model';
 
 export const BLOG_CREATOR = Symbol('BLOG_CREATOR');
 

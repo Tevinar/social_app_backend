@@ -19,6 +19,7 @@ import {
   CreateAuthRegistrationResult,
   type AuthRegistrationCreator,
 } from '../ports/identity/auth-registration-creator';
+import { AuthModel } from '../models/auth.model';
 
 /**
  * Signals that the submitted email address is already owned by another user.
@@ -49,7 +50,7 @@ export class EmailAlreadyInUseError extends Error {
 @Injectable()
 export class SignUpWithEmailPasswordUseCase implements UseCase<
   SignUpWithEmailPasswordParams,
-  SignUpResult
+  AuthModel
 > {
   /**
    * Receives the feature ports required to create a new auth user and
@@ -86,7 +87,7 @@ export class SignUpWithEmailPasswordUseCase implements UseCase<
    * @throws {EmailAlreadyInUseError} Thrown when another user already owns the
    * provided email address.
    */
-  async execute(params: SignUpWithEmailPasswordParams): Promise<SignUpResult> {
+  async execute(params: SignUpWithEmailPasswordParams): Promise<AuthModel> {
     const email = Email.from(params.email);
     const deviceId = DeviceId.from(params.deviceId);
     const name = Name.from(params.name);
@@ -149,19 +150,4 @@ export type SignUpWithEmailPasswordParams = {
   password: string;
   name: string;
   deviceId: string;
-};
-
-/**
- * Authenticated session payload returned immediately after sign-up.
- */
-export type SignUpResult = {
-  user: {
-    id: string;
-    email: string;
-    name: string;
-  };
-  accessToken: string;
-  refreshToken: string;
-  accessTokenExpiresAt: Date;
-  refreshTokenExpiresAt: Date;
 };

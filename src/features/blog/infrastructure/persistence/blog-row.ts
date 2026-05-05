@@ -1,4 +1,4 @@
-import { BlogRecord } from '../../application/records/blog';
+import { BlogRecord } from '../../application/models/blog.model';
 
 /**
  * Row shape returned by the blog reader's SQL queries.

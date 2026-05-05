@@ -1,5 +1,5 @@
-import { type ListedBlogsSlice } from '../../application/use-cases/list-blogs';
-import { BlogResponse } from './blog-response';
+import { type ListedBlogsSlice } from '../../../application/use-cases/list-blogs';
+import { BlogResponse } from './blog.response';
 
 /**
  * HTTP response body returned by the cursor-based list-blogs endpoint.

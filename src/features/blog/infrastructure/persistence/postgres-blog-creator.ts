@@ -5,7 +5,7 @@ import {
   type CreateBlogRecordParams,
 } from '../../application/ports/blog-creator';
 import { BlogRow, mapBlogRowToRecord } from './blog-row';
-import { BlogRecord } from '../../application/records/blog';
+import { BlogRecord } from '../../application/models/blog.model';
 
 /**
  * Postgres-backed implementation of the blog creator port.
