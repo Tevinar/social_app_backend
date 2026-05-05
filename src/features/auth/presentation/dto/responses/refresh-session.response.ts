@@ -1,4 +1,4 @@
-import { RefreshSessionResult } from '../../../application/use-cases/refresh-session';
+import { RefreshSessionResult } from '../../../application/use-cases/refresh-session.use-case';
 
 /**
  * HTTP response body returned after a successful session refresh.

@@ -6,20 +6,23 @@ import {
   REFRESH_SESSION_READER,
   type RefreshSessionReadModel,
   type RefreshSessionReader,
-} from '../ports/sessions/refresh-session-reader';
+} from '../ports/sessions/refresh-session-reader.port';
 import {
   REFRESH_SESSION_ROTATOR,
   type RefreshSessionRotator,
-} from '../ports/sessions/refresh-session-rotator';
+} from '../ports/sessions/refresh-session-rotator.port';
 import {
   TOKEN_CREATOR,
   type TokenCreator,
-} from '../ports/tokens/token-creator';
-import { TOKEN_HASHER, type TokenHasher } from '../ports/tokens/token-hasher';
+} from '../ports/tokens/token-creator.port';
+import {
+  TOKEN_HASHER,
+  type TokenHasher,
+} from '../ports/tokens/token-hasher.port';
 import {
   TOKEN_VERIFIER,
   type TokenVerifier,
-} from '../ports/tokens/token-verifier';
+} from '../ports/tokens/token-verifier.port';
 
 /**
  * Signals that the submitted refresh token cannot renew a session.

@@ -4,7 +4,7 @@ import {
   TOKEN_VERIFIER,
   type TokenClaims,
   type TokenVerifier,
-} from '../ports/tokens/token-verifier';
+} from '../ports/tokens/token-verifier.port';
 
 /**
  * Signals that the submitted access token is invalid.

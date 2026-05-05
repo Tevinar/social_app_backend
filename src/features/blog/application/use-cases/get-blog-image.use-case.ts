@@ -3,8 +3,8 @@ import { UseCase } from '../../../../core/contracts/use-case';
 import {
   BLOG_IMAGE_URL_SIGNER,
   type BlogImageUrlSigner,
-} from '../ports/blog-image-url-signer';
-import { BLOG_READER, type BlogReader } from '../ports/blog-reader';
+} from '../ports/blog-image-url-signer.port';
+import { BLOG_READER, type BlogReader } from '../ports/blog-reader.port';
 import { BlogNotFoundError } from '../errors/blog-not-found';
 
 /**

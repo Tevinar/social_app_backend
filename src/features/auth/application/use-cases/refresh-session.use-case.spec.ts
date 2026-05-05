@@ -1,16 +1,16 @@
 import { Logger } from '@nestjs/common';
-import type { RefreshSessionReader } from '../ports/sessions/refresh-session-reader';
-import type { RefreshSessionRotator } from '../ports/sessions/refresh-session-rotator';
-import type { TokenCreator } from '../ports/tokens/token-creator';
-import type { TokenHasher } from '../ports/tokens/token-hasher';
+import type { RefreshSessionReader } from '../ports/sessions/refresh-session-reader.port';
+import type { RefreshSessionRotator } from '../ports/sessions/refresh-session-rotator.port';
+import type { TokenCreator } from '../ports/tokens/token-creator.port';
+import type { TokenHasher } from '../ports/tokens/token-hasher.port';
 import type {
   TokenClaims,
   TokenVerifier,
-} from '../ports/tokens/token-verifier';
+} from '../ports/tokens/token-verifier.port';
 import {
   InvalidRefreshTokenError,
   RefreshSessionUseCase,
-} from './refresh-session';
+} from './refresh-session.use-case';
 
 describe('RefreshSessionUseCase', () => {
   const now = new Date('2026-01-01T00:00:00.000Z');

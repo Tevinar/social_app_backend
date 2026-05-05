@@ -4,7 +4,7 @@ import {
   BlogFeedEvent,
   BLOG_FEED_EVENT_BUS,
   type BlogFeedEventBus,
-} from '../ports/blog-feed-event-bus';
+} from '../ports/blog-feed-event-bus.port';
 import { StreamUseCase } from '../../../../core/contracts/stream-use-case';
 
 /**

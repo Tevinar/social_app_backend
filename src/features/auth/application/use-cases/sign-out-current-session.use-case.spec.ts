@@ -1,11 +1,11 @@
-import type { RefreshSessionReader } from '../ports/sessions/refresh-session-reader';
-import type { RefreshSessionRevoker } from '../ports/sessions/refresh-session-revoker';
-import type { TokenHasher } from '../ports/tokens/token-hasher';
+import type { RefreshSessionReader } from '../ports/sessions/refresh-session-reader.port';
+import type { RefreshSessionRevoker } from '../ports/sessions/refresh-session-revoker.port';
+import type { TokenHasher } from '../ports/tokens/token-hasher.port';
 import type {
   TokenClaims,
   TokenVerifier,
-} from '../ports/tokens/token-verifier';
-import { SignOutCurrentSessionUseCase } from './sign-out-current-session';
+} from '../ports/tokens/token-verifier.port';
+import { SignOutCurrentSessionUseCase } from './sign-out-current-session.use-case';
 
 describe('SignOutCurrentSessionUseCase', () => {
   const now = new Date('2026-01-01T00:00:00.000Z');

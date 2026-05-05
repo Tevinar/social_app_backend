@@ -5,16 +5,19 @@ import { DeviceId } from '../../domain/value-objects/device-id';
 import {
   REFRESH_SESSION_READER,
   type RefreshSessionReader,
-} from '../ports/sessions/refresh-session-reader';
+} from '../ports/sessions/refresh-session-reader.port';
 import {
   REFRESH_SESSION_REVOKER,
   type RefreshSessionRevoker,
-} from '../ports/sessions/refresh-session-revoker';
-import { TOKEN_HASHER, type TokenHasher } from '../ports/tokens/token-hasher';
+} from '../ports/sessions/refresh-session-revoker.port';
+import {
+  TOKEN_HASHER,
+  type TokenHasher,
+} from '../ports/tokens/token-hasher.port';
 import {
   TOKEN_VERIFIER,
   type TokenVerifier,
-} from '../ports/tokens/token-verifier';
+} from '../ports/tokens/token-verifier.port';
 
 /**
  * Application use case responsible for revoking the current refresh session.

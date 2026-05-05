@@ -3,7 +3,7 @@ import { StorageService } from '../../../../core/storage/storage.service';
 import {
   type BlogImageStorage,
   type SaveBlogImageParams,
-} from '../../application/ports/blog-image-storage';
+} from '../../application/ports/blog-image-storage.port';
 
 /**
  * Google Cloud Storage-backed implementation of blog image storage.

@@ -5,7 +5,7 @@ import {
   CreateRefreshSessionResult,
   CreateRefreshSessionParams,
   type RefreshSessionCreator,
-} from '../../application/ports/sessions/refresh-session-creator';
+} from '../../application/ports/sessions/refresh-session-creator.port';
 
 /**
  * Name of the unique partial index that allows only one active refresh session

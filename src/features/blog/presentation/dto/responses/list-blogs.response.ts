@@ -1,4 +1,4 @@
-import { type ListedBlogsSlice } from '../../../application/use-cases/list-blogs';
+import { type ListedBlogsSlice } from '../../../application/use-cases/list-blogs.use-case';
 import { BlogResponse } from './blog.response';
 
 /**

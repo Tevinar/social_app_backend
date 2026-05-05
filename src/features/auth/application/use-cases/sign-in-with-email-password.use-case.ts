@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import {
   AUTH_USER_READER,
   type AuthUserReader,
-} from '../ports/identity/auth-user-reader';
+} from '../ports/identity/auth-user-reader.port';
 import { randomUUID } from 'node:crypto';
 import { UseCase } from '../../../../core/contracts/use-case';
 import { Email } from '../../domain/value-objects/email';
@@ -10,17 +10,20 @@ import { DeviceId } from '../../domain/value-objects/device-id';
 import {
   PASSWORD_VERIFIER,
   type PasswordVerifier,
-} from '../ports/credentials/password-verifier';
+} from '../ports/credentials/password-verifier.port';
 import {
   CreateRefreshSessionResult,
   REFRESH_SESSION_CREATOR,
   type RefreshSessionCreator,
-} from '../ports/sessions/refresh-session-creator';
+} from '../ports/sessions/refresh-session-creator.port';
 import {
   TOKEN_CREATOR,
   type TokenCreator,
-} from '../ports/tokens/token-creator';
-import { TOKEN_HASHER, type TokenHasher } from '../ports/tokens/token-hasher';
+} from '../ports/tokens/token-creator.port';
+import {
+  TOKEN_HASHER,
+  type TokenHasher,
+} from '../ports/tokens/token-hasher.port';
 import { AuthModel } from '../models/auth.model';
 
 /**

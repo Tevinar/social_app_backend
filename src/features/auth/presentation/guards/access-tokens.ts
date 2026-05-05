@@ -5,7 +5,7 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { type Request } from 'express';
-import { ValidateAccessTokenUseCase } from '../../application/use-cases/validate-access-token';
+import { ValidateAccessTokenUseCase } from '../../application/use-cases/validate-access-token.use-case';
 
 /**
  * HTTP auth guard that validates bearer access tokens and enriches the request

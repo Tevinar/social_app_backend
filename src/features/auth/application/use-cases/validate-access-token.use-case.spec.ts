@@ -1,11 +1,11 @@
 import type {
   TokenClaims,
   TokenVerifier,
-} from '../ports/tokens/token-verifier';
+} from '../ports/tokens/token-verifier.port';
 import {
   InvalidAccessTokenError,
   ValidateAccessTokenUseCase,
-} from './validate-access-token';
+} from './validate-access-token.use-case';
 
 describe('ValidateAccessTokenUseCase', () => {
   const createUseCase = () => {

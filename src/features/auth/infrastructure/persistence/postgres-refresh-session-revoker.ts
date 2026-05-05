@@ -3,7 +3,7 @@ import { DatabaseService } from '../../../../core/database/database.service';
 import {
   type RefreshSessionRevoker,
   type RevokeRefreshSessionParams,
-} from '../../application/ports/sessions/refresh-session-revoker';
+} from '../../application/ports/sessions/refresh-session-revoker.port';
 
 /**
  * Postgres-backed implementation of the refresh-session revocation port.

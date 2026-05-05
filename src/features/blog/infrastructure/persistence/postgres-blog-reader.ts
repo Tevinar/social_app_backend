@@ -5,7 +5,7 @@ import {
   type BlogReader,
   type FindRecentBlogSliceParams,
   type RecentBlogsSlice,
-} from '../../application/ports/blog-reader';
+} from '../../application/ports/blog-reader.port';
 import { BlogRow, mapBlogRowToRecord } from './blog-row';
 import { BlogRecord } from '../../application/models/blog.model';
 /**

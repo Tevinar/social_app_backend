@@ -3,7 +3,7 @@ import { DatabaseService } from '../../../../core/database/database.service';
 import {
   type AuthUser,
   type AuthUserReader,
-} from '../../application/ports/identity/auth-user-reader';
+} from '../../application/ports/identity/auth-user-reader.port';
 
 /**
  * Row shape returned by the auth-user lookup query after SQL column aliases are

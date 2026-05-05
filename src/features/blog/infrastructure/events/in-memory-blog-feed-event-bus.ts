@@ -3,7 +3,7 @@ import { Observable, Subject } from 'rxjs';
 import {
   type BlogFeedEvent,
   type BlogFeedEventBus,
-} from '../../application/ports/blog-feed-event-bus';
+} from '../../application/ports/blog-feed-event-bus.port';
 
 /**
  * In-memory RxJS-backed implementation of the blog feed event bus.

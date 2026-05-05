@@ -7,10 +7,10 @@ import {
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
-import { SignInWithEmailPasswordUseCase } from '../application/use-cases/sign-in-with-email-password';
-import { RefreshSessionUseCase } from '../application/use-cases/refresh-session';
-import { SignOutCurrentSessionUseCase } from '../application/use-cases/sign-out-current-session';
-import { SignUpWithEmailPasswordUseCase } from '../application/use-cases/sign-up-with-email-password';
+import { SignInWithEmailPasswordUseCase } from '../application/use-cases/sign-in-with-email-password.use-case';
+import { RefreshSessionUseCase } from '../application/use-cases/refresh-session.use-case';
+import { SignOutCurrentSessionUseCase } from '../application/use-cases/sign-out-current-session.use-case';
+import { SignUpWithEmailPasswordUseCase } from '../application/use-cases/sign-up-with-email-password.use-case';
 import { RefreshSessionRequest } from './dto/requests/refresh-session.request';
 import { SignInRequest } from './dto/requests/sign-in.request';
 import { SignOutCurrentSessionRequest } from './dto/requests/sign-out-current-session.request';

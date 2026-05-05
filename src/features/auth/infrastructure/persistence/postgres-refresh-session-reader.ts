@@ -3,7 +3,7 @@ import { DatabaseService } from '../../../../core/database/database.service';
 import {
   type RefreshSessionReadModel,
   type RefreshSessionReader,
-} from '../../application/ports/sessions/refresh-session-reader';
+} from '../../application/ports/sessions/refresh-session-reader.port';
 
 /**
  * Row shape returned by the refresh-session lookup query after SQL column

@@ -5,7 +5,7 @@ import {
   CreateAuthRegistrationResult,
   type AuthRegistrationCreator,
   type CreateAuthRegistrationParams,
-} from '../../application/ports/identity/auth-registration-creator';
+} from '../../application/ports/identity/auth-registration-creator.port';
 
 /**
  * Name of the unique constraint that protects `users.email`.

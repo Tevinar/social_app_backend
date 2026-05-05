@@ -3,7 +3,7 @@ import { DatabaseService } from '../../../../core/database/database.service';
 import {
   type RefreshSessionRotator,
   type RotateRefreshSessionParams,
-} from '../../application/ports/sessions/refresh-session-rotator';
+} from '../../application/ports/sessions/refresh-session-rotator.port';
 
 /**
  * Postgres-backed implementation of the refresh-session rotation port.

@@ -1,4 +1,4 @@
-import { type CreateRefreshSessionParams } from '../sessions/refresh-session-creator';
+import { type CreateRefreshSessionParams } from '../sessions/refresh-session-creator.port';
 
 export const AUTH_REGISTRATION_CREATOR = Symbol('AUTH_REGISTRATION_CREATOR');
 

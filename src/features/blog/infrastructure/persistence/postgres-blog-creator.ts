@@ -3,7 +3,7 @@ import { DatabaseService } from '../../../../core/database/database.service';
 import {
   type BlogCreator,
   type CreateBlogRecordParams,
-} from '../../application/ports/blog-creator';
+} from '../../application/ports/blog-creator.port';
 import { BlogRow, mapBlogRowToRecord } from './blog-row';
 import { BlogRecord } from '../../application/models/blog.model';
 

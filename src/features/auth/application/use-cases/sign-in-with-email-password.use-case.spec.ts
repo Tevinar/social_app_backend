@@ -3,22 +3,22 @@ jest.mock('node:crypto', () => ({
 }));
 
 import { randomUUID } from 'node:crypto';
-import type { PasswordVerifier } from '../ports/credentials/password-verifier';
+import type { PasswordVerifier } from '../ports/credentials/password-verifier.port';
 import type {
   AuthUser,
   AuthUserReader,
-} from '../ports/identity/auth-user-reader';
+} from '../ports/identity/auth-user-reader.port';
 import {
   CreateRefreshSessionResult,
   type RefreshSessionCreator,
-} from '../ports/sessions/refresh-session-creator';
-import type { TokenCreator } from '../ports/tokens/token-creator';
-import type { TokenHasher } from '../ports/tokens/token-hasher';
+} from '../ports/sessions/refresh-session-creator.port';
+import type { TokenCreator } from '../ports/tokens/token-creator.port';
+import type { TokenHasher } from '../ports/tokens/token-hasher.port';
 import {
   InvalidCredentialsError,
   SignInWithEmailPasswordUseCase,
   UserAlreadySignedInOnDeviceError,
-} from './sign-in-with-email-password';
+} from './sign-in-with-email-password.use-case';
 
 describe('SignInWithEmailPasswordUseCase', () => {
   const accessTokenExpiresAt = new Date('2026-01-01T00:15:00.000Z');

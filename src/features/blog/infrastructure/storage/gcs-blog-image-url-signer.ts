@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { StorageService } from '../../../../core/storage/storage.service';
-import { BlogImageUrlSigner } from '../../application/ports/blog-image-url-signer';
+import { BlogImageUrlSigner } from '../../application/ports/blog-image-url-signer.port';
 
 /**
  * Google Cloud Storage-backed implementation of the blog image URL signer.

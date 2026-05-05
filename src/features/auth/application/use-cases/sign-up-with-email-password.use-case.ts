@@ -4,21 +4,24 @@ import { UseCase } from '../../../../core/contracts/use-case';
 import {
   TOKEN_CREATOR,
   type TokenCreator,
-} from '../ports/tokens/token-creator';
-import { TOKEN_HASHER, type TokenHasher } from '../ports/tokens/token-hasher';
+} from '../ports/tokens/token-creator.port';
+import {
+  TOKEN_HASHER,
+  type TokenHasher,
+} from '../ports/tokens/token-hasher.port';
 import { DeviceId } from '../../domain/value-objects/device-id';
 import { Email } from '../../domain/value-objects/email';
 import { Name } from '../../domain/value-objects/name';
 import {
   PASSWORD_HASHER,
   type PasswordHasher,
-} from '../ports/credentials/password-hasher';
+} from '../ports/credentials/password-hasher.port';
 import { NewPassword } from '../../domain/value-objects/new-password';
 import {
   AUTH_REGISTRATION_CREATOR,
   CreateAuthRegistrationResult,
   type AuthRegistrationCreator,
-} from '../ports/identity/auth-registration-creator';
+} from '../ports/identity/auth-registration-creator.port';
 import { AuthModel } from '../models/auth.model';
 
 /**

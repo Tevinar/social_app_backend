@@ -1,6 +1,6 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { UseCase } from '../../../../core/contracts/use-case';
-import { BLOG_READER, type BlogReader } from '../ports/blog-reader';
+import { BLOG_READER, type BlogReader } from '../ports/blog-reader.port';
 import { EnvVariable } from '../../../../core/config/env-variable';
 import { ConfigService } from '@nestjs/config';
 import { BlogCursorPagination } from '../blog-cursor/blog-cursor';

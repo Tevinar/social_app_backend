@@ -4,7 +4,7 @@ import { requireSecretFile } from '../../../../core/config/require-secret-file';
 import {
   type TokenClaims,
   type TokenVerifier,
-} from '../../application/ports/tokens/token-verifier';
+} from '../../application/ports/tokens/token-verifier.port';
 
 /**
  * Secret file that stores the HMAC key used to verify access tokens.

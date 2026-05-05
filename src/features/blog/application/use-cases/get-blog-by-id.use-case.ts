@@ -2,7 +2,7 @@ import { Injectable, Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EnvVariable } from '../../../../core/config/env-variable';
 import { UseCase } from '../../../../core/contracts/use-case';
-import { BLOG_READER, type BlogReader } from '../ports/blog-reader';
+import { BLOG_READER, type BlogReader } from '../ports/blog-reader.port';
 import { BlogReadModel } from '../models/blog.model';
 import { BlogNotFoundError } from '../errors/blog-not-found';
 

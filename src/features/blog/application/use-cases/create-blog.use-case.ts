@@ -5,15 +5,15 @@ import { BlogContent } from '../../domain/value-objects/blog-content';
 import { BlogImage } from '../../domain/value-objects/blog-image';
 import { BlogTitle } from '../../domain/value-objects/blog-title';
 import { BlogTopic } from '../../domain/value-objects/blog-topic';
-import { BLOG_CREATOR, type BlogCreator } from '../ports/blog-creator';
+import { BLOG_CREATOR, type BlogCreator } from '../ports/blog-creator.port';
 import {
   BLOG_IMAGE_STORAGE,
   type BlogImageStorage,
-} from '../ports/blog-image-storage';
+} from '../ports/blog-image-storage.port';
 import {
   BLOG_FEED_EVENT_BUS,
   type BlogFeedEventBus,
-} from '../ports/blog-feed-event-bus';
+} from '../ports/blog-feed-event-bus.port';
 import { BlogReadModel } from '../models/blog.model';
 import { ConfigService } from '@nestjs/config';
 import { EnvVariable } from '../../../../core/config/env-variable';

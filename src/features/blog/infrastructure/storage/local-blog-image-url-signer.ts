@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EnvVariable } from '../../../../core/config/env-variable';
-import { BlogImageUrlSigner } from '../../application/ports/blog-image-url-signer';
+import { BlogImageUrlSigner } from '../../application/ports/blog-image-url-signer.port';
 
 /**
  * Local-only signer that returns a direct fake GCS object URL instead of
