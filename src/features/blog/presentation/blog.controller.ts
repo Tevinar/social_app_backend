@@ -22,16 +22,16 @@ import { type Response } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CreateBlogUseCase } from '../application/use-cases/create-blog.use-case';
 import { CreateBlogRequest } from './dto/requests/create-blog.request';
-import { ListBlogsUseCase } from '../application/use-cases/list-blogs.use-case';
 import { GetBlogImageUseCase } from '../application/use-cases/get-blog-image.use-case';
 import { AccessTokenGuard } from '../../auth/presentation/guards/access-tokens';
 import { AuthenticatedUser } from '../../auth/presentation/decorators/authenticated-user';
 import { Observable, map } from 'rxjs';
 import { SubscribeToBlogFeedUseCase } from '../application/use-cases/subscribe-to-blog-feed.use-case';
 import { GetBlogByIdUseCase } from '../application/use-cases/get-blog-by-id.use-case';
-import { ListBlogsCursorRequest } from './dto/requests/list-blogs.request';
-import { BlogResponse } from './dto/responses/blog.response';
-import { ListBlogsResponse } from './dto/responses/list-blogs.response';
+import { ListBlogsCursorRequest } from './dto/requests/get-blog-feed-slice.request';
+import { GetBlogResponse } from './dto/responses/get-blog.response';
+import { ListBlogsResponse } from './dto/responses/get-blog-feed-slice.response';
+import { GetBlogFeedSliceUseCase } from '../application/use-cases/get-blog-feed-slice.use-case';
 
 /**
  * HTTP controller exposing blog endpoints.
@@ -51,19 +51,19 @@ export class BlogController {
   /**
    * Receives the blog use cases used by the controller actions.
    *
-   * @param createBlog Blog application service for blog creation.
-   * @param listBlogs Blog application service for listing blog slices.
-   * @param getBlogImage Blog application service for resolving blog image redirects.
-   * @param subscribeToBlogFeed Blog application service for opening the live
+   * @param createBlogUseCase Blog application service for blog creation.
+   * @param getBlogFeedSliceUseCase Blog application service for listing blog slices.
+   * @param getBlogImageUseCase Blog application service for resolving blog image redirects.
+   * @param subscribeToBlogFeedUseCase Blog application service for opening the live
    * blog feed event stream.
-   * @param getBlogById Blog application service for retrieving one blog by id.
+   * @param getBlogByIdUseCase Blog application service for retrieving one blog by id.
    */
   constructor(
-    private readonly createBlog: CreateBlogUseCase,
-    private readonly listBlogs: ListBlogsUseCase,
-    private readonly getBlogImage: GetBlogImageUseCase,
-    private readonly subscribeToBlogFeed: SubscribeToBlogFeedUseCase,
-    private readonly getBlogById: GetBlogByIdUseCase,
+    private readonly createBlogUseCase: CreateBlogUseCase,
+    private readonly getBlogFeedSliceUseCase: GetBlogFeedSliceUseCase,
+    private readonly getBlogImageUseCase: GetBlogImageUseCase,
+    private readonly subscribeToBlogFeedUseCase: SubscribeToBlogFeedUseCase,
+    private readonly getBlogByIdUseCase: GetBlogByIdUseCase,
   ) {}
 
   /**
@@ -81,17 +81,17 @@ export class BlogController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @UseInterceptors(FileInterceptor('image'))
-  async create(
+  async createBlog(
     @Body() body: CreateBlogRequest,
     @UploadedFile() image: Express.Multer.File | undefined,
     @AuthenticatedUser()
     auth: { userId: string },
-  ): Promise<BlogResponse> {
+  ): Promise<GetBlogResponse> {
     if (!image?.buffer) {
       throw new BadRequestException('Image file is required');
     }
 
-    const blog = await this.createBlog.execute({
+    const blog = await this.createBlogUseCase.execute({
       userId: auth.userId,
       title: body.title,
       content: body.content,
@@ -99,7 +99,7 @@ export class BlogController {
       topics: body.topics,
     });
 
-    return BlogResponse.fromBlog(blog);
+    return GetBlogResponse.fromBlog(blog);
   }
 
   /**
@@ -109,15 +109,15 @@ export class BlogController {
    * @returns HTTP response DTO containing the requested blog slice.
    */
   @Get()
-  async list(
+  async getBlogFeedSlice(
     @Query() query: ListBlogsCursorRequest,
   ): Promise<ListBlogsResponse> {
-    const slice = await this.listBlogs.execute({
+    const slice = await this.getBlogFeedSliceUseCase.execute({
       limit: query.limit,
       ...(query.cursor ? { cursor: query.cursor } : {}),
     });
 
-    return ListBlogsResponse.fromListedBlogsSlice(slice);
+    return ListBlogsResponse.fromBlogFeedSlice(slice);
   }
 
   /**
@@ -127,11 +127,11 @@ export class BlogController {
    * @param response Express response object used to send the redirect.
    */
   @Get(':blogId/image')
-  async getImage(
+  async getBlogImageByBlogId(
     @Param('blogId') blogId: string,
     @Res() response: Response,
   ): Promise<void> {
-    const result = await this.getBlogImage.execute({ blogId });
+    const result = await this.getBlogImageUseCase.execute({ blogId });
     response.redirect(HttpStatus.TEMPORARY_REDIRECT, result.signedUrl);
   }
 
@@ -142,8 +142,8 @@ export class BlogController {
    * @returns Observable SSE stream of blog feed events.
    */
   @Sse('events')
-  stream(): Observable<MessageEvent> {
-    return this.subscribeToBlogFeed.execute().pipe(
+  watchBlogFeedEvents(): Observable<MessageEvent> {
+    return this.subscribeToBlogFeedUseCase.execute().pipe(
       map((event) => ({
         type: event.type,
         data: event,
@@ -158,10 +158,10 @@ export class BlogController {
    * @returns HTTP response DTO containing the requested blog.
    */
   @Get(':blogId')
-  async getBlog(
+  async getBlogById(
     @Param('blogId', new ParseUUIDPipe({ version: '4' })) blogId: string,
-  ): Promise<BlogResponse> {
-    const blog = await this.getBlogById.execute(blogId);
-    return BlogResponse.fromBlog(blog);
+  ): Promise<GetBlogResponse> {
+    const blog = await this.getBlogByIdUseCase.execute(blogId);
+    return GetBlogResponse.fromBlog(blog);
   }
 }

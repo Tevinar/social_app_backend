@@ -10,9 +10,9 @@ import { BlogReadModel } from '../models/blog.model';
  * Application use case responsible for listing recent blog slices.
  */
 @Injectable()
-export class ListBlogsUseCase implements UseCase<
-  ListBlogsParams,
-  ListedBlogsSlice
+export class GetBlogFeedSliceUseCase implements UseCase<
+  BlogFeedSliceParams,
+  BlogFeedSliceResponse
 > {
   /**
    * Receives the capabilities required to read blog slices and build public
@@ -33,7 +33,7 @@ export class ListBlogsUseCase implements UseCase<
    * @param params Requested cursor and slice size.
    * @returns Blog slice data ready for presentation.
    */
-  async execute(params: ListBlogsParams): Promise<ListedBlogsSlice> {
+  async execute(params: BlogFeedSliceParams): Promise<BlogFeedSliceResponse> {
     const pagination = BlogCursorPagination.from(params.limit, params.cursor);
 
     const result = await this.blogReader.findRecentSlice({
@@ -67,12 +67,12 @@ export class ListBlogsUseCase implements UseCase<
   }
 }
 
-export type ListBlogsParams = {
+export type BlogFeedSliceParams = {
   limit: number;
   cursor?: string;
 };
 
-export type ListedBlogsSlice = {
+export type BlogFeedSliceResponse = {
   items: BlogReadModel[];
   nextCursor?: string;
 };

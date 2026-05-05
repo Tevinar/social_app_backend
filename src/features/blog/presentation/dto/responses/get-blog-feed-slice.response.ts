@@ -1,11 +1,11 @@
-import { type ListedBlogsSlice } from '../../../application/use-cases/list-blogs.use-case';
-import { BlogResponse } from './blog.response';
+import { type BlogFeedSliceResponse } from '../../../application/use-cases/get-blog-feed-slice.use-case';
+import { GetBlogResponse } from './get-blog.response';
 
 /**
  * HTTP response body returned by the cursor-based list-blogs endpoint.
  */
 export class ListBlogsResponse {
-  items!: BlogResponse[];
+  items!: GetBlogResponse[];
   nextCursor?: string;
 
   /**
@@ -14,9 +14,9 @@ export class ListBlogsResponse {
    * @param slice Cursor-based blog result returned by the use case.
    * @returns Response DTO ready for JSON serialization.
    */
-  static fromListedBlogsSlice(slice: ListedBlogsSlice): ListBlogsResponse {
+  static fromBlogFeedSlice(slice: BlogFeedSliceResponse): ListBlogsResponse {
     return {
-      items: slice.items.map((blog) => BlogResponse.fromBlog(blog)),
+      items: slice.items.map((blog) => GetBlogResponse.fromBlog(blog)),
       ...(slice.nextCursor ? { nextCursor: slice.nextCursor } : {}),
     };
   }

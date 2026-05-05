@@ -3,7 +3,7 @@ import { BlogReadModel } from '../../../application/models/blog.model';
 /**
  * HTTP response body representing one blog.
  */
-export class BlogResponse {
+export class GetBlogResponse {
   /**
    * Stable blog identifier.
    */
@@ -50,7 +50,7 @@ export class BlogResponse {
    * @param blog Application blog record.
    * @returns Response DTO ready for JSON serialization.
    */
-  static fromBlog(blog: BlogReadModel): BlogResponse {
+  static fromBlog(blog: BlogReadModel): GetBlogResponse {
     return {
       id: blog.id,
       poster: blog.poster,
