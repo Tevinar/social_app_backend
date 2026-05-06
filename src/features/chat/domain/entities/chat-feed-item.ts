@@ -1,5 +1,5 @@
 import { ChatFeedLastMessage } from './chat-feed-last-message';
-import { ChatFeedMember } from './chat-feed-member';
+import { UserSummary } from './user-summary';
 
 /**
  * Domain entity representing one chat as it appears in the caller's chat feed.
@@ -16,7 +16,7 @@ export class ChatFeedItem {
    */
   static create(params: {
     id: string;
-    members: ChatFeedMember[];
+    members: UserSummary[];
     lastMessage: ChatFeedLastMessage | null;
   }): ChatFeedItem {
     return new ChatFeedItem(params.id, params.members, params.lastMessage);
@@ -31,7 +31,7 @@ export class ChatFeedItem {
    */
   private constructor(
     readonly id: string,
-    readonly members: ChatFeedMember[],
+    readonly members: UserSummary[],
     readonly lastMessage: ChatFeedLastMessage | null,
   ) {}
 }

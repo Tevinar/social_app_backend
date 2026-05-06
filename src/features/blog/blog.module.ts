@@ -18,8 +18,6 @@ import { ConfigService } from '@nestjs/config';
 import { EnvVariable } from '../../core/config/env-variable';
 import { LocalBlogImageUrlSigner } from './infrastructure/storage/local-blog-image-url-signer';
 import { Environment } from '../../core/config/environment';
-import { InMemoryBlogFeedEventBus } from './infrastructure/events/in-memory-blog-feed-event-bus';
-import { BLOG_FEED_EVENT_BUS } from './application/ports/blog-feed-event-bus.port';
 import { GetBlogByIdUseCase } from './application/use-cases/get-blog-by-id.use-case';
 
 /**
@@ -63,10 +61,6 @@ import { GetBlogByIdUseCase } from './application/use-cases/get-blog-by-id.use-c
           ? localSigner
           : gcsSigner;
       },
-    },
-    {
-      provide: BLOG_FEED_EVENT_BUS,
-      useClass: InMemoryBlogFeedEventBus,
     },
   ],
 })

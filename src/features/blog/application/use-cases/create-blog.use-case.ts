@@ -11,10 +11,6 @@ import {
   BLOG_IMAGE_STORAGE,
   type BlogImageStorage,
 } from '../ports/blog-image-storage.port';
-import {
-  BLOG_FEED_EVENT_BUS,
-  type BlogFeedEventBus,
-} from '../ports/blog-feed-event-bus.port';
 
 /**
  * Application use case responsible for creating a blog post and storing its
@@ -28,15 +24,12 @@ export class CreateBlogUseCase implements UseCase<CreateBlogParams, Blog> {
    *
    * @param blogCreator Persists the blog record.
    * @param blogImageStorage Stores and removes blog image objects.
-   * @param blogFeedEventBus Publishes feed-level blog creation signals.
    */
   constructor(
     @Inject(BLOG_CREATOR)
     private readonly blogCreator: BlogCreator,
     @Inject(BLOG_IMAGE_STORAGE)
     private readonly blogImageStorage: BlogImageStorage,
-    @Inject(BLOG_FEED_EVENT_BUS)
-    private readonly blogFeedEventBus: BlogFeedEventBus,
   ) {}
 
   /**
@@ -69,7 +62,7 @@ export class CreateBlogUseCase implements UseCase<CreateBlogParams, Blog> {
     });
 
     try {
-      const blog = await this.blogCreator.create({
+      return await this.blogCreator.create({
         id: blogId,
         posterId: params.userId,
         title: title.value,
@@ -77,14 +70,6 @@ export class CreateBlogUseCase implements UseCase<CreateBlogParams, Blog> {
         imageKey,
         topics: topics.map((topic) => topic.value),
       });
-
-      // Notify subscribers that a new blog is available for their feed.
-      this.blogFeedEventBus.publish({
-        type: 'feed.new_blog_available',
-        blogId: blog.id,
-      });
-
-      return blog;
     } catch (error: unknown) {
       await this.blogImageStorage.delete(imageKey);
       throw error;

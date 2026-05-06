@@ -14,8 +14,6 @@ import {
   Param,
   Res,
   UseGuards,
-  Sse,
-  type MessageEvent,
   ParseUUIDPipe,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -27,8 +25,6 @@ import { CreateBlogRequest } from './dto/requests/create-blog.request';
 import { GetBlogImageUseCase } from '../application/use-cases/get-blog-image.use-case';
 import { AccessTokenGuard } from '../../auth/presentation/guards/access-tokens';
 import { AuthenticatedUser } from '../../auth/presentation/decorators/authenticated-user';
-import { Observable, map } from 'rxjs';
-import { SubscribeToBlogFeedUseCase } from '../application/use-cases/subscribe-to-blog-feed.use-case';
 import { GetBlogByIdUseCase } from '../application/use-cases/get-blog-by-id.use-case';
 import { ListBlogsCursorRequest } from './dto/requests/get-blog-feed-slice.request';
 import { GetBlogResponse } from './dto/responses/get-blog.response';
@@ -56,8 +52,6 @@ export class BlogController {
    * @param createBlogUseCase Blog application service for blog creation.
    * @param getBlogFeedSliceUseCase Blog application service for listing blog slices.
    * @param getBlogImageUseCase Blog application service for resolving blog image redirects.
-   * @param subscribeToBlogFeedUseCase Blog application service for opening the live
-   * blog feed event stream.
    * @param getBlogByIdUseCase Blog application service for retrieving one blog by id.
    * @param configService Reads runtime configuration values.
    */
@@ -65,7 +59,6 @@ export class BlogController {
     private readonly createBlogUseCase: CreateBlogUseCase,
     private readonly getBlogFeedSliceUseCase: GetBlogFeedSliceUseCase,
     private readonly getBlogImageUseCase: GetBlogImageUseCase,
-    private readonly subscribeToBlogFeedUseCase: SubscribeToBlogFeedUseCase,
     private readonly getBlogByIdUseCase: GetBlogByIdUseCase,
     private readonly configService: ConfigService,
   ) {}
@@ -137,22 +130,6 @@ export class BlogController {
   ): Promise<void> {
     const result = await this.getBlogImageUseCase.execute({ blogId });
     response.redirect(HttpStatus.TEMPORARY_REDIRECT, result.signedUrl);
-  }
-
-  /**
-   * Opens a server-sent event stream that notifies clients when the blog feed
-   * has newer content available.
-   *
-   * @returns Observable SSE stream of blog feed events.
-   */
-  @Sse('events')
-  watchBlogFeedEvents(): Observable<MessageEvent> {
-    return this.subscribeToBlogFeedUseCase.execute().pipe(
-      map((event) => ({
-        type: event.type,
-        data: event,
-      })),
-    );
   }
 
   /**

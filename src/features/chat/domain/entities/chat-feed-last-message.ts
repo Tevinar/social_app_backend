@@ -1,4 +1,4 @@
-import { ChatFeedMember } from './chat-feed-member';
+import { UserSummary } from './user-summary';
 
 /**
  * Domain entity representing the latest message preview shown in the chat
@@ -17,7 +17,7 @@ export class ChatFeedLastMessage {
    */
   static create(params: {
     id: string;
-    author: ChatFeedMember | null;
+    author: UserSummary | null;
     content: string;
     createdAt: Date;
   }): ChatFeedLastMessage {
@@ -39,7 +39,7 @@ export class ChatFeedLastMessage {
    */
   private constructor(
     readonly id: string,
-    readonly author: ChatFeedMember | null,
+    readonly author: UserSummary | null,
     readonly content: string,
     readonly createdAt: Date,
   ) {}
