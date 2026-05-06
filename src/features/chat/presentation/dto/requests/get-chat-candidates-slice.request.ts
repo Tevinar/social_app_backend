@@ -4,7 +4,7 @@ import {
   DEFAULT_LIMIT,
   MAX_LIMIT,
   MIN_LIMIT,
-} from '../../../application/chat-candidate-cursor/chat-candidate-cursor.constants';
+} from '../../../application/pagination/chat-candidate.cursor';
 
 /**
  * HTTP query string accepted by the get-chat-candidates-slice endpoint.

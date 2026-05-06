@@ -23,8 +23,7 @@ export class PostgresChatCandidateReader implements ChatCandidateReader {
   constructor(private readonly database: DatabaseService) {}
 
   /**
-   * Reads one recent slice of chat candidates ordered from most recent to least
-   * recent.
+   * Reads one chat-candidate slice ordered alphabetically by profile name.
    *
    * The current implementation lists every user except the caller. Future
    * friendship or visibility restrictions should be added here.
@@ -32,29 +31,29 @@ export class PostgresChatCandidateReader implements ChatCandidateReader {
    * @param params Cursor window requested by the caller.
    * @returns Current slice of chat candidates.
    */
-  async findRecentSlice(
+  async findSlice(
     params: FindRecentChatCandidatesSliceParams,
   ): Promise<RecentChatCandidatesSlice> {
     const rows = params.cursor
       ? await this.database.sql<ChatCandidateRow[]>`
         select
           u.id,
-          u.name,
-          u.created_at as "createdAt"
+          p.name
         from users u
+        join profiles p on p.user_id = u.id
         where u.id <> ${params.userId}
-          and (u.created_at, u.id) < (${params.cursor.createdAt}, ${params.cursor.id})
-        order by u.created_at desc, u.id desc
+          and (lower(p.name), u.id) > (${params.cursor.candidateName}, ${params.cursor.id})
+        order by lower(p.name) asc, u.id asc
         limit ${params.limit}
       `
       : await this.database.sql<ChatCandidateRow[]>`
         select
           u.id,
-          u.name,
-          u.created_at as "createdAt"
+          p.name
         from users u
+        join profiles p on p.user_id = u.id
         where u.id <> ${params.userId}
-        order by u.created_at desc, u.id desc
+        order by lower(p.name) asc, u.id asc
         limit ${params.limit}
       `;
 

@@ -1,4 +1,4 @@
-import { BlogReadModel } from '../../../application/models/blog.model';
+import { Blog } from '../../../domain/entities/blog';
 
 /**
  * HTTP response body representing one blog.
@@ -45,18 +45,19 @@ export class GetBlogResponse {
   updatedAt!: string;
 
   /**
-   * Builds the response DTO from one application blog record.
+   * Builds the response DTO from one blog entity.
    *
-   * @param blog Application blog record.
+   * @param blog Blog entity.
+   * @param apiBaseUrl Public API base URL.
    * @returns Response DTO ready for JSON serialization.
    */
-  static fromBlog(blog: BlogReadModel): GetBlogResponse {
+  static fromBlog(blog: Blog, apiBaseUrl: string): GetBlogResponse {
     return {
       id: blog.id,
       poster: blog.poster,
       title: blog.title,
       content: blog.content,
-      imageUrl: blog.imageUrl,
+      imageUrl: `${apiBaseUrl}${blog.imagePath}`,
       topics: blog.topics,
       createdAt: blog.createdAt.toISOString(),
       updatedAt: blog.updatedAt.toISOString(),

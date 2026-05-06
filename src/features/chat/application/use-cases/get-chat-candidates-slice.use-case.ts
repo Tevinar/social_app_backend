@@ -1,20 +1,21 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { UseCase } from '../../../../core/contracts/use-case';
-import { ChatCandidateCursorPagination } from '../chat-candidate-cursor/chat-candidate-cursor';
-import { ChatCandidateModel } from '../models/chat-candidate.model';
+import { ChatCandidateCursorPagination } from '../pagination/chat-candidate.cursor';
 import {
   CHAT_CANDIDATE_READER,
   type ChatCandidateReader,
 } from '../ports/chat-candidate-reader.port';
+import { UserSummary } from '../../domain/entities/user-summary';
 
 /**
  * Application use case responsible for listing one cursor-based slice of
  * users that may be selected to start a chat.
  */
 @Injectable()
-export class GetChatCandidatesSliceUseCase
-  implements UseCase<GetChatCandidatesSliceParams, ChatCandidatesSliceResponse>
-{
+export class GetChatCandidatesSliceUseCase implements UseCase<
+  GetChatCandidatesSliceParams,
+  ChatCandidatesSliceResponse
+> {
   /**
    * Receives the capability required to read chat candidates from persistence.
    *
@@ -40,7 +41,7 @@ export class GetChatCandidatesSliceUseCase
       params.cursor,
     );
 
-    const result = await this.chatCandidateReader.findRecentSlice({
+    const result = await this.chatCandidateReader.findSlice({
       userId: params.userId,
       limit: pagination.limit,
       ...(pagination.cursor ? { cursor: pagination.cursor } : {}),
@@ -48,17 +49,11 @@ export class GetChatCandidatesSliceUseCase
 
     const lastItem = result.items.at(-1);
     const nextCursor = lastItem
-      ? ChatCandidateCursorPagination.encodeCursor(
-          lastItem.createdAt,
-          lastItem.id,
-        )
+      ? ChatCandidateCursorPagination.encodeCursor(lastItem.name, lastItem.id)
       : undefined;
 
     return {
-      items: result.items.map((candidate) => ({
-        id: candidate.id,
-        name: candidate.name,
-      })),
+      items: result.items,
       ...(nextCursor ? { nextCursor } : {}),
     };
   }
@@ -71,6 +66,6 @@ export type GetChatCandidatesSliceParams = {
 };
 
 export type ChatCandidatesSliceResponse = {
-  items: ChatCandidateModel[];
+  items: UserSummary[];
   nextCursor?: string;
 };

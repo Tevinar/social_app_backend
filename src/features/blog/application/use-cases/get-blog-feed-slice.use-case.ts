@@ -1,10 +1,8 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { UseCase } from '../../../../core/contracts/use-case';
 import { BLOG_READER, type BlogReader } from '../ports/blog-reader.port';
-import { EnvVariable } from '../../../../core/config/env-variable';
-import { ConfigService } from '@nestjs/config';
-import { BlogCursorPagination } from '../blog-cursor/blog-cursor';
-import { BlogReadModel } from '../models/blog.model';
+import { BlogCursorPagination } from '../pagination/blog.cursor';
+import { Blog } from '../../domain/entities/blog';
 
 /**
  * Application use case responsible for listing recent blog slices.
@@ -15,16 +13,13 @@ export class GetBlogFeedSliceUseCase implements UseCase<
   BlogFeedSliceResponse
 > {
   /**
-   * Receives the capabilities required to read blog slices and build public
-   * image URLs.
+   * Receives the capabilities required to read blog slices.
    *
    * @param blogReader Reads recent blog records from persistence.
-   * @param configService Reads runtime configuration values.
    */
   constructor(
     @Inject(BLOG_READER)
     private readonly blogReader: BlogReader,
-    private readonly configService: ConfigService,
   ) {}
 
   /**
@@ -47,21 +42,7 @@ export class GetBlogFeedSliceUseCase implements UseCase<
       : undefined;
 
     return {
-      items: result.items.map((blogRecord) => ({
-        id: blogRecord.id,
-        poster: {
-          id: blogRecord.poster.id,
-          name: blogRecord.poster.name,
-        },
-        title: blogRecord.title,
-        content: blogRecord.content,
-        imageUrl: `${this.configService.getOrThrow<string>(
-          EnvVariable.ApiBaseUrl,
-        )}${blogRecord.imagePath}`,
-        topics: blogRecord.topics,
-        createdAt: blogRecord.createdAt,
-        updatedAt: blogRecord.updatedAt,
-      })),
+      items: result.items,
       ...(nextCursor ? { nextCursor } : {}),
     };
   }
@@ -73,6 +54,6 @@ export type BlogFeedSliceParams = {
 };
 
 export type BlogFeedSliceResponse = {
-  items: BlogReadModel[];
+  items: Blog[];
   nextCursor?: string;
 };

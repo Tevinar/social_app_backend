@@ -1,5 +1,5 @@
-import { ChatCandidate } from '../../domain/entities/chat-candidate';
-import { type ChatCandidateCursor } from '../chat-candidate-cursor/chat-candidate-cursor';
+import { UserSummary } from '../../domain/entities/user-summary';
+import { type ChatCandidateCursor } from '../pagination/chat-candidate.cursor';
 
 export const CHAT_CANDIDATE_READER = Symbol('CHAT_CANDIDATE_READER');
 
@@ -8,8 +8,7 @@ export const CHAT_CANDIDATE_READER = Symbol('CHAT_CANDIDATE_READER');
  */
 export interface ChatCandidateReader {
   /**
-   * Reads one recent slice of chat candidates ordered from most recent to
-   * least recent.
+   * Reads one cursor-based slice of chat candidates.
    *
    * The current implementation returns all other registered users, but the
    * visibility policy is owned by the reader so it can later be restricted to
@@ -18,7 +17,7 @@ export interface ChatCandidateReader {
    * @param params Cursor window requested by the caller.
    * @returns Current slice of chat candidates.
    */
-  findRecentSlice(
+  findSlice(
     params: FindRecentChatCandidatesSliceParams,
   ): Promise<RecentChatCandidatesSlice>;
 }
@@ -30,5 +29,5 @@ export type FindRecentChatCandidatesSliceParams = {
 };
 
 export type RecentChatCandidatesSlice = {
-  items: ChatCandidate[];
+  items: UserSummary[];
 };

@@ -1,4 +1,4 @@
-import { ChatCandidate } from '../../domain/entities/chat-candidate';
+import { UserSummary } from '../../domain/entities/user-summary';
 
 /**
  * Row shape returned by the chat-candidate SQL queries.
@@ -6,7 +6,6 @@ import { ChatCandidate } from '../../domain/entities/chat-candidate';
 export type ChatCandidateRow = {
   id: string;
   name: string;
-  createdAt: Date;
 };
 
 /**
@@ -17,10 +16,9 @@ export type ChatCandidateRow = {
  */
 export function mapChatCandidateRowToEntity(
   row: ChatCandidateRow,
-): ChatCandidate {
-  return ChatCandidate.fromSnapshot({
+): UserSummary {
+  return UserSummary.create({
     id: row.id,
     name: row.name,
-    createdAt: row.createdAt,
   });
 }

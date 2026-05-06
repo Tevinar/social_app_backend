@@ -22,7 +22,8 @@ import {
   CreateAuthRegistrationResult,
   type AuthRegistrationCreator,
 } from '../ports/identity/auth-registration-creator.port';
-import { AuthModel } from '../models/auth.model';
+import { Auth } from '../../domain/entities/auth';
+import { AuthUser } from '../../domain/entities/auth-user';
 
 /**
  * Signals that the submitted email address is already owned by another user.
@@ -53,7 +54,7 @@ export class EmailAlreadyInUseError extends Error {
 @Injectable()
 export class SignUpWithEmailPasswordUseCase implements UseCase<
   SignUpWithEmailPasswordParams,
-  AuthModel
+  Auth
 > {
   /**
    * Receives the feature ports required to create a new auth user and
@@ -90,7 +91,7 @@ export class SignUpWithEmailPasswordUseCase implements UseCase<
    * @throws {EmailAlreadyInUseError} Thrown when another user already owns the
    * provided email address.
    */
-  async execute(params: SignUpWithEmailPasswordParams): Promise<AuthModel> {
+  async execute(params: SignUpWithEmailPasswordParams): Promise<Auth> {
     const email = Email.from(params.email);
     const deviceId = DeviceId.from(params.deviceId);
     const name = Name.from(params.name);
@@ -131,17 +132,17 @@ export class SignUpWithEmailPasswordUseCase implements UseCase<
       throw new EmailAlreadyInUseError();
     }
 
-    return {
-      user: {
+    return Auth.create({
+      user: AuthUser.create({
         id: userId,
         email: email.value,
         name: name.value,
-      },
+      }),
       accessToken: access.token,
       refreshToken: refresh.token,
       accessTokenExpiresAt: access.expiresAt,
       refreshTokenExpiresAt: refresh.expiresAt,
-    };
+    });
   }
 }
 

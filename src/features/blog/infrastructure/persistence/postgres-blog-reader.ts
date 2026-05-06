@@ -7,7 +7,7 @@ import {
   type RecentBlogsSlice,
 } from '../../application/ports/blog-reader.port';
 import { BlogRow, mapBlogRowToRecord } from './blog-row';
-import { BlogRecord } from '../../application/models/blog.model';
+import { Blog } from '../../domain/entities/blog';
 /**
  * Postgres-backed implementation of the blog reader port.
  */
@@ -65,19 +65,7 @@ export class PostgresBlogReader implements BlogReader {
       `;
 
     return {
-      items: rows.map((row) => ({
-        id: row.id,
-        createdAt: row.createdAt,
-        updatedAt: row.updatedAt,
-        poster: {
-          id: row.posterId,
-          name: row.posterName,
-        },
-        title: row.title,
-        content: row.content,
-        imagePath: `/blogs/${row.id}/image`,
-        topics: row.topics,
-      })),
+      items: rows.map(mapBlogRowToRecord),
     };
   }
 
@@ -106,7 +94,7 @@ export class PostgresBlogReader implements BlogReader {
    * @param blogId Stable blog identifier.
    * @returns Blog record when found, otherwise null.
    */
-  async findById(blogId: string): Promise<BlogRecord | null> {
+  async findById(blogId: string): Promise<Blog | null> {
     const rows = await this.database.sql<BlogRow[]>`
     select
       b.id,

@@ -66,7 +66,7 @@ export class AuthController {
       deviceId: body.deviceId,
     });
 
-    return AuthResponse.fromAuthModel(session);
+    return AuthResponse.fromAuth(session);
   }
 
   /**
@@ -86,7 +86,7 @@ export class AuthController {
       deviceId: body.deviceId,
     });
 
-    return AuthResponse.fromAuthModel(session);
+    return AuthResponse.fromAuth(session);
   }
 
   /**

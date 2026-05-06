@@ -1,16 +1,3 @@
-import { MAX_LIMIT, MIN_LIMIT } from './blog-cursor.constants';
-import { InvalidBlogCursorError } from './invalid-blog-cursor.error';
-
-export type BlogCursor = {
-  createdAt: Date;
-  id: string;
-};
-
-type EncodedBlogCursor = {
-  createdAt: string;
-  id: string;
-};
-
 /**
  * Immutable blog-specific cursor pagination value object.
  */
@@ -104,3 +91,22 @@ export class BlogCursorPagination {
     }
   }
 }
+
+export type BlogCursor = {
+  createdAt: Date;
+  id: string;
+};
+
+type EncodedBlogCursor = {
+  createdAt: string;
+  id: string;
+};
+
+export const MIN_LIMIT = 1;
+export const DEFAULT_LIMIT = 20;
+export const MAX_LIMIT = 100;
+
+/**
+ * Signals that submitted blog cursor values cannot be accepted.
+ */
+export class InvalidBlogCursorError extends Error {}

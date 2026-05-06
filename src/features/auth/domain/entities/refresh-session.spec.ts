@@ -1,6 +1,5 @@
 import {
   RefreshSession,
-  type RefreshSessionSnapshot,
   type RefreshSessionUsageAttempt,
 } from './refresh-session';
 
@@ -9,9 +8,16 @@ describe('RefreshSession', () => {
   const future = new Date('2026-01-01T00:01:00.000Z');
   const past = new Date('2025-12-31T23:59:00.000Z');
 
-  const createSnapshot = (
-    override: Partial<RefreshSessionSnapshot> = {},
-  ): RefreshSessionSnapshot => ({
+  const createParams = (
+    override: Partial<{
+      id: string;
+      userId: string;
+      deviceId: string;
+      tokenHash: string;
+      expiresAt: Date;
+      revokedAt: Date | null;
+    }> = {},
+  ) => ({
     id: 'session-id',
     userId: 'user-id',
     deviceId: 'device-id',
@@ -32,21 +38,21 @@ describe('RefreshSession', () => {
   });
 
   it('given a persisted session when reading its id then it returns the persisted id', () => {
-    const session = RefreshSession.fromSnapshot(
-      createSnapshot({ id: 'persisted-session-id' }),
+    const session = RefreshSession.create(
+      createParams({ id: 'persisted-session-id' }),
     );
 
     expect(session.id).toBe('persisted-session-id');
   });
 
   it('given a matching active session when refreshing then it returns true', () => {
-    const session = RefreshSession.fromSnapshot(createSnapshot());
+    const session = RefreshSession.create(createParams());
 
     expect(session.canBeRefreshedWith(createAttempt())).toBe(true);
   });
 
   it('given a different user when refreshing then it returns false', () => {
-    const session = RefreshSession.fromSnapshot(createSnapshot());
+    const session = RefreshSession.create(createParams());
 
     expect(
       session.canBeRefreshedWith(createAttempt({ userId: 'other-user-id' })),
@@ -54,7 +60,7 @@ describe('RefreshSession', () => {
   });
 
   it('given a different device when refreshing then it returns false', () => {
-    const session = RefreshSession.fromSnapshot(createSnapshot());
+    const session = RefreshSession.create(createParams());
 
     expect(
       session.canBeRefreshedWith(
@@ -64,7 +70,7 @@ describe('RefreshSession', () => {
   });
 
   it('given a different token hash when refreshing then it returns false', () => {
-    const session = RefreshSession.fromSnapshot(createSnapshot());
+    const session = RefreshSession.create(createParams());
 
     expect(
       session.canBeRefreshedWith(
@@ -74,37 +80,31 @@ describe('RefreshSession', () => {
   });
 
   it('given a revoked session when refreshing then it returns false', () => {
-    const session = RefreshSession.fromSnapshot(
-      createSnapshot({ revokedAt: past }),
-    );
+    const session = RefreshSession.create(createParams({ revokedAt: past }));
 
     expect(session.canBeRefreshedWith(createAttempt())).toBe(false);
   });
 
   it('given an expired session when refreshing then it returns false', () => {
-    const session = RefreshSession.fromSnapshot(
-      createSnapshot({ expiresAt: past }),
-    );
+    const session = RefreshSession.create(createParams({ expiresAt: past }));
 
     expect(session.canBeRefreshedWith(createAttempt())).toBe(false);
   });
 
   it('given a session that expires now when refreshing then it returns false', () => {
-    const session = RefreshSession.fromSnapshot(
-      createSnapshot({ expiresAt: now }),
-    );
+    const session = RefreshSession.create(createParams({ expiresAt: now }));
 
     expect(session.canBeRefreshedWith(createAttempt())).toBe(false);
   });
 
   it('given a matching active session when signing out then it returns true', () => {
-    const session = RefreshSession.fromSnapshot(createSnapshot());
+    const session = RefreshSession.create(createParams());
 
     expect(session.canBeSignedOutWith(createAttempt())).toBe(true);
   });
 
   it('given a non-matching attempt when signing out then it returns false', () => {
-    const session = RefreshSession.fromSnapshot(createSnapshot());
+    const session = RefreshSession.create(createParams());
 
     expect(
       session.canBeSignedOutWith(
@@ -114,9 +114,7 @@ describe('RefreshSession', () => {
   });
 
   it('given an inactive session when signing out then it returns false', () => {
-    const session = RefreshSession.fromSnapshot(
-      createSnapshot({ revokedAt: past }),
-    );
+    const session = RefreshSession.create(createParams({ revokedAt: past }));
 
     expect(session.canBeSignedOutWith(createAttempt())).toBe(false);
   });

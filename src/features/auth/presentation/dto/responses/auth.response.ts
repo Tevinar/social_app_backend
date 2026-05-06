@@ -1,4 +1,5 @@
-import { AuthModel } from '../../../application/models/auth.model';
+import { Auth } from '../../../domain/entities/auth';
+import { AuthUser } from '../../../domain/entities/auth-user';
 
 /**
  * HTTP response body returned after a successful authentication flow.
@@ -35,19 +36,18 @@ export class AuthResponse {
   refreshTokenExpiresAt!: string;
 
   /**
-   * Builds the HTTP response DTO from the application-layer auth model.
+   * Builds the HTTP response DTO from one authenticated-session entity.
    *
-   * @param model Authenticated session payload returned by the application
-   * layer.
+   * @param auth Authenticated-session entity.
    * @returns Response DTO ready for JSON serialization.
    */
-  static fromAuthModel(model: AuthModel): AuthResponse {
+  static fromAuth(auth: Auth): AuthResponse {
     return {
-      user: AuthResponseUser.fromModel(model.user),
-      accessToken: model.accessToken,
-      refreshToken: model.refreshToken,
-      accessTokenExpiresAt: model.accessTokenExpiresAt.toISOString(),
-      refreshTokenExpiresAt: model.refreshTokenExpiresAt.toISOString(),
+      user: AuthResponseUser.fromAuthUser(auth.user),
+      accessToken: auth.accessToken,
+      refreshToken: auth.refreshToken,
+      accessTokenExpiresAt: auth.accessTokenExpiresAt.toISOString(),
+      refreshTokenExpiresAt: auth.refreshTokenExpiresAt.toISOString(),
     };
   }
 }
@@ -72,12 +72,12 @@ class AuthResponseUser {
   name!: string;
 
   /**
-   * Builds the user sub-payload from the application-layer auth model.
+   * Builds the user sub-payload from one authenticated-user entity.
    *
-   * @param user Authenticated user data returned by the application layer.
+   * @param user Authenticated-user entity.
    * @returns Response user payload ready for JSON serialization.
    */
-  static fromModel(user: AuthModel['user']): AuthResponseUser {
+  static fromAuthUser(user: AuthUser): AuthResponseUser {
     return {
       id: user.id,
       email: user.email,

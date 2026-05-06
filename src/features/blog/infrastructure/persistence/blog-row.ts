@@ -1,4 +1,5 @@
-import { BlogRecord } from '../../application/models/blog.model';
+import { BlogPoster } from '../../domain/entities/blog-poster';
+import { Blog } from '../../domain/entities/blog';
 
 /**
  * Row shape returned by the blog reader's SQL queries.
@@ -20,23 +21,23 @@ export type BlogRow = {
 };
 
 /**
- * Maps one raw SQL blog row into the application blog record shape.
+ * Maps one raw SQL blog row into the blog entity.
  *
  * @param row Raw SQL row returned by the persistence layer.
- * @returns Blog record ready for application use.
+ * @returns Blog entity ready for application use.
  */
-export function mapBlogRowToRecord(row: BlogRow): BlogRecord {
-  return {
+export function mapBlogRowToRecord(row: BlogRow): Blog {
+  return Blog.create({
     id: row.id,
-    poster: {
+    poster: BlogPoster.create({
       id: row.posterId,
       name: row.posterName,
-    },
+    }),
     title: row.title,
     content: row.content,
     imagePath: `/blogs/${row.id}/image`,
     topics: row.topics,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
-  };
+  });
 }

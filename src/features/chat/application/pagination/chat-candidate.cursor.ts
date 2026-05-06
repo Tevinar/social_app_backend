@@ -1,15 +1,21 @@
-import { MAX_LIMIT, MIN_LIMIT } from './chat-candidate-cursor.constants';
-import { InvalidChatCandidateCursorError } from './invalid-chat-candidate-cursor.error';
+export const MIN_LIMIT = 1;
+export const DEFAULT_LIMIT = 20;
+export const MAX_LIMIT = 100;
 
 export type ChatCandidateCursor = {
-  createdAt: Date;
+  candidateName: string;
   id: string;
 };
 
 type EncodedChatCandidateCursor = {
-  createdAt: string;
+  candidateName: string;
   id: string;
 };
+
+/**
+ * Signals that submitted chat-candidate cursor values cannot be accepted.
+ */
+export class InvalidChatCandidateCursorError extends Error {}
 
 /**
  * Immutable chat-candidate cursor-pagination value object.
@@ -56,14 +62,14 @@ export class ChatCandidateCursorPagination {
   /**
    * Encodes one cursor payload into the opaque string returned to API clients.
    *
-   * @param createdAt Creation timestamp of the last candidate in the slice.
+   * @param candidateName Display name of the last candidate in the slice.
    * @param id Stable identifier of the last candidate in the slice.
    * @returns Base64-encoded cursor token.
    */
-  static encodeCursor(createdAt: Date, id: string): string {
+  static encodeCursor(candidateName: string, id: string): string {
     return Buffer.from(
       JSON.stringify({
-        createdAt: createdAt.toISOString(),
+        candidateName: candidateName.trim().toLowerCase(),
         id,
       } satisfies EncodedChatCandidateCursor),
     ).toString('base64');
@@ -84,21 +90,16 @@ export class ChatCandidateCursorPagination {
       ) as Partial<EncodedChatCandidateCursor>;
 
       if (
-        typeof decoded.createdAt !== 'string' ||
+        typeof decoded.candidateName !== 'string' ||
+        decoded.candidateName.trim().length === 0 ||
         typeof decoded.id !== 'string' ||
         decoded.id.length === 0
       ) {
         throw new InvalidChatCandidateCursorError('Cursor is malformed');
       }
 
-      const createdAt = new Date(decoded.createdAt);
-
-      if (Number.isNaN(createdAt.getTime())) {
-        throw new InvalidChatCandidateCursorError('Cursor is malformed');
-      }
-
       return {
-        createdAt,
+        candidateName: decoded.candidateName.trim().toLowerCase(),
         id: decoded.id,
       };
     } catch (error) {

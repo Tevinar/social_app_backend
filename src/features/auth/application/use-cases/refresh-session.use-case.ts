@@ -103,9 +103,15 @@ export class RefreshSessionUseCase implements UseCase<
       throw new InvalidRefreshTokenError();
     }
 
-    const session = RefreshSession.fromSnapshot(
-      await this.findRefreshSessionSnapshot(claims.sessionId),
-    );
+    const snapshot = await this.findRefreshSessionSnapshot(claims.sessionId);
+    const session = RefreshSession.create({
+      id: snapshot.id,
+      userId: snapshot.userId,
+      deviceId: snapshot.deviceId,
+      tokenHash: snapshot.tokenHash,
+      expiresAt: snapshot.expiresAt,
+      revokedAt: snapshot.revokedAt,
+    });
     const presentedTokenHash = await this.tokenHasher.hash(params.refreshToken);
 
     if (

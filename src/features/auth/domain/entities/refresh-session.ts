@@ -1,27 +1,4 @@
 /**
- * Persisted refresh session state required to evaluate whether a refresh token
- * may still be used.
- */
-export type RefreshSessionSnapshot = {
-  id: string;
-  userId: string;
-  deviceId: string;
-  tokenHash: string;
-  expiresAt: Date;
-  revokedAt: Date | null;
-};
-
-/**
- * Data presented by a caller attempting to refresh an existing session.
- */
-export type RefreshSessionUsageAttempt = {
-  userId: string;
-  deviceId: string;
-  tokenHash: string;
-  now: Date;
-};
-
-/**
  * Domain entity that owns refresh-session validity rules.
  *
  * The entity is intentionally persistence-agnostic: it only evaluates the
@@ -30,30 +7,53 @@ export type RefreshSessionUsageAttempt = {
  */
 export class RefreshSession {
   /**
-   * Rehydrates a refresh session from persisted state.
+   * Creates one immutable refresh-session entity.
    *
-   * @param snapshot Persisted refresh session data.
+   * @param params Refresh-session data.
+   * @param params.id Stable refresh-session identifier.
+   * @param params.userId Stable owner identifier.
+   * @param params.deviceId Stable owning device identifier.
+   * @param params.tokenHash Currently stored refresh-token hash.
+   * @param params.expiresAt Session expiration timestamp.
+   * @param params.revokedAt Revocation timestamp when already revoked.
    * @returns A domain refresh-session entity.
    */
-  static fromSnapshot(snapshot: RefreshSessionSnapshot): RefreshSession {
-    return new RefreshSession(snapshot);
+  static create(params: {
+    id: string;
+    userId: string;
+    deviceId: string;
+    tokenHash: string;
+    expiresAt: Date;
+    revokedAt: Date | null;
+  }): RefreshSession {
+    return new RefreshSession(
+      params.id,
+      params.userId,
+      params.deviceId,
+      params.tokenHash,
+      params.expiresAt,
+      params.revokedAt,
+    );
   }
 
   /**
-   * Stores the immutable snapshot used by refresh-session rule checks.
+   * Stores immutable refresh-session state used by rule checks.
    *
-   * @param snapshot Persisted refresh session data.
+   * @param id Stable refresh-session identifier.
+   * @param userId Stable owner identifier.
+   * @param deviceId Stable owning device identifier.
+   * @param tokenHash Currently stored refresh-token hash.
+   * @param expiresAt Session expiration timestamp.
+   * @param revokedAt Revocation timestamp when already revoked.
    */
-  private constructor(private readonly snapshot: RefreshSessionSnapshot) {}
-
-  /**
-   * Stable identifier of the server-side refresh session.
-   *
-   * @returns Refresh session identifier.
-   */
-  get id(): string {
-    return this.snapshot.id;
-  }
+  private constructor(
+    readonly id: string,
+    readonly userId: string,
+    readonly deviceId: string,
+    readonly tokenHash: string,
+    readonly expiresAt: Date,
+    readonly revokedAt: Date | null,
+  ) {}
 
   /**
    * Evaluates whether the presented refresh-token data may renew this session.
@@ -84,7 +84,7 @@ export class RefreshSession {
    * @returns `true` when the identifiers match.
    */
   private belongsTo(userId: string): boolean {
-    return this.snapshot.userId === userId;
+    return this.userId === userId;
   }
 
   /**
@@ -94,7 +94,7 @@ export class RefreshSession {
    * @returns `true` when the identifiers match.
    */
   private belongsToDevice(deviceId: string): boolean {
-    return this.snapshot.deviceId === deviceId;
+    return this.deviceId === deviceId;
   }
 
   /**
@@ -104,7 +104,7 @@ export class RefreshSession {
    * @returns `true` when the hashes match.
    */
   private matchesTokenHash(tokenHash: string): boolean {
-    return this.snapshot.tokenHash === tokenHash;
+    return this.tokenHash === tokenHash;
   }
 
   /**
@@ -128,9 +128,16 @@ export class RefreshSession {
    * @returns `true` when the session may still be used.
    */
   private isActiveAt(now: Date): boolean {
-    return (
-      this.snapshot.revokedAt === null &&
-      this.snapshot.expiresAt.getTime() > now.getTime()
-    );
+    return this.revokedAt === null && this.expiresAt.getTime() > now.getTime();
   }
 }
+
+/**
+ * Data presented by a caller attempting to use an existing refresh session.
+ */
+export type RefreshSessionUsageAttempt = {
+  userId: string;
+  deviceId: string;
+  tokenHash: string;
+  now: Date;
+};

@@ -18,8 +18,10 @@ import {
   type MessageEvent,
   ParseUUIDPipe,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { type Response } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { EnvVariable } from '../../../core/config/env-variable';
 import { CreateBlogUseCase } from '../application/use-cases/create-blog.use-case';
 import { CreateBlogRequest } from './dto/requests/create-blog.request';
 import { GetBlogImageUseCase } from '../application/use-cases/get-blog-image.use-case';
@@ -57,6 +59,7 @@ export class BlogController {
    * @param subscribeToBlogFeedUseCase Blog application service for opening the live
    * blog feed event stream.
    * @param getBlogByIdUseCase Blog application service for retrieving one blog by id.
+   * @param configService Reads runtime configuration values.
    */
   constructor(
     private readonly createBlogUseCase: CreateBlogUseCase,
@@ -64,6 +67,7 @@ export class BlogController {
     private readonly getBlogImageUseCase: GetBlogImageUseCase,
     private readonly subscribeToBlogFeedUseCase: SubscribeToBlogFeedUseCase,
     private readonly getBlogByIdUseCase: GetBlogByIdUseCase,
+    private readonly configService: ConfigService,
   ) {}
 
   /**
@@ -99,7 +103,7 @@ export class BlogController {
       topics: body.topics,
     });
 
-    return GetBlogResponse.fromBlog(blog);
+    return GetBlogResponse.fromBlog(blog, this.apiBaseUrl);
   }
 
   /**
@@ -117,7 +121,7 @@ export class BlogController {
       ...(query.cursor ? { cursor: query.cursor } : {}),
     });
 
-    return ListBlogsResponse.fromBlogFeedSlice(slice);
+    return ListBlogsResponse.fromBlogFeedSlice(slice, this.apiBaseUrl);
   }
 
   /**
@@ -162,6 +166,15 @@ export class BlogController {
     @Param('blogId', new ParseUUIDPipe({ version: '4' })) blogId: string,
   ): Promise<GetBlogResponse> {
     const blog = await this.getBlogByIdUseCase.execute(blogId);
-    return GetBlogResponse.fromBlog(blog);
+    return GetBlogResponse.fromBlog(blog, this.apiBaseUrl);
+  }
+
+  /**
+   * Returns the public API base URL used to build absolute blog image URLs.
+   *
+   * @returns Public API base URL.
+   */
+  private get apiBaseUrl(): string {
+    return this.configService.getOrThrow<string>(EnvVariable.ApiBaseUrl);
   }
 }

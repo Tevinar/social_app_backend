@@ -5,7 +5,7 @@ import {
   type CreateBlogRecordParams,
 } from '../../application/ports/blog-creator.port';
 import { BlogRow, mapBlogRowToRecord } from './blog-row';
-import { BlogRecord } from '../../application/models/blog.model';
+import { Blog } from '../../domain/entities/blog';
 
 /**
  * Postgres-backed implementation of the blog creator port.
@@ -26,7 +26,7 @@ export class PostgresBlogCreator implements BlogCreator {
    * @param params Blog data to persist.
    * @returns The outcome of the blog creation attempt.
    */
-  async create(params: CreateBlogRecordParams): Promise<BlogRecord> {
+  async create(params: CreateBlogRecordParams): Promise<Blog> {
     const rows = await this.database.sql<BlogRow[]>`
     with inserted as (
       insert into blogs (

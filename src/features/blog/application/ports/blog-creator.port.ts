@@ -1,4 +1,4 @@
-import { BlogRecord } from '../models/blog.model';
+import { Blog } from '../../domain/entities/blog';
 
 export const BLOG_CREATOR = Symbol('BLOG_CREATOR');
 
@@ -12,7 +12,7 @@ export interface BlogCreator {
    * @param params Blog data to store.
    * @returns The outcome of the creation attempt.
    */
-  create(params: CreateBlogRecordParams): Promise<BlogRecord>;
+  create(params: CreateBlogRecordParams): Promise<Blog>;
 }
 
 /**

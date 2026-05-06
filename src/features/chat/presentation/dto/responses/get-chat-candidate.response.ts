@@ -1,4 +1,4 @@
-import { ChatCandidateModel } from '../../../application/models/chat-candidate.model';
+import { UserSummary } from '../../../domain/entities/user-summary';
 
 /**
  * HTTP response body representing one chat candidate.
@@ -15,14 +15,12 @@ export class GetChatCandidateResponse {
   name!: string;
 
   /**
-   * Builds the response DTO from one application chat-candidate model.
+   * Builds the response DTO from one chat-candidate entity.
    *
-   * @param candidate Application chat-candidate model.
+   * @param candidate Chat-candidate entity.
    * @returns Response DTO ready for JSON serialization.
    */
-  static fromChatCandidate(
-    candidate: ChatCandidateModel,
-  ): GetChatCandidateResponse {
+  static fromChatCandidate(candidate: UserSummary): GetChatCandidateResponse {
     return {
       id: candidate.id,
       name: candidate.name,

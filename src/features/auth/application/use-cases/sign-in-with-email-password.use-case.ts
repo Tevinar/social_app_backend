@@ -24,7 +24,8 @@ import {
   TOKEN_HASHER,
   type TokenHasher,
 } from '../ports/tokens/token-hasher.port';
-import { AuthModel } from '../models/auth.model';
+import { Auth } from '../../domain/entities/auth';
+import { AuthUser } from '../../domain/entities/auth-user';
 
 /**
  * Signals that the provided email/password pair does not match a valid user.
@@ -74,7 +75,7 @@ export class UserAlreadySignedInOnDeviceError extends Error {
 @Injectable()
 export class SignInWithEmailPasswordUseCase implements UseCase<
   SignInWithEmailPasswordParams,
-  AuthModel
+  Auth
 > {
   /**
    * Receives the feature ports required to authenticate a user and create a
@@ -115,7 +116,7 @@ export class SignInWithEmailPasswordUseCase implements UseCase<
    * @throws {UserAlreadySignedInOnDeviceError} Thrown when the submitted
    * device already has an active session for the authenticated user.
    */
-  async execute(params: SignInWithEmailPasswordParams): Promise<AuthModel> {
+  async execute(params: SignInWithEmailPasswordParams): Promise<Auth> {
     const email = Email.from(params.email);
     const deviceId = DeviceId.from(params.deviceId);
 
@@ -162,17 +163,17 @@ export class SignInWithEmailPasswordUseCase implements UseCase<
       throw new UserAlreadySignedInOnDeviceError();
     }
 
-    return {
-      user: {
+    return Auth.create({
+      user: AuthUser.create({
         id: user.id,
         email: user.email,
         name: user.name,
-      },
+      }),
       accessToken: access.token,
       refreshToken: refresh.token,
       accessTokenExpiresAt: access.expiresAt,
       refreshTokenExpiresAt: refresh.expiresAt,
-    };
+    });
   }
 }
 

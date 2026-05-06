@@ -4,7 +4,7 @@ import {
   MIN_LIMIT,
   MAX_LIMIT,
   DEFAULT_LIMIT,
-} from '../../../application/blog-cursor/blog-cursor.constants';
+} from '../../../application/pagination/blog.cursor';
 
 /**
  * HTTP query string accepted by the list-blogs endpoint.

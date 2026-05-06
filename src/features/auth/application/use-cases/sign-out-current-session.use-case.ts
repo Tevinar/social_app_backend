@@ -79,7 +79,14 @@ export class SignOutCurrentSessionUseCase implements UseCase<
     }
 
     const now = new Date();
-    const session = RefreshSession.fromSnapshot(snapshot);
+    const session = RefreshSession.create({
+      id: snapshot.id,
+      userId: snapshot.userId,
+      deviceId: snapshot.deviceId,
+      tokenHash: snapshot.tokenHash,
+      expiresAt: snapshot.expiresAt,
+      revokedAt: snapshot.revokedAt,
+    });
     const presentedTokenHash = await this.tokenHasher.hash(params.refreshToken);
 
     if (

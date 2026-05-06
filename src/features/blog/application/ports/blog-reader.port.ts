@@ -1,5 +1,5 @@
-import { type BlogCursor } from '../blog-cursor/blog-cursor';
-import { BlogRecord } from '../models/blog.model';
+import { type BlogCursor } from '../pagination/blog.cursor';
+import { Blog } from '../../domain/entities/blog';
 
 export const BLOG_READER = Symbol('BLOG_READER');
 
@@ -29,7 +29,7 @@ export interface BlogReader {
    * @param blogId Stable blog identifier.
    * @returns Blog record when found, otherwise null.
    */
-  findById(blogId: string): Promise<BlogRecord | null>;
+  findById(blogId: string): Promise<Blog | null>;
 }
 
 export type FindRecentBlogSliceParams = {
@@ -38,7 +38,7 @@ export type FindRecentBlogSliceParams = {
 };
 
 export type RecentBlogsSlice = {
-  items: BlogRecord[];
+  items: Blog[];
 };
 
 export type BlogImageRecord = {
