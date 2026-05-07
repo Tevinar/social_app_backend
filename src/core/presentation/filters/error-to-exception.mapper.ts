@@ -10,6 +10,16 @@ import { InvalidDeviceIdError } from '../../../features/auth/domain/value-object
 import { InvalidEmailError } from '../../../features/auth/domain/value-objects/email';
 import { InvalidNameError } from '../../../features/auth/domain/value-objects/name';
 import { InvalidNewPasswordError } from '../../../features/auth/domain/value-objects/new-password';
+import { InvalidChatCandidateCursorError } from '../../../features/chat/application/pagination/chat-candidate.cursor';
+import { InvalidChatFeedCursorError } from '../../../features/chat/application/pagination/chat-feed.cursor';
+import { InvalidChatMessageCursorError } from '../../../features/chat/application/pagination/chat-message.cursor';
+import { ChatMemberNotFoundError } from '../../../features/chat/application/use-cases/create-chat.use-case';
+import { ChatNotFoundError } from '../../../features/chat/application/use-cases/create-chat-message.use-case';
+import {
+  InvalidChatMemberIdError,
+  InvalidChatMembersError,
+} from '../../../features/chat/domain/value-objects/chat-members';
+import { InvalidChatMessageContentError } from '../../../features/chat/domain/value-objects/chat-message-content';
 
 /**
  * Maps thrown errors to a transport-neutral public error description.
@@ -100,6 +110,78 @@ export class ErrorToExceptionMapper {
       return {
         code: 'invalid_new_password',
         httpStatus: HttpStatus.BAD_REQUEST,
+        message: error.message,
+        isExpected: true,
+      };
+    }
+
+    if (error instanceof InvalidChatMemberIdError) {
+      return {
+        code: 'invalid_chat_member_id',
+        httpStatus: HttpStatus.BAD_REQUEST,
+        message: error.message,
+        isExpected: true,
+      };
+    }
+
+    if (error instanceof InvalidChatMembersError) {
+      return {
+        code: 'invalid_chat_members',
+        httpStatus: HttpStatus.BAD_REQUEST,
+        message: error.message,
+        isExpected: true,
+      };
+    }
+
+    if (error instanceof InvalidChatMessageContentError) {
+      return {
+        code: 'invalid_chat_message_content',
+        httpStatus: HttpStatus.BAD_REQUEST,
+        message: error.message,
+        isExpected: true,
+      };
+    }
+
+    if (error instanceof InvalidChatCandidateCursorError) {
+      return {
+        code: 'invalid_chat_candidate_cursor',
+        httpStatus: HttpStatus.BAD_REQUEST,
+        message: error.message,
+        isExpected: true,
+      };
+    }
+
+    if (error instanceof InvalidChatFeedCursorError) {
+      return {
+        code: 'invalid_chat_feed_cursor',
+        httpStatus: HttpStatus.BAD_REQUEST,
+        message: error.message,
+        isExpected: true,
+      };
+    }
+
+    if (error instanceof InvalidChatMessageCursorError) {
+      return {
+        code: 'invalid_chat_message_cursor',
+        httpStatus: HttpStatus.BAD_REQUEST,
+        message: error.message,
+        isExpected: true,
+      };
+    }
+
+    if (error instanceof ChatMemberNotFoundError) {
+      return {
+        code: 'chat_member_not_found',
+        httpStatus: HttpStatus.NOT_FOUND,
+        message: error.message,
+        isExpected: true,
+      };
+    }
+
+    if (error instanceof ChatNotFoundError) {
+      return {
+        code: 'chat_not_found',
+        httpStatus: HttpStatus.NOT_FOUND,
         message: error.message,
         isExpected: true,
       };

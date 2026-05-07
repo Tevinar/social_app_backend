@@ -6,9 +6,11 @@ import { CHAT_CREATOR } from './application/ports/chat-creator.port';
 import { CHAT_BY_MEMBERS_READER } from './application/ports/chat-by-members-reader.port';
 import { CHAT_FEED_READER } from './application/ports/chat-feed-reader.port';
 import { CHAT_FEED_EVENT_BUS } from './application/ports/chat-feed-event-bus.port';
+import { CHAT_MESSAGE_CREATOR } from './application/ports/chat-message-creator.port';
 import { CHAT_MESSAGE_FEED_READER } from './application/ports/chat-message-feed-reader.port';
 import { CHAT_MESSAGE_EVENT_BUS } from './application/ports/chat-message-event-bus.port';
 import { CreateChatUseCase } from './application/use-cases/create-chat.use-case';
+import { CreateChatMessageUseCase } from './application/use-cases/create-chat-message.use-case';
 import { GetChatByMembersUseCase } from './application/use-cases/get-chat-by-members.use-case';
 import { GetChatCandidatesSliceUseCase } from './application/use-cases/get-chat-candidates-slice.use-case';
 import { GetChatFeedSliceUseCase } from './application/use-cases/get-chat-feed-slice.use-case';
@@ -21,6 +23,7 @@ import { PostgresChatByMembersReader } from './infrastructure/persistence/postgr
 import { PostgresChatCandidateReader } from './infrastructure/persistence/postgres-chat-candidate-reader';
 import { PostgresChatCreator } from './infrastructure/persistence/postgres-chat-creator';
 import { PostgresChatFeedReader } from './infrastructure/persistence/postgres-chat-feed-reader';
+import { PostgresChatMessageCreator } from './infrastructure/persistence/postgres-chat-message-creator';
 import { PostgresChatMessageFeedReader } from './infrastructure/persistence/postgres-chat-message-feed-reader';
 import { ChatController } from './presentation/chat.controller';
 
@@ -32,6 +35,7 @@ import { ChatController } from './presentation/chat.controller';
   controllers: [ChatController],
   providers: [
     CreateChatUseCase,
+    CreateChatMessageUseCase,
     GetChatByMembersUseCase,
     GetChatCandidatesSliceUseCase,
     GetChatFeedSliceUseCase,
@@ -45,6 +49,10 @@ import { ChatController } from './presentation/chat.controller';
     {
       provide: CHAT_CREATOR,
       useClass: PostgresChatCreator,
+    },
+    {
+      provide: CHAT_MESSAGE_CREATOR,
+      useClass: PostgresChatMessageCreator,
     },
     {
       provide: CHAT_BY_MEMBERS_READER,
@@ -69,6 +77,7 @@ import { ChatController } from './presentation/chat.controller';
   ],
   exports: [
     CreateChatUseCase,
+    CreateChatMessageUseCase,
     GetChatByMembersUseCase,
     GetChatCandidatesSliceUseCase,
     GetChatFeedSliceUseCase,

@@ -1,19 +1,10 @@
 import { UserSummary } from '../../../domain/entities/user-summary';
+import { GetUserSummaryResponse } from './get-user-summary.response';
 
 /**
  * HTTP response body representing one chat candidate.
  */
-export class GetChatCandidateResponse {
-  /**
-   * Stable chat-candidate identifier.
-   */
-  id!: string;
-
-  /**
-   * Public candidate display name.
-   */
-  name!: string;
-
+export class GetChatCandidateResponse extends GetUserSummaryResponse {
   /**
    * Builds the response DTO from one chat-candidate entity.
    *
@@ -21,9 +12,8 @@ export class GetChatCandidateResponse {
    * @returns Response DTO ready for JSON serialization.
    */
   static fromChatCandidate(candidate: UserSummary): GetChatCandidateResponse {
-    return {
-      id: candidate.id,
-      name: candidate.name,
-    };
+    return GetUserSummaryResponse.fromUserSummary(
+      candidate,
+    ) as GetChatCandidateResponse;
   }
 }
