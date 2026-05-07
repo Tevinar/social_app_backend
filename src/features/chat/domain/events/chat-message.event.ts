@@ -7,13 +7,18 @@ import { ChatMessage } from '../entities/chat-message';
 export class ChatMessageEvent {
   /**
    * Creates one event indicating that a new message should appear in the
-   * conversation stream.
+   * caller's visible message stream.
    *
    * @param item Chat message to surface to subscribers.
+   * @param visibleToUserIds Stable identifiers of users allowed to receive the
+   * event.
    * @returns A chat-message event.
    */
-  static messageAdded(item: ChatMessage): ChatMessageEvent {
-    return new ChatMessageEvent('message.added', item);
+  static messageAdded(
+    item: ChatMessage,
+    visibleToUserIds: string[],
+  ): ChatMessageEvent {
+    return new ChatMessageEvent('message.added', item, visibleToUserIds);
   }
 
   /**
@@ -21,10 +26,13 @@ export class ChatMessageEvent {
    *
    * @param type Stable chat-message event name.
    * @param item Chat message to surface to subscribers.
+   * @param visibleToUserIds Stable identifiers of users allowed to receive the
+   * event.
    */
   private constructor(
     readonly type: ChatMessageEventType,
     readonly item: ChatMessage,
+    readonly visibleToUserIds: string[],
   ) {}
 }
 

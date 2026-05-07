@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { UseCase } from '../../../../core/contracts/use-case';
 import { Chat } from '../../domain/entities/chat';
-import { ChatParticipants } from '../../domain/value-objects/chat-participants';
+import { ChatMembers } from '../../domain/value-objects/chat-members';
 import {
   CHAT_BY_MEMBERS_READER,
   type ChatByMembersReader,
@@ -9,12 +9,12 @@ import {
 
 /**
  * Application use case responsible for finding one existing chat by its exact
- * participant set.
+ * member set.
  *
  * Responsibilities:
- * - normalize and validate the selected participant ids
- * - include the authenticated caller in the participant set automatically
- * - look up one existing chat matching the full participant set
+ * - normalize and validate the selected member ids
+ * - include the authenticated caller in the member set automatically
+ * - look up one existing chat matching the full member set
  */
 @Injectable()
 export class GetChatByMembersUseCase implements UseCase<
@@ -22,10 +22,10 @@ export class GetChatByMembersUseCase implements UseCase<
   Chat | null
 > {
   /**
-   * Receives the capability required to read chats by participant set.
+   * Receives the capability required to read chats by member set.
    *
-   * @param chatByMembersReader Reads one chat matching the submitted
-   * participant set.
+   * @param chatByMembersReader Reads one chat matching the submitted member
+   * set.
    */
   constructor(
     @Inject(CHAT_BY_MEMBERS_READER)
@@ -34,28 +34,26 @@ export class GetChatByMembersUseCase implements UseCase<
 
   /**
    * Returns one existing chat matching the authenticated caller plus the
-   * submitted other participants.
+   * submitted other members.
    *
    * @param params Lookup data submitted by the caller.
    * @returns Matching chat when found, otherwise null.
-   * @throws {InvalidChatParticipantIdError} Thrown when one participant id is
+   * @throws {InvalidChatMemberIdError} Thrown when one member id is
    * malformed.
-   * @throws {InvalidChatParticipantsError} Thrown when no other participant is
+   * @throws {InvalidChatMembersError} Thrown when no other member is
    * selected.
    */
   async execute(params: GetChatByMembersParams): Promise<Chat | null> {
-    const participants = ChatParticipants.from(params.userId, params.members);
+    const members = ChatMembers.from(params.userId, params.members);
 
-    return this.chatByMembersReader.findByParticipantIds(
-      [...participants.participantIds].sort((left, right) =>
-        left.localeCompare(right),
-      ),
+    return this.chatByMembersReader.findByMemberIds(
+      [...members.memberIds].sort((left, right) => left.localeCompare(right)),
     );
   }
 }
 
 /**
- * Input required to read one existing chat by its participant set.
+ * Input required to read one existing chat by its member set.
  */
 export type GetChatByMembersParams = {
   userId: string;

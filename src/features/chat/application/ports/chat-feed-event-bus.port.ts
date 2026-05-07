@@ -17,7 +17,8 @@ export interface ChatFeedEventBus {
   /**
    * Opens a live stream of chat feed events.
    *
+   * @param userId Caller scope used to open the stream.
    * @returns Observable feed-event stream.
    */
-  subscribe(): Observable<ChatFeedEvent>;
+  subscribe(userId: string): Observable<ChatFeedEvent>;
 }

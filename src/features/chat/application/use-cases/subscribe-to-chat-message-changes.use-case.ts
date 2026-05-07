@@ -8,12 +8,12 @@ import {
 } from '../ports/chat-message-event-bus.port';
 
 /**
- * Application use case that opens the live message-change stream for one chat
- * visible to the authenticated caller.
+ * Application use case that opens the live message-change stream across all
+ * chats visible to the authenticated caller.
  */
 @Injectable()
 export class SubscribeToChatMessageChangesUseCase implements StreamUseCase<
-  SubscribeToChatMessageChangesParams,
+  string,
   ChatMessageEvent
 > {
   /**
@@ -27,19 +27,13 @@ export class SubscribeToChatMessageChangesUseCase implements StreamUseCase<
   ) {}
 
   /**
-   * Opens the chat-message event stream for one chat visible to the caller.
+   * Opens the chat-message event stream across all chats visible to the
+   * caller.
    *
-   * @param request Caller and chat scope used to open the stream.
+   * @param userId Caller scope used to open the stream.
    * @returns Observable stream of chat-message events.
    */
-  execute(
-    request: SubscribeToChatMessageChangesParams,
-  ): Observable<ChatMessageEvent> {
-    return this.chatMessageEventBus.subscribe(request);
+  execute(userId: string): Observable<ChatMessageEvent> {
+    return this.chatMessageEventBus.subscribe(userId);
   }
 }
-
-export type SubscribeToChatMessageChangesParams = {
-  userId: string;
-  chatId: string;
-};

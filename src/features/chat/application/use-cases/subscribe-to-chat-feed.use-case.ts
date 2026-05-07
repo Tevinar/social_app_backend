@@ -12,7 +12,7 @@ import {
  */
 @Injectable()
 export class SubscribeToChatFeedUseCase implements StreamUseCase<
-  void,
+  string,
   ChatFeedEvent
 > {
   /**
@@ -28,9 +28,10 @@ export class SubscribeToChatFeedUseCase implements StreamUseCase<
   /**
    * Opens the chat feed event stream.
    *
+   * @param userId Caller scope used to open the stream.
    * @returns Observable stream of chat feed events.
    */
-  execute(): Observable<ChatFeedEvent> {
-    return this.chatFeedEventBus.subscribe();
+  execute(userId: string): Observable<ChatFeedEvent> {
+    return this.chatFeedEventBus.subscribe(userId);
   }
 }

@@ -4,8 +4,8 @@ import { ChatMessageEvent } from '../../domain/events/chat-message.event';
 export const CHAT_MESSAGE_EVENT_BUS = Symbol('CHAT_MESSAGE_EVENT_BUS');
 
 /**
- * Application port used to publish and consume live chat-message events inside
- * one chat conversation.
+ * Application port used to publish and consume live chat-message events across
+ * all chats visible to one caller.
  */
 export interface ChatMessageEventBus {
   /**
@@ -16,18 +16,11 @@ export interface ChatMessageEventBus {
   publish(event: ChatMessageEvent): void;
 
   /**
-   * Opens a live stream of message events scoped to one chat visible to the
-   * caller.
+   * Opens a live stream of message events visible to the caller across all of
+   * their chats.
    *
-   * @param params Caller and chat scope used to open the stream.
+   * @param userId Caller scope used to open the stream.
    * @returns Observable message-event stream.
    */
-  subscribe(
-    params: SubscribeToChatMessageEventsParams,
-  ): Observable<ChatMessageEvent>;
+  subscribe(userId: string): Observable<ChatMessageEvent>;
 }
-
-export type SubscribeToChatMessageEventsParams = {
-  userId: string;
-  chatId: string;
-};

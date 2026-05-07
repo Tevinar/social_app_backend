@@ -5,10 +5,7 @@ import {
   type FindRecentChatCandidatesSliceParams,
   type RecentChatCandidatesSlice,
 } from '../../application/ports/chat-candidate-reader.port';
-import {
-  ChatCandidateRow,
-  mapChatCandidateRowToEntity,
-} from './chat-candidate-row';
+import { UserSummary } from '../../domain/entities/user-summary';
 
 /**
  * Postgres-backed implementation of the chat-candidate reader port.
@@ -61,4 +58,22 @@ export class PostgresChatCandidateReader implements ChatCandidateReader {
       items: rows.map(mapChatCandidateRowToEntity),
     };
   }
+}
+
+type ChatCandidateRow = {
+  id: string;
+  name: string;
+};
+
+/**
+ * Maps one raw SQL row into the chat-candidate domain entity.
+ *
+ * @param row Raw SQL row returned by the persistence layer.
+ * @returns Chat-candidate entity ready for application use.
+ */
+function mapChatCandidateRowToEntity(row: ChatCandidateRow): UserSummary {
+  return UserSummary.create({
+    id: row.id,
+    name: row.name,
+  });
 }

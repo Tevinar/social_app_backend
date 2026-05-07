@@ -1,3 +1,6 @@
+import { ChatFeedItem } from '../../domain/entities/chat-feed-item';
+import { ChatMessage } from '../../domain/entities/chat-message';
+
 export const CHAT_CREATOR = Symbol('CHAT_CREATOR');
 
 /**
@@ -5,7 +8,7 @@ export const CHAT_CREATOR = Symbol('CHAT_CREATOR');
  */
 export interface ChatCreator {
   /**
-   * Persists one new chat, its participant membership set, and its first
+   * Persists one new chat, its member set, and its first
    * message as one write transaction.
    *
    * @param params Chat creation data to store.
@@ -18,7 +21,7 @@ export interface ChatCreator {
  * Data required to create one chat with its first message.
  */
 export type CreateChatRecordParams = {
-  participantIds: string[];
+  memberIds: string[];
   firstMessageAuthorId: string;
   firstMessageContent: string;
 };
@@ -26,7 +29,17 @@ export type CreateChatRecordParams = {
 /**
  * Stable chat creation result names.
  */
-export enum CreateChatRecordResult {
+export enum CreateChatRecordResultType {
   CREATED = 'created',
-  PARTICIPANT_NOT_FOUND = 'participant_not_found',
+  MEMBER_NOT_FOUND = 'member_not_found',
 }
+
+export type CreateChatRecordResult =
+  | {
+      type: CreateChatRecordResultType.CREATED;
+      chatFeedItem: ChatFeedItem;
+      firstMessage: ChatMessage;
+    }
+  | {
+      type: CreateChatRecordResultType.MEMBER_NOT_FOUND;
+    };
