@@ -1,5 +1,5 @@
-import { ChatFeedEvent } from '../../../domain/events/chat-feed.event';
-import { GetChatResponse } from './get-chat.response';
+import { ChatFeedEvent } from '../../../../domain/events/chat-feed.event';
+import { GetChatResponse } from '../common/get-chat.response';
 
 /**
  * SSE payload returned when one chat-feed event is emitted.

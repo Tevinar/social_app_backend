@@ -1,4 +1,4 @@
-import { ChatLastMessage } from '../../../domain/entities/chat-last-message';
+import { ChatLastMessage } from '../../../../domain/entities/chat-last-message';
 import { GetUserSummaryResponse } from './get-user-summary.response';
 
 /**

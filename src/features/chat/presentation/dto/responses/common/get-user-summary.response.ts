@@ -1,4 +1,4 @@
-import { UserSummary } from '../../../domain/entities/user-summary';
+import { UserSummary } from '../../../../domain/entities/user-summary';
 
 /**
  * HTTP response body representing one public user summary in the chat feature.

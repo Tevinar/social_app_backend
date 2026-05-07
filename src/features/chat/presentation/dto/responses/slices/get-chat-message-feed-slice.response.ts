@@ -1,5 +1,5 @@
-import { type ChatMessageFeedSliceResponse } from '../../../application/use-cases/get-chat-message-feed-slice.use-case';
-import { GetChatMessageResponse } from './get-chat-message.response';
+import { type ChatMessageFeedSliceResponse } from '../../../../application/use-cases/get-chat-message-feed-slice.use-case';
+import { GetChatMessageResponse } from '../common/get-chat-message.response';
 
 /**
  * HTTP response body returned by the cursor-based get-chat-message-feed-slice

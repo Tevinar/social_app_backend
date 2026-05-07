@@ -1,5 +1,5 @@
-import { type ChatCandidatesSliceResponse } from '../../../application/use-cases/get-chat-candidates-slice.use-case';
-import { GetChatCandidateResponse } from './get-chat-candidate.response';
+import { ChatCandidatesSliceResponse } from '../../../../application/use-cases/get-chat-candidates-slice.use-case';
+import { GetUserSummaryResponse } from '../common/get-user-summary.response';
 
 /**
  * HTTP response body returned by the cursor-based get-chat-candidates-slice
@@ -9,7 +9,7 @@ export class GetChatCandidatesSliceResponse {
   /**
    * Chat candidates in the current slice.
    */
-  items!: GetChatCandidateResponse[];
+  candidates!: GetUserSummaryResponse[];
 
   /**
    * Opaque cursor to request the next slice, when available.
@@ -26,8 +26,8 @@ export class GetChatCandidatesSliceResponse {
     slice: ChatCandidatesSliceResponse,
   ): GetChatCandidatesSliceResponse {
     return {
-      items: slice.items.map((candidate) =>
-        GetChatCandidateResponse.fromChatCandidate(candidate),
+      candidates: slice.items.map((candidate) =>
+        GetUserSummaryResponse.fromUserSummary(candidate),
       ),
       ...(slice.nextCursor ? { nextCursor: slice.nextCursor } : {}),
     };

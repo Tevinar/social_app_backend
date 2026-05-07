@@ -1,4 +1,4 @@
-import { ChatMessage } from '../../../domain/entities/chat-message';
+import { ChatMessage } from '../../../../domain/entities/chat-message';
 import { GetUserSummaryResponse } from './get-user-summary.response';
 
 /**

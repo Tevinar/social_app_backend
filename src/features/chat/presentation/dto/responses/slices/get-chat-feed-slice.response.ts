@@ -1,5 +1,5 @@
-import { type ChatFeedSliceResponse } from '../../../application/use-cases/get-chat-feed-slice.use-case';
-import { GetChatResponse } from './get-chat.response';
+import { ChatFeedSliceResponse } from '../../../../application/use-cases/get-chat-feed-slice.use-case';
+import { GetChatResponse } from '../common/get-chat.response';
 
 /**
  * HTTP response body returned by the cursor-based get-chat-feed-slice
@@ -9,7 +9,7 @@ export class GetChatFeedSliceResponse {
   /**
    * Chat-feed items in the current slice.
    */
-  items!: GetChatResponse[];
+  chats!: GetChatResponse[];
 
   /**
    * Opaque cursor to request the next slice, when available.
@@ -26,7 +26,7 @@ export class GetChatFeedSliceResponse {
     slice: ChatFeedSliceResponse,
   ): GetChatFeedSliceResponse {
     return {
-      items: slice.items.map((item) => GetChatResponse.fromChat(item)),
+      chats: slice.items.map((item) => GetChatResponse.fromChat(item)),
       ...(slice.nextCursor ? { nextCursor: slice.nextCursor } : {}),
     };
   }

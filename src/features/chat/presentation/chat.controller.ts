@@ -31,14 +31,13 @@ import { GetChatByMembersRequest } from './dto/requests/get-chat-by-members.requ
 import { GetChatCandidatesSliceRequest } from './dto/requests/get-chat-candidates-slice.request';
 import { GetChatFeedSliceRequest } from './dto/requests/get-chat-feed-slice.request';
 import { GetChatMessageFeedSliceRequest } from './dto/requests/get-chat-message-feed-slice.request';
-import { CreateChatMessageResponse } from './dto/responses/create-chat-message.response';
-import { CreateChatResponse } from './dto/responses/create-chat.response';
-import { GetChatCandidatesSliceResponse } from './dto/responses/get-chat-candidates-slice.response';
-import { GetChatFeedEventResponse } from './dto/responses/get-chat-feed-event.response';
-import { GetChatFeedSliceResponse } from './dto/responses/get-chat-feed-slice.response';
-import { GetChatMessageEventResponse } from './dto/responses/get-chat-message-event.response';
-import { GetChatMessageFeedSliceResponse } from './dto/responses/get-chat-message-feed-slice.response';
-import { GetChatResponse } from './dto/responses/get-chat.response';
+import { GetChatMessageEventResponse } from './dto/responses/events/get-chat-message-event.response';
+import { GetChatMessageFeedSliceResponse } from './dto/responses/slices/get-chat-message-feed-slice.response';
+import { GetChatResponse } from './dto/responses/common/get-chat.response';
+import { ChatWriteResponse } from './dto/responses/writes/chat-write.response';
+import { GetChatFeedEventResponse } from './dto/responses/events/get-chat-feed-event.response';
+import { GetChatCandidatesSliceResponse } from './dto/responses/slices/get-chat-candidates-slice.response';
+import { GetChatFeedSliceResponse } from './dto/responses/slices/get-chat-feed-slice.response';
 
 /**
  * HTTP controller exposing chat endpoints.
@@ -99,14 +98,14 @@ export class ChatController {
     @Body() body: CreateChatRequest,
     @AuthenticatedUser()
     auth: { userId: string },
-  ): Promise<CreateChatResponse> {
+  ): Promise<ChatWriteResponse> {
     const result = await this.createChatUseCase.execute({
       userId: auth.userId,
       members: body.members,
       firstMessageContent: body.firstMessageContent,
     });
 
-    return CreateChatResponse.fromCreateChatResult(result);
+    return ChatWriteResponse.fromChatWriteResult(result);
   }
 
   /**
@@ -246,14 +245,14 @@ export class ChatController {
     @Body() body: CreateChatMessageRequest,
     @AuthenticatedUser()
     auth: { userId: string },
-  ): Promise<CreateChatMessageResponse> {
+  ): Promise<ChatWriteResponse> {
     const result = await this.createChatMessageUseCase.execute({
       userId: auth.userId,
       chatId,
       content: body.content,
     });
 
-    return CreateChatMessageResponse.fromCreateChatMessageResult(result);
+    return ChatWriteResponse.fromChatWriteResult(result);
   }
 
   /**

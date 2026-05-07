@@ -1,7 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { UseCase } from '../../../../core/contracts/use-case';
-import { Chat } from '../../domain/entities/chat';
-import { ChatMessage } from '../../domain/entities/chat-message';
 import { ChatFeedEvent } from '../../domain/events/chat-feed.event';
 import { ChatMessageEvent } from '../../domain/events/chat-message.event';
 import { ChatMessageContent } from '../../domain/value-objects/chat-message-content';
@@ -18,6 +16,7 @@ import {
   CHAT_MESSAGE_EVENT_BUS,
   type ChatMessageEventBus,
 } from '../ports/chat-message-event-bus.port';
+import { ChatWriteResult } from './results/chat-write.result';
 
 /**
  * Signals that the requested chat does not exist or is not visible to the
@@ -46,7 +45,7 @@ export class ChatNotFoundError extends Error {
 @Injectable()
 export class CreateChatMessageUseCase implements UseCase<
   CreateChatMessageParams,
-  CreateChatMessageResult
+  ChatWriteResult
 > {
   /**
    * Receives the feature ports required to persist a new message
@@ -77,7 +76,7 @@ export class CreateChatMessageUseCase implements UseCase<
    */
   async execute(
     params: CreateChatMessageParams,
-  ): Promise<CreateChatMessageResult> {
+  ): Promise<ChatWriteResult> {
     const content = ChatMessageContent.from(params.content);
 
     const result = await this.chatMessageCreator.create({
@@ -112,9 +111,4 @@ export type CreateChatMessageParams = {
   userId: string;
   chatId: string;
   content: string;
-};
-
-export type CreateChatMessageResult = {
-  chat: Chat;
-  chatMessage: ChatMessage;
 };

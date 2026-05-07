@@ -1,7 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { UseCase } from '../../../../core/contracts/use-case';
-import { Chat } from '../../domain/entities/chat';
-import { ChatMessage } from '../../domain/entities/chat-message';
 import { ChatMessageContent } from '../../domain/value-objects/chat-message-content';
 import { ChatMembers } from '../../domain/value-objects/chat-members';
 import {
@@ -19,6 +17,7 @@ import {
 } from '../ports/chat-creator.port';
 import { ChatFeedEvent } from '../../domain/events/chat-feed.event';
 import { ChatMessageEvent } from '../../domain/events/chat-message.event';
+import { ChatWriteResult } from './results/chat-write.result';
 
 /**
  * Signals that one requested chat member does not exist.
@@ -47,7 +46,7 @@ export class ChatMemberNotFoundError extends Error {
 @Injectable()
 export class CreateChatUseCase implements UseCase<
   CreateChatParams,
-  CreateChatResult
+  ChatWriteResult
 > {
   /**
    * Receives the feature ports required to persist a new chat transactionally
@@ -83,7 +82,7 @@ export class CreateChatUseCase implements UseCase<
    * @throws {ChatMemberNotFoundError} Thrown when one requested member does not
    * exist.
    */
-  async execute(params: CreateChatParams): Promise<CreateChatResult> {
+  async execute(params: CreateChatParams): Promise<ChatWriteResult> {
     const members = ChatMembers.from(params.userId, params.members);
     const firstMessageContent = ChatMessageContent.from(
       params.firstMessageContent,
@@ -109,7 +108,7 @@ export class CreateChatUseCase implements UseCase<
 
     return {
       chat: result.chat,
-      firstMessage: result.firstMessage,
+      chatMessage: result.firstMessage,
     };
   }
 }
@@ -121,9 +120,4 @@ export type CreateChatParams = {
   userId: string;
   members: string[];
   firstMessageContent: string;
-};
-
-export type CreateChatResult = {
-  chat: Chat;
-  firstMessage: ChatMessage;
 };

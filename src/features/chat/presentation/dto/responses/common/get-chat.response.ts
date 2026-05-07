@@ -1,4 +1,4 @@
-import { Chat } from '../../../domain/entities/chat';
+import { Chat } from '../../../../domain/entities/chat';
 import { GetChatLastMessageResponse } from './get-chat-last-message.response';
 import { GetUserSummaryResponse } from './get-user-summary.response';
 
