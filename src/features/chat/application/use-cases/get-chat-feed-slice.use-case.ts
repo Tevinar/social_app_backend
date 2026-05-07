@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { UseCase } from '../../../../core/contracts/use-case';
-import { ChatFeedItem } from '../../domain/entities/chat-feed-item';
+import { Chat } from '../../domain/entities/chat';
 import { ChatFeedCursorPagination } from '../pagination/chat-feed.cursor';
 import {
   CHAT_FEED_READER,
@@ -68,6 +68,6 @@ export type GetChatFeedSliceParams = {
 };
 
 export type ChatFeedSliceResponse = {
-  items: ChatFeedItem[];
+  items: Chat[];
   nextCursor?: string;
 };

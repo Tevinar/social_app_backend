@@ -1,5 +1,5 @@
 import { CreateChatResult } from '../../../application/use-cases/create-chat.use-case';
-import { GetChatFeedItemResponse } from './get-chat-feed-item.response';
+import { GetChatResponse } from './get-chat.response';
 import { GetChatMessageResponse } from './get-chat-message.response';
 
 /**
@@ -7,9 +7,9 @@ import { GetChatMessageResponse } from './get-chat-message.response';
  */
 export class CreateChatResponse {
   /**
-   * Newly created chat-feed item.
+   * Newly created chat.
    */
-  chatFeedItem!: GetChatFeedItemResponse;
+  chat!: GetChatResponse;
 
   /**
    * First message created with the chat.
@@ -24,9 +24,7 @@ export class CreateChatResponse {
    */
   static fromCreateChatResult(result: CreateChatResult): CreateChatResponse {
     return {
-      chatFeedItem: GetChatFeedItemResponse.fromChatFeedItem(
-        result.chatFeedItem,
-      ),
+      chat: GetChatResponse.fromChat(result.chat),
       firstMessage: GetChatMessageResponse.fromChatMessage(result.firstMessage),
     };
   }

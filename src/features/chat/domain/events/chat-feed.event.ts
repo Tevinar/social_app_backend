@@ -1,4 +1,4 @@
-import { ChatFeedItem } from '../entities/chat-feed-item';
+import { Chat } from '../entities/chat';
 
 /**
  * Domain event emitted when the public chat feed changes.
@@ -7,20 +7,20 @@ export class ChatFeedEvent {
   /**
    * Creates one event indicating that a new chat should appear in the feed.
    *
-   * @param item Chat-feed item to surface to subscribers.
+   * @param item Chat to surface to subscribers.
    * @returns A chat-feed event.
    */
-  static chatAdded(item: ChatFeedItem): ChatFeedEvent {
+  static chatAdded(item: Chat): ChatFeedEvent {
     return new ChatFeedEvent('feed.chat_added', item);
   }
 
   /**
    * Creates one event indicating that an existing chat changed in the feed.
    *
-   * @param item Chat-feed item to surface to subscribers.
+   * @param item Chat to surface to subscribers.
    * @returns A chat-feed event.
    */
-  static chatUpdated(item: ChatFeedItem): ChatFeedEvent {
+  static chatUpdated(item: Chat): ChatFeedEvent {
     return new ChatFeedEvent('feed.chat_updated', item);
   }
 
@@ -28,11 +28,11 @@ export class ChatFeedEvent {
    * Stores immutable chat-feed event state.
    *
    * @param type Stable chat-feed event name.
-   * @param item Chat-feed item to surface to subscribers.
+   * @param item Chat to surface to subscribers.
    */
   private constructor(
     readonly type: ChatFeedEventType,
-    readonly item: ChatFeedItem,
+    readonly item: Chat,
   ) {}
 }
 

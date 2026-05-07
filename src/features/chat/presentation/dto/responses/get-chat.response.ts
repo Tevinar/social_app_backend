@@ -1,4 +1,5 @@
 import { Chat } from '../../../domain/entities/chat';
+import { GetChatLastMessageResponse } from './get-chat-last-message.response';
 import { GetUserSummaryResponse } from './get-user-summary.response';
 
 /**
@@ -16,6 +17,11 @@ export class GetChatResponse {
   members!: GetUserSummaryResponse[];
 
   /**
+   * Latest message preview shown for the chat.
+   */
+  lastMessage!: GetChatLastMessageResponse | null;
+
+  /**
    * Builds the response DTO from one chat entity.
    *
    * @param chat Chat entity.
@@ -27,6 +33,9 @@ export class GetChatResponse {
       members: chat.members.map((member) =>
         GetUserSummaryResponse.fromUserSummary(member),
       ),
+      lastMessage: chat.lastMessage
+        ? GetChatLastMessageResponse.fromChatLastMessage(chat.lastMessage)
+        : null,
     };
   }
 }

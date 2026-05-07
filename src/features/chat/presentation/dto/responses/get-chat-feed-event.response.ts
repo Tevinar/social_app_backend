@@ -1,5 +1,5 @@
 import { ChatFeedEvent } from '../../../domain/events/chat-feed.event';
-import { GetChatFeedItemResponse } from './get-chat-feed-item.response';
+import { GetChatResponse } from './get-chat.response';
 
 /**
  * SSE payload returned when one chat-feed event is emitted.
@@ -13,7 +13,7 @@ export class GetChatFeedEventResponse {
   /**
    * Chat-feed item carried by the event.
    */
-  item!: GetChatFeedItemResponse;
+  item!: GetChatResponse;
 
   /**
    * Builds the event payload from one chat-feed event.
@@ -24,7 +24,7 @@ export class GetChatFeedEventResponse {
   static fromChatFeedEvent(event: ChatFeedEvent): GetChatFeedEventResponse {
     return {
       type: event.type,
-      item: GetChatFeedItemResponse.fromChatFeedItem(event.item),
+      item: GetChatResponse.fromChat(event.item),
     };
   }
 }

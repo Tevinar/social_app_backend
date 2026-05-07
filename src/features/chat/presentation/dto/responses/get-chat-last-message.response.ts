@@ -1,11 +1,11 @@
-import { ChatFeedLastMessage } from '../../../domain/entities/chat-feed-last-message';
+import { ChatLastMessage } from '../../../domain/entities/chat-last-message';
 import { GetUserSummaryResponse } from './get-user-summary.response';
 
 /**
- * HTTP response body representing the latest message preview shown in the chat
- * feed.
+ * HTTP response body representing the latest message preview shown for one
+ * chat.
  */
-export class GetChatFeedLastMessageResponse {
+export class GetChatLastMessageResponse {
   /**
    * Stable message identifier.
    */
@@ -27,14 +27,14 @@ export class GetChatFeedLastMessageResponse {
   createdAt!: string;
 
   /**
-   * Builds the response DTO from one chat-feed last-message entity.
+   * Builds the response DTO from one chat last-message entity.
    *
-   * @param lastMessage Chat-feed last-message entity.
+   * @param lastMessage Chat last-message entity.
    * @returns Response DTO ready for JSON serialization.
    */
-  static fromChatFeedLastMessage(
-    lastMessage: ChatFeedLastMessage,
-  ): GetChatFeedLastMessageResponse {
+  static fromChatLastMessage(
+    lastMessage: ChatLastMessage,
+  ): GetChatLastMessageResponse {
     return {
       id: lastMessage.id,
       author: lastMessage.author

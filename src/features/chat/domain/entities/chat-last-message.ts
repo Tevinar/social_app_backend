@@ -1,27 +1,26 @@
 import { UserSummary } from './user-summary';
 
 /**
- * Domain entity representing the latest message preview shown in the chat
- * feed.
+ * Domain entity representing the latest message preview shown for one chat.
  */
-export class ChatFeedLastMessage {
+export class ChatLastMessage {
   /**
-   * Creates one immutable chat-feed last-message preview.
+   * Creates one immutable last-message preview.
    *
    * @param params Last-message data.
    * @param params.id Stable message identifier.
    * @param params.author Message author when still available.
    * @param params.content Public message preview content.
    * @param params.createdAt Message creation timestamp.
-   * @returns A chat-feed last-message entity.
+   * @returns A chat last-message entity.
    */
   static create(params: {
     id: string;
     author: UserSummary | null;
     content: string;
     createdAt: Date;
-  }): ChatFeedLastMessage {
-    return new ChatFeedLastMessage(
+  }): ChatLastMessage {
+    return new ChatLastMessage(
       params.id,
       params.author,
       params.content,

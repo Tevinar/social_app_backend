@@ -1,4 +1,4 @@
-import { ChatFeedItem } from '../../domain/entities/chat-feed-item';
+import { Chat } from '../../domain/entities/chat';
 import { ChatMessage } from '../../domain/entities/chat-message';
 
 export const CHAT_MESSAGE_CREATOR = Symbol('CHAT_MESSAGE_CREATOR');
@@ -39,7 +39,7 @@ export enum CreateChatMessageRecordResultType {
 export type CreateChatMessageRecordResult =
   | {
       type: CreateChatMessageRecordResultType.CREATED;
-      chatFeedItem: ChatFeedItem;
+      chat: Chat;
       chatMessage: ChatMessage;
     }
   | {

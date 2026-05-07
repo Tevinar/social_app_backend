@@ -1,4 +1,4 @@
-import { ChatFeedItem } from '../../domain/entities/chat-feed-item';
+import { Chat } from '../../domain/entities/chat';
 import { type ChatFeedCursor } from '../pagination/chat-feed.cursor';
 
 export const CHAT_FEED_READER = Symbol('CHAT_FEED_READER');
@@ -26,5 +26,5 @@ export type FindRecentChatFeedSliceParams = {
 };
 
 export type RecentChatFeedSlice = {
-  items: ChatFeedItem[];
+  items: Chat[];
 };

@@ -5,8 +5,8 @@ import {
   type FindRecentChatFeedSliceParams,
   type RecentChatFeedSlice,
 } from '../../application/ports/chat-feed-reader.port';
-import { ChatFeedItem } from '../../domain/entities/chat-feed-item';
-import { ChatFeedLastMessage } from '../../domain/entities/chat-feed-last-message';
+import { Chat } from '../../domain/entities/chat';
+import { ChatLastMessage } from '../../domain/entities/chat-last-message';
 import { UserSummary } from '../../domain/entities/user-summary';
 
 /**
@@ -134,8 +134,8 @@ type ChatFeedRow = {
  * @param row Raw SQL row returned by the persistence layer.
  * @returns Chat-feed entity ready for application use.
  */
-function mapChatFeedRowToEntity(row: ChatFeedRow): ChatFeedItem {
-  return ChatFeedItem.create({
+function mapChatFeedRowToEntity(row: ChatFeedRow): Chat {
+  return Chat.create({
     id: row.id,
     members: row.memberIds.map((id, index) => {
       const name = row.memberNames[index];
@@ -153,7 +153,7 @@ function mapChatFeedRowToEntity(row: ChatFeedRow): ChatFeedItem {
       row.lastMessageId !== null &&
       row.lastMessageContent !== null &&
       row.lastMessageCreatedAt !== null
-        ? ChatFeedLastMessage.create({
+        ? ChatLastMessage.create({
             id: row.lastMessageId,
             author:
               row.lastMessageAuthorId !== null &&

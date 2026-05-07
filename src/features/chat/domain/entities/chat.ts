@@ -1,3 +1,4 @@
+import { ChatLastMessage } from './chat-last-message';
 import { UserSummary } from './user-summary';
 
 /**
@@ -9,21 +10,28 @@ export class Chat {
    *
    * @param params Chat data.
    * @param params.id Stable chat identifier.
-   * @param params.members Public chat members.
+   * @param params.members Public member summaries shown for the chat.
+   * @param params.lastMessage Latest message preview shown for the chat.
    * @returns A chat entity.
    */
-  static create(params: { id: string; members: UserSummary[] }): Chat {
-    return new Chat(params.id, params.members);
+  static create(params: {
+    id: string;
+    members: UserSummary[];
+    lastMessage: ChatLastMessage | null;
+  }): Chat {
+    return new Chat(params.id, params.members, params.lastMessage);
   }
 
   /**
    * Stores immutable chat state.
    *
    * @param id Stable chat identifier.
-   * @param members Public chat members.
+   * @param members Public member summaries shown for the chat.
+   * @param lastMessage Latest message preview shown for the chat.
    */
   private constructor(
     readonly id: string,
     readonly members: UserSummary[],
+    readonly lastMessage: ChatLastMessage | null,
   ) {}
 }

@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { UseCase } from '../../../../core/contracts/use-case';
-import { ChatFeedItem } from '../../domain/entities/chat-feed-item';
+import { Chat } from '../../domain/entities/chat';
 import { ChatMessage } from '../../domain/entities/chat-message';
 import { ChatMessageContent } from '../../domain/value-objects/chat-message-content';
 import { ChatMembers } from '../../domain/value-objects/chat-members';
@@ -99,16 +99,16 @@ export class CreateChatUseCase implements UseCase<
       throw new ChatMemberNotFoundError();
     }
 
-    this.chatFeedEventBus.publish(ChatFeedEvent.chatAdded(result.chatFeedItem));
+    this.chatFeedEventBus.publish(ChatFeedEvent.chatAdded(result.chat));
     this.chatMessageEventBus.publish(
       ChatMessageEvent.messageAdded(
         result.firstMessage,
-        result.chatFeedItem.members.map((member) => member.id),
+        result.chat.members.map((member) => member.id),
       ),
     );
 
     return {
-      chatFeedItem: result.chatFeedItem,
+      chat: result.chat,
       firstMessage: result.firstMessage,
     };
   }
@@ -124,6 +124,6 @@ export type CreateChatParams = {
 };
 
 export type CreateChatResult = {
-  chatFeedItem: ChatFeedItem;
+  chat: Chat;
   firstMessage: ChatMessage;
 };

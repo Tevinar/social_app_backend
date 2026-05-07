@@ -6,8 +6,8 @@ import {
   type CreateChatMessageRecordParams,
   type CreateChatMessageRecordResult,
 } from '../../application/ports/chat-message-creator.port';
-import { ChatFeedItem } from '../../domain/entities/chat-feed-item';
-import { ChatFeedLastMessage } from '../../domain/entities/chat-feed-last-message';
+import { Chat } from '../../domain/entities/chat';
+import { ChatLastMessage } from '../../domain/entities/chat-last-message';
 import { ChatMessage } from '../../domain/entities/chat-message';
 import { UserSummary } from '../../domain/entities/user-summary';
 
@@ -131,10 +131,10 @@ export class PostgresChatMessageCreator implements ChatMessageCreator {
 
       return {
         type: CreateChatMessageRecordResultType.CREATED,
-        chatFeedItem: ChatFeedItem.create({
+        chat: Chat.create({
           id: params.chatId,
           members,
-          lastMessage: ChatFeedLastMessage.create({
+          lastMessage: ChatLastMessage.create({
             id: createdMessage.id,
             author,
             content: params.content,
