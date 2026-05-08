@@ -26,7 +26,7 @@ export class GetChatMessageEventResponse {
   ): GetChatMessageEventResponse {
     return {
       type: event.type,
-      item: GetChatMessageResponse.fromChatMessage(event.item),
+      item: GetChatMessageResponse.fromChatMessage(event.chatMessage),
     };
   }
 }

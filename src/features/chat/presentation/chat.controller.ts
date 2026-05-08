@@ -24,7 +24,7 @@ import { GetChatCandidateListSliceUseCase } from '../application/use-cases/get-c
 import { GetChatListSliceUseCase } from '../application/use-cases/get-chat-list-slice.use-case';
 import { GetChatMessageListSliceUseCase } from '../application/use-cases/get-chat-message-list-slice.use-case';
 import { SubscribeToChatListUseCase } from '../application/use-cases/subscribe-to-chat-list.use-case';
-import { SubscribeToChatMessageChangesUseCase } from '../application/use-cases/subscribe-to-chat-message-changes.use-case';
+import { SubscribeToChatMessageListUseCase } from '../application/use-cases/subscribe-to-chat-message-list.use-case';
 import { CreateChatMessageRequest } from './dto/requests/create-chat-message.request';
 import { CreateChatRequest } from './dto/requests/create-chat.request';
 import { GetChatByMembersRequest } from './dto/requests/get-chat-by-members.request';
@@ -81,7 +81,7 @@ export class ChatController {
     private readonly getChatListSliceUseCase: GetChatListSliceUseCase,
     private readonly getChatMessageListSliceUseCase: GetChatMessageListSliceUseCase,
     private readonly subscribeToChatListUseCase: SubscribeToChatListUseCase,
-    private readonly subscribeToChatMessageChangesUseCase: SubscribeToChatMessageChangesUseCase,
+    private readonly subscribeToChatMessageChangesUseCase: SubscribeToChatMessageListUseCase,
   ) {}
 
   /**
@@ -185,7 +185,7 @@ export class ChatController {
    * @param auth.userId Stable identifier of the authenticated user.
    * @returns Observable SSE stream of chat-list events.
    */
-  @Sse('chats/events')
+  @Sse('events')
   subscribeToChatList(
     @AuthenticatedUser()
     auth: {
@@ -256,26 +256,34 @@ export class ChatController {
   }
 
   /**
-   * Opens the live chat-message event stream for the authenticated caller.
+   * Opens the live chat-message event stream for one target chat visible to
+   * the authenticated caller.
    *
+   * @param chatId Stable UUIDv4 chat identifier.
    * @param auth Authenticated user identity resolved by the access-token guard.
    * @param auth.userId Stable identifier of the authenticated user.
    * @returns Observable SSE stream of chat-message events.
    */
-  @Sse('messages/events')
+  @Sse(':chatId/messages/events')
   subscribeToChatMessageChanges(
+    @Param('chatId', new ParseUUIDPipe({ version: '4' })) chatId: string,
     @AuthenticatedUser()
     auth: {
       userId: string;
     },
   ): Observable<MessageEvent> {
-    return this.subscribeToChatMessageChangesUseCase.execute(auth.userId).pipe(
-      map(
-        (event): MessageEvent => ({
-          type: event.type,
-          data: GetChatMessageEventResponse.fromChatMessageEvent(event),
-        }),
-      ),
-    );
+    return this.subscribeToChatMessageChangesUseCase
+      .execute({
+        userId: auth.userId,
+        chatId,
+      })
+      .pipe(
+        map(
+          (event): MessageEvent => ({
+            type: event.type,
+            data: GetChatMessageEventResponse.fromChatMessageEvent(event),
+          }),
+        ),
+      );
   }
 }

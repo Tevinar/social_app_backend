@@ -6,8 +6,8 @@ export const CHAT_MESSAGE_LIST_EVENT_BUS = Symbol(
 );
 
 /**
- * Application port used to publish and consume live chat-message list events across
- * all chats visible to one caller.
+ * Application port used to publish and consume live chat-message list events
+ * for one caller inside one chat.
  */
 export interface ChatMessageListEventBus {
   /**
@@ -18,11 +18,18 @@ export interface ChatMessageListEventBus {
   publish(event: ChatMessageListEvent): void;
 
   /**
-   * Opens a live stream of message events visible to the caller across all of
-   * their chats.
+   * Opens a live stream of message events visible to the caller inside one
+   * chat.
    *
-   * @param userId Caller scope used to open the stream.
+   * @param params Caller and chat scope used to open the stream.
    * @returns Observable message-event stream.
    */
-  subscribe(userId: string): Observable<ChatMessageListEvent>;
+  subscribe(
+    params: SubscribeToChatMessageListParams,
+  ): Observable<ChatMessageListEvent>;
 }
+
+export type SubscribeToChatMessageListParams = {
+  userId: string;
+  chatId: string;
+};

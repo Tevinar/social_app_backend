@@ -14,9 +14,7 @@ import { CreateChatMessageUseCase } from './application/use-cases/create-chat-me
 import { GetChatByMembersUseCase } from './application/use-cases/get-chat-by-members.use-case';
 import { GetChatCandidateListSliceUseCase } from './application/use-cases/get-chat-candidate-list-slice.use-case';
 import { GetChatListSliceUseCase } from './application/use-cases/get-chat-list-slice.use-case';
-import { GetChatMessageListSliceUseCase as GetChatMessageListSliceUseCase } from './application/use-cases/get-chat-message-list-slice.use-case';
-import { SubscribeToChatListUseCase as SubscribeToChatListUseCase } from './application/use-cases/subscribe-to-chat-list.use-case';
-import { SubscribeToChatMessageChangesUseCase } from './application/use-cases/subscribe-to-chat-message-changes.use-case';
+import { SubscribeToChatMessageListUseCase } from './application/use-cases/subscribe-to-chat-message-list.use-case';
 import { InMemoryChatListEventBus } from './infrastructure/events/in-memory-chat-event-bus';
 import { InMemoryChatMessageEventBus } from './infrastructure/events/in-memory-chat-message-event-bus';
 import { PostgresChatByMembersReader } from './infrastructure/persistence/postgres-chat-by-members-reader';
@@ -24,8 +22,10 @@ import { PostgresChatCandidateListReader } from './infrastructure/persistence/po
 import { PostgresChatCreator } from './infrastructure/persistence/postgres-chat-creator';
 import { PostgresChatListReader } from './infrastructure/persistence/postgres-chat-list-reader';
 import { PostgresChatMessageCreator } from './infrastructure/persistence/postgres-chat-message-creator';
-import { PostgresChatMessageListReader as PostgresChatMessageListReader } from './infrastructure/persistence/postgres-chat-message-list-reader';
 import { ChatController } from './presentation/chat.controller';
+import { GetChatMessageListSliceUseCase } from './application/use-cases/get-chat-message-list-slice.use-case';
+import { SubscribeToChatListUseCase } from './application/use-cases/subscribe-to-chat-list.use-case';
+import { PostgresChatMessageListReader } from './infrastructure/persistence/postgres-chat-message-list-reader';
 
 /**
  * Feature module that wires the chat slice into Nest's DI graph.
@@ -41,7 +41,7 @@ import { ChatController } from './presentation/chat.controller';
     GetChatListSliceUseCase,
     GetChatMessageListSliceUseCase,
     SubscribeToChatListUseCase,
-    SubscribeToChatMessageChangesUseCase,
+    SubscribeToChatMessageListUseCase,
     {
       provide: CHAT_CANDIDATE_READER,
       useClass: PostgresChatCandidateListReader,
@@ -83,7 +83,7 @@ import { ChatController } from './presentation/chat.controller';
     GetChatListSliceUseCase,
     GetChatMessageListSliceUseCase,
     SubscribeToChatListUseCase,
-    SubscribeToChatMessageChangesUseCase,
+    SubscribeToChatMessageListUseCase,
   ],
 })
 export class ChatModule {}

@@ -1,5 +1,5 @@
 import { Chat } from '../../domain/entities/chat';
-import { type ChatListCursor as ChatListCursor } from '../pagination/chat-list.cursor';
+import { type ChatListCursor } from '../pagination/chat-list.cursor';
 
 export const CHAT_LIST_READER = Symbol('CHAT_LIST_READER');
 
