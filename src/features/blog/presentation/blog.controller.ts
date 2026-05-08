@@ -26,10 +26,10 @@ import { GetBlogImageUseCase } from '../application/use-cases/get-blog-image.use
 import { AccessTokenGuard } from '../../auth/presentation/guards/access-tokens';
 import { AuthenticatedUser } from '../../auth/presentation/decorators/authenticated-user';
 import { GetBlogByIdUseCase } from '../application/use-cases/get-blog-by-id.use-case';
-import { ListBlogsCursorRequest } from './dto/requests/get-blog-feed-slice.request';
+import { GetBlogListSliceRequest } from './dto/requests/get-blog-list-slice.request';
 import { GetBlogResponse } from './dto/responses/get-blog.response';
-import { ListBlogsResponse } from './dto/responses/get-blog-feed-slice.response';
-import { GetBlogFeedSliceUseCase } from '../application/use-cases/get-blog-feed-slice.use-case';
+import { GetBlogListSliceResponse } from './dto/responses/get-blog-list-slice.response';
+import { GetBlogListSliceUseCase } from '../application/use-cases/get-blog-list-slice.use-case';
 
 /**
  * HTTP controller exposing blog endpoints.
@@ -50,14 +50,14 @@ export class BlogController {
    * Receives the blog use cases used by the controller actions.
    *
    * @param createBlogUseCase Blog application service for blog creation.
-   * @param getBlogFeedSliceUseCase Blog application service for listing blog slices.
+   * @param getBlogListSliceUseCase Blog application service for listing blog slices.
    * @param getBlogImageUseCase Blog application service for resolving blog image redirects.
    * @param getBlogByIdUseCase Blog application service for retrieving one blog by id.
    * @param configService Reads runtime configuration values.
    */
   constructor(
     private readonly createBlogUseCase: CreateBlogUseCase,
-    private readonly getBlogFeedSliceUseCase: GetBlogFeedSliceUseCase,
+    private readonly getBlogListSliceUseCase: GetBlogListSliceUseCase,
     private readonly getBlogImageUseCase: GetBlogImageUseCase,
     private readonly getBlogByIdUseCase: GetBlogByIdUseCase,
     private readonly configService: ConfigService,
@@ -106,15 +106,15 @@ export class BlogController {
    * @returns HTTP response DTO containing the requested blog slice.
    */
   @Get()
-  async getBlogFeedSlice(
-    @Query() query: ListBlogsCursorRequest,
-  ): Promise<ListBlogsResponse> {
-    const slice = await this.getBlogFeedSliceUseCase.execute({
+  async getBlogListSlice(
+    @Query() query: GetBlogListSliceRequest,
+  ): Promise<GetBlogListSliceResponse> {
+    const slice = await this.getBlogListSliceUseCase.execute({
       limit: query.limit,
       ...(query.cursor ? { cursor: query.cursor } : {}),
     });
 
-    return ListBlogsResponse.fromBlogFeedSlice(slice, this.apiBaseUrl);
+    return GetBlogListSliceResponse.fromBlogListSlice(slice, this.apiBaseUrl);
   }
 
   /**

@@ -1,30 +1,30 @@
 import { Module } from '@nestjs/common';
 import { DatabaseModule } from '../../core/database/database.module';
 import { AuthModule } from '../auth/auth.module';
-import { CHAT_CANDIDATE_READER } from './application/ports/chat-candidate-reader.port';
+import { CHAT_CANDIDATE_READER } from './application/ports/chat-candidate-list-reader.port';
 import { CHAT_CREATOR } from './application/ports/chat-creator.port';
 import { CHAT_BY_MEMBERS_READER } from './application/ports/chat-by-members-reader.port';
-import { CHAT_FEED_READER } from './application/ports/chat-feed-reader.port';
-import { CHAT_FEED_EVENT_BUS } from './application/ports/chat-feed-event-bus.port';
+import { CHAT_LIST_READER } from './application/ports/chat-list-reader.port';
+import { CHAT_LIST_EVENT_BUS } from './application/ports/chat-list-event-bus.port';
 import { CHAT_MESSAGE_CREATOR } from './application/ports/chat-message-creator.port';
-import { CHAT_MESSAGE_FEED_READER } from './application/ports/chat-message-feed-reader.port';
-import { CHAT_MESSAGE_EVENT_BUS } from './application/ports/chat-message-event-bus.port';
+import { CHAT_MESSAGE_LIST_READER } from './application/ports/chat-message-list-reader.port';
+import { CHAT_MESSAGE_LIST_EVENT_BUS } from './application/ports/chat-message-list-event-bus.port';
 import { CreateChatUseCase } from './application/use-cases/create-chat.use-case';
 import { CreateChatMessageUseCase } from './application/use-cases/create-chat-message.use-case';
 import { GetChatByMembersUseCase } from './application/use-cases/get-chat-by-members.use-case';
-import { GetChatCandidatesSliceUseCase } from './application/use-cases/get-chat-candidates-slice.use-case';
-import { GetChatFeedSliceUseCase } from './application/use-cases/get-chat-feed-slice.use-case';
-import { GetChatMessageFeedSliceUseCase } from './application/use-cases/get-chat-message-feed-slice.use-case';
-import { SubscribeToChatFeedUseCase } from './application/use-cases/subscribe-to-chat-feed.use-case';
+import { GetChatCandidateListSliceUseCase } from './application/use-cases/get-chat-candidate-list-slice.use-case';
+import { GetChatListSliceUseCase } from './application/use-cases/get-chat-list-slice.use-case';
+import { GetChatMessageListSliceUseCase as GetChatMessageListSliceUseCase } from './application/use-cases/get-chat-message-list-slice.use-case';
+import { SubscribeToChatListUseCase as SubscribeToChatListUseCase } from './application/use-cases/subscribe-to-chat-list.use-case';
 import { SubscribeToChatMessageChangesUseCase } from './application/use-cases/subscribe-to-chat-message-changes.use-case';
-import { InMemoryChatFeedEventBus } from './infrastructure/events/in-memory-chat-feed-event-bus';
+import { InMemoryChatListEventBus } from './infrastructure/events/in-memory-chat-event-bus';
 import { InMemoryChatMessageEventBus } from './infrastructure/events/in-memory-chat-message-event-bus';
 import { PostgresChatByMembersReader } from './infrastructure/persistence/postgres-chat-by-members-reader';
-import { PostgresChatCandidateReader } from './infrastructure/persistence/postgres-chat-candidate-reader';
+import { PostgresChatCandidateListReader } from './infrastructure/persistence/postgres-chat-candidate-reader';
 import { PostgresChatCreator } from './infrastructure/persistence/postgres-chat-creator';
-import { PostgresChatFeedReader } from './infrastructure/persistence/postgres-chat-feed-reader';
+import { PostgresChatListReader } from './infrastructure/persistence/postgres-chat-list-reader';
 import { PostgresChatMessageCreator } from './infrastructure/persistence/postgres-chat-message-creator';
-import { PostgresChatMessageFeedReader } from './infrastructure/persistence/postgres-chat-message-feed-reader';
+import { PostgresChatMessageListReader as PostgresChatMessageListReader } from './infrastructure/persistence/postgres-chat-message-list-reader';
 import { ChatController } from './presentation/chat.controller';
 
 /**
@@ -37,14 +37,14 @@ import { ChatController } from './presentation/chat.controller';
     CreateChatUseCase,
     CreateChatMessageUseCase,
     GetChatByMembersUseCase,
-    GetChatCandidatesSliceUseCase,
-    GetChatFeedSliceUseCase,
-    GetChatMessageFeedSliceUseCase,
-    SubscribeToChatFeedUseCase,
+    GetChatCandidateListSliceUseCase,
+    GetChatListSliceUseCase,
+    GetChatMessageListSliceUseCase,
+    SubscribeToChatListUseCase,
     SubscribeToChatMessageChangesUseCase,
     {
       provide: CHAT_CANDIDATE_READER,
-      useClass: PostgresChatCandidateReader,
+      useClass: PostgresChatCandidateListReader,
     },
     {
       provide: CHAT_CREATOR,
@@ -59,19 +59,19 @@ import { ChatController } from './presentation/chat.controller';
       useClass: PostgresChatByMembersReader,
     },
     {
-      provide: CHAT_FEED_READER,
-      useClass: PostgresChatFeedReader,
+      provide: CHAT_LIST_READER,
+      useClass: PostgresChatListReader,
     },
     {
-      provide: CHAT_FEED_EVENT_BUS,
-      useClass: InMemoryChatFeedEventBus,
+      provide: CHAT_LIST_EVENT_BUS,
+      useClass: InMemoryChatListEventBus,
     },
     {
-      provide: CHAT_MESSAGE_FEED_READER,
-      useClass: PostgresChatMessageFeedReader,
+      provide: CHAT_MESSAGE_LIST_READER,
+      useClass: PostgresChatMessageListReader,
     },
     {
-      provide: CHAT_MESSAGE_EVENT_BUS,
+      provide: CHAT_MESSAGE_LIST_EVENT_BUS,
       useClass: InMemoryChatMessageEventBus,
     },
   ],
@@ -79,10 +79,10 @@ import { ChatController } from './presentation/chat.controller';
     CreateChatUseCase,
     CreateChatMessageUseCase,
     GetChatByMembersUseCase,
-    GetChatCandidatesSliceUseCase,
-    GetChatFeedSliceUseCase,
-    GetChatMessageFeedSliceUseCase,
-    SubscribeToChatFeedUseCase,
+    GetChatCandidateListSliceUseCase,
+    GetChatListSliceUseCase,
+    GetChatMessageListSliceUseCase,
+    SubscribeToChatListUseCase,
     SubscribeToChatMessageChangesUseCase,
   ],
 })

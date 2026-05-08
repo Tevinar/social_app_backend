@@ -25,7 +25,7 @@ export class PostgresChatMessageCreator implements ChatMessageCreator {
   constructor(private readonly database: DatabaseService) {}
 
   /**
-   * Persists one new message and the resulting chat-feed update in one
+   * Persists one new message and the resulting chat-list update in one
    * transaction.
    *
    * @param params Chat-message creation data to persist.
@@ -81,7 +81,7 @@ export class PostgresChatMessageCreator implements ChatMessageCreator {
         throw new Error('Chat message creation failed');
       }
 
-      // Point the chat at its newest message for feed ordering and previews.
+      // Point the chat at its newest message for list ordering and previews.
       await sql`
         update chats
         set
@@ -91,7 +91,7 @@ export class PostgresChatMessageCreator implements ChatMessageCreator {
       `;
 
       // Load member display data so the transaction can return hydrated
-      // message and feed payloads without an extra roundtrip.
+      // message and list payloads without an extra roundtrip.
       const memberRows = await sql<
         {
           id: string;

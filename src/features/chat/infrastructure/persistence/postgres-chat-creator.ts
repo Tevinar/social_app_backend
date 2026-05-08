@@ -119,7 +119,7 @@ export class PostgresChatCreator implements ChatCreator {
         throw new Error('Chat creation failed');
       }
 
-      // Point the chat at its current last message for feed ordering and
+      // Point the chat at its current last message for list ordering and
       // previews.
       await sql`
         update chats

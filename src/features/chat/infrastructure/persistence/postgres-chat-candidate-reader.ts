@@ -1,17 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '../../../../core/database/database.service';
 import {
-  type ChatCandidateReader,
-  type FindRecentChatCandidatesSliceParams,
-  type RecentChatCandidatesSlice,
-} from '../../application/ports/chat-candidate-reader.port';
+  type ChatCandidateListReader,
+  type FindRecentChatCandidateListSliceParams,
+  type RecentChatCandidateListSlice,
+} from '../../application/ports/chat-candidate-list-reader.port';
 import { UserSummary } from '../../domain/entities/user-summary';
 
 /**
- * Postgres-backed implementation of the chat-candidate reader port.
+ * Postgres-backed implementation of the chat-candidate list reader port.
  */
 @Injectable()
-export class PostgresChatCandidateReader implements ChatCandidateReader {
+export class PostgresChatCandidateListReader implements ChatCandidateListReader {
   /**
    * Receives the shared database service used to query chat candidates.
    *
@@ -26,11 +26,11 @@ export class PostgresChatCandidateReader implements ChatCandidateReader {
    * friendship or visibility restrictions should be added here.
    *
    * @param params Cursor window requested by the caller.
-   * @returns Current slice of chat candidates.
+   * @returns Current slice of chat candidate list.
    */
   async findSlice(
-    params: FindRecentChatCandidatesSliceParams,
-  ): Promise<RecentChatCandidatesSlice> {
+    params: FindRecentChatCandidateListSliceParams,
+  ): Promise<RecentChatCandidateListSlice> {
     const rows = params.cursor
       ? await this.database.sql<ChatCandidateRow[]>`
         select
@@ -66,10 +66,10 @@ type ChatCandidateRow = {
 };
 
 /**
- * Maps one raw SQL row into the chat-candidate domain entity.
+ * Maps one raw SQL row into the chat-candidate list domain entity.
  *
  * @param row Raw SQL row returned by the persistence layer.
- * @returns Chat-candidate entity ready for application use.
+ * @returns Chat-candidate list entity ready for application use.
  */
 function mapChatCandidateRowToEntity(row: ChatCandidateRow): UserSummary {
   return UserSummary.create({

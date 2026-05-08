@@ -7,9 +7,9 @@ import {
 } from '../../../application/pagination/chat-candidate.cursor';
 
 /**
- * HTTP query string accepted by the get-chat-candidates-slice endpoint.
+ * HTTP query string accepted by the get-chat-candidate-list-slice endpoint.
  */
-export class GetChatCandidatesSliceRequest {
+export class GetChatCandidateListSliceRequest {
   /**
    * Maximum number of chat candidates to return in the current slice.
    */

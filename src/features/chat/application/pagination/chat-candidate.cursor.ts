@@ -1,26 +1,7 @@
-export const MIN_LIMIT = 1;
-export const DEFAULT_LIMIT = 20;
-export const MAX_LIMIT = 100;
-
-export type ChatCandidateCursor = {
-  candidateName: string;
-  id: string;
-};
-
-type EncodedChatCandidateCursor = {
-  candidateName: string;
-  id: string;
-};
-
-/**
- * Signals that submitted chat-candidate cursor values cannot be accepted.
- */
-export class InvalidChatCandidateCursorError extends Error {}
-
 /**
  * Immutable chat-candidate cursor-pagination value object.
  */
-export class ChatCandidateCursorPagination {
+export class ChatCandidateListCursorPagination {
   /**
    * Builds one immutable cursor-pagination window.
    *
@@ -42,7 +23,7 @@ export class ChatCandidateCursorPagination {
   static from(
     limit: number,
     encodedCursor?: string,
-  ): ChatCandidateCursorPagination {
+  ): ChatCandidateListCursorPagination {
     if (!Number.isInteger(limit) || limit < MIN_LIMIT || limit > MAX_LIMIT) {
       throw new InvalidChatCandidateCursorError(
         `Limit must be an integer between ${MIN_LIMIT} and ${MAX_LIMIT}`,
@@ -50,10 +31,10 @@ export class ChatCandidateCursorPagination {
     }
 
     if (!encodedCursor) {
-      return new ChatCandidateCursorPagination(limit);
+      return new ChatCandidateListCursorPagination(limit);
     }
 
-    return new ChatCandidateCursorPagination(
+    return new ChatCandidateListCursorPagination(
       limit,
       this.decodeCursor(encodedCursor),
     );
@@ -111,3 +92,22 @@ export class ChatCandidateCursorPagination {
     }
   }
 }
+
+export const MIN_LIMIT = 1;
+export const DEFAULT_LIMIT = 20;
+export const MAX_LIMIT = 100;
+
+export type ChatCandidateCursor = {
+  candidateName: string;
+  id: string;
+};
+
+type EncodedChatCandidateCursor = {
+  candidateName: string;
+  id: string;
+};
+
+/**
+ * Signals that submitted chat-candidate cursor values cannot be accepted.
+ */
+export class InvalidChatCandidateCursorError extends Error {}

@@ -1,22 +1,22 @@
 import { Injectable } from '@nestjs/common';
 import { Observable, Subject, filter } from 'rxjs';
-import { type ChatMessageEventBus } from '../../application/ports/chat-message-event-bus.port';
-import { ChatMessageEvent } from '../../domain/events/chat-message.event';
+import { type ChatMessageListEventBus } from '../../application/ports/chat-message-list-event-bus.port';
+import { ChatMessageListEvent } from '../../domain/events/chat-message-list.event';
 
 /**
  * In-memory RxJS-backed implementation of the user-scoped chat-message event
  * bus.
  */
 @Injectable()
-export class InMemoryChatMessageEventBus implements ChatMessageEventBus {
-  private readonly subject = new Subject<ChatMessageEvent>();
+export class InMemoryChatMessageEventBus implements ChatMessageListEventBus {
+  private readonly subject = new Subject<ChatMessageListEvent>();
 
   /**
    * Publishes one chat-message event to all current subscribers.
    *
    * @param event Message event to broadcast.
    */
-  publish(event: ChatMessageEvent): void {
+  publish(event: ChatMessageListEvent): void {
     this.subject.next(event);
   }
 
@@ -29,7 +29,7 @@ export class InMemoryChatMessageEventBus implements ChatMessageEventBus {
    * @param userId Caller scope used to open the stream.
    * @returns Observable message-event stream.
    */
-  subscribe(userId: string): Observable<ChatMessageEvent> {
+  subscribe(userId: string): Observable<ChatMessageListEvent> {
     return this.subject
       .asObservable()
       .pipe(filter((event) => event.visibleToUserIds.includes(userId)));

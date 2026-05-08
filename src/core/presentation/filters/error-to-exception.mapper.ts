@@ -11,8 +11,8 @@ import { InvalidEmailError } from '../../../features/auth/domain/value-objects/e
 import { InvalidNameError } from '../../../features/auth/domain/value-objects/name';
 import { InvalidNewPasswordError } from '../../../features/auth/domain/value-objects/new-password';
 import { InvalidChatCandidateCursorError } from '../../../features/chat/application/pagination/chat-candidate.cursor';
-import { InvalidChatFeedCursorError } from '../../../features/chat/application/pagination/chat-feed.cursor';
-import { InvalidChatMessageCursorError } from '../../../features/chat/application/pagination/chat-message.cursor';
+import { InvalidChatListCursorError } from '../../../features/chat/application/pagination/chat-list.cursor';
+import { InvalidChatMessageCursorError } from '../../../features/chat/application/pagination/chat-message-list.cursor';
 import { ChatMemberNotFoundError } from '../../../features/chat/application/use-cases/create-chat.use-case';
 import { ChatNotFoundError } from '../../../features/chat/application/use-cases/create-chat-message.use-case';
 import {
@@ -151,9 +151,9 @@ export class ErrorToExceptionMapper {
       };
     }
 
-    if (error instanceof InvalidChatFeedCursorError) {
+    if (error instanceof InvalidChatListCursorError) {
       return {
-        code: 'invalid_chat_feed_cursor',
+        code: 'invalid_chat_list_cursor',
         httpStatus: HttpStatus.BAD_REQUEST,
         message: error.message,
         isExpected: true,

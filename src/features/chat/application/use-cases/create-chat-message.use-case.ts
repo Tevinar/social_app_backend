@@ -1,21 +1,21 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { UseCase } from '../../../../core/contracts/use-case';
-import { ChatFeedEvent } from '../../domain/events/chat-feed.event';
-import { ChatMessageEvent } from '../../domain/events/chat-message.event';
+import { ChatListEvent } from '../../domain/events/chat-list.event';
+import { ChatMessageListEvent } from '../../domain/events/chat-message-list.event';
 import { ChatMessageContent } from '../../domain/value-objects/chat-message-content';
 import {
-  CHAT_FEED_EVENT_BUS,
-  type ChatFeedEventBus,
-} from '../ports/chat-feed-event-bus.port';
+  CHAT_LIST_EVENT_BUS,
+  type ChatListEventBus,
+} from '../ports/chat-list-event-bus.port';
 import {
   CHAT_MESSAGE_CREATOR,
   CreateChatMessageRecordResultType,
   type ChatMessageCreator,
 } from '../ports/chat-message-creator.port';
 import {
-  CHAT_MESSAGE_EVENT_BUS,
-  type ChatMessageEventBus,
-} from '../ports/chat-message-event-bus.port';
+  CHAT_MESSAGE_LIST_EVENT_BUS,
+  type ChatMessageListEventBus,
+} from '../ports/chat-message-list-event-bus.port';
 import { ChatWriteResult } from './results/chat-write.result';
 
 /**
@@ -38,9 +38,9 @@ export class ChatNotFoundError extends Error {
  *
  * Responsibilities:
  * - validate the submitted message content
- * - persist the message and resulting feed update atomically
+ * - persist the message and resulting list update atomically
  * - return the created message payload immediately to the initiating client
- * - publish feed and message events after the write succeeds
+ * - publish list and message events after the write succeeds
  */
 @Injectable()
 export class CreateChatMessageUseCase implements UseCase<
@@ -52,16 +52,16 @@ export class CreateChatMessageUseCase implements UseCase<
    * transactionally and notify realtime subscribers after creation.
    *
    * @param chatMessageCreator Persists the message write set atomically.
-   * @param chatFeedEventBus Broadcasts chat-feed events.
+   * @param chatListEventBus Broadcasts chat-list events.
    * @param chatMessageEventBus Broadcasts chat-message events.
    */
   constructor(
     @Inject(CHAT_MESSAGE_CREATOR)
     private readonly chatMessageCreator: ChatMessageCreator,
-    @Inject(CHAT_FEED_EVENT_BUS)
-    private readonly chatFeedEventBus: ChatFeedEventBus,
-    @Inject(CHAT_MESSAGE_EVENT_BUS)
-    private readonly chatMessageEventBus: ChatMessageEventBus,
+    @Inject(CHAT_LIST_EVENT_BUS)
+    private readonly chatListEventBus: ChatListEventBus,
+    @Inject(CHAT_MESSAGE_LIST_EVENT_BUS)
+    private readonly chatMessageEventBus: ChatMessageListEventBus,
   ) {}
 
   /**
@@ -74,9 +74,7 @@ export class CreateChatMessageUseCase implements UseCase<
    * @throws {ChatNotFoundError} Thrown when the target chat is missing or not
    * visible to the caller.
    */
-  async execute(
-    params: CreateChatMessageParams,
-  ): Promise<ChatWriteResult> {
+  async execute(params: CreateChatMessageParams): Promise<ChatWriteResult> {
     const content = ChatMessageContent.from(params.content);
 
     const result = await this.chatMessageCreator.create({
@@ -89,9 +87,9 @@ export class CreateChatMessageUseCase implements UseCase<
       throw new ChatNotFoundError();
     }
 
-    this.chatFeedEventBus.publish(ChatFeedEvent.chatUpdated(result.chat));
+    this.chatListEventBus.publish(ChatListEvent.chatUpdated(result.chat));
     this.chatMessageEventBus.publish(
-      ChatMessageEvent.messageAdded(
+      ChatMessageListEvent.messageAdded(
         result.chatMessage,
         result.chat.members.map((member) => member.id),
       ),

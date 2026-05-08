@@ -1,11 +1,11 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { StreamUseCase } from '../../../../core/contracts/stream-use-case';
-import { ChatMessageEvent } from '../../domain/events/chat-message.event';
+import { ChatMessageListEvent } from '../../domain/events/chat-message-list.event';
 import {
-  CHAT_MESSAGE_EVENT_BUS,
-  type ChatMessageEventBus,
-} from '../ports/chat-message-event-bus.port';
+  CHAT_MESSAGE_LIST_EVENT_BUS,
+  type ChatMessageListEventBus,
+} from '../ports/chat-message-list-event-bus.port';
 
 /**
  * Application use case that opens the live message-change stream across all
@@ -14,7 +14,7 @@ import {
 @Injectable()
 export class SubscribeToChatMessageChangesUseCase implements StreamUseCase<
   string,
-  ChatMessageEvent
+  ChatMessageListEvent
 > {
   /**
    * Receives the event bus that emits scoped chat-message events.
@@ -22,8 +22,8 @@ export class SubscribeToChatMessageChangesUseCase implements StreamUseCase<
    * @param chatMessageEventBus Event stream used by chat message subscribers.
    */
   constructor(
-    @Inject(CHAT_MESSAGE_EVENT_BUS)
-    private readonly chatMessageEventBus: ChatMessageEventBus,
+    @Inject(CHAT_MESSAGE_LIST_EVENT_BUS)
+    private readonly chatMessageEventBus: ChatMessageListEventBus,
   ) {}
 
   /**
@@ -33,7 +33,7 @@ export class SubscribeToChatMessageChangesUseCase implements StreamUseCase<
    * @param userId Caller scope used to open the stream.
    * @returns Observable stream of chat-message events.
    */
-  execute(userId: string): Observable<ChatMessageEvent> {
+  execute(userId: string): Observable<ChatMessageListEvent> {
     return this.chatMessageEventBus.subscribe(userId);
   }
 }

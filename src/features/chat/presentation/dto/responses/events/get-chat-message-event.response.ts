@@ -1,4 +1,4 @@
-import { ChatMessageEvent } from '../../../../domain/events/chat-message.event';
+import { ChatMessageListEvent } from '../../../../domain/events/chat-message-list.event';
 import { GetChatMessageResponse } from '../common/get-chat-message.response';
 
 /**
@@ -22,7 +22,7 @@ export class GetChatMessageEventResponse {
    * @returns Response DTO ready for SSE serialization.
    */
   static fromChatMessageEvent(
-    event: ChatMessageEvent,
+    event: ChatMessageListEvent,
   ): GetChatMessageEventResponse {
     return {
       type: event.type,

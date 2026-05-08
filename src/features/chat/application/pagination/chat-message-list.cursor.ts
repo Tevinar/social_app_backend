@@ -1,7 +1,7 @@
 /**
  * Immutable chat-message cursor-pagination value object.
  */
-export class ChatMessageCursorPagination {
+export class ChatMessageListCursorPagination {
   /**
    * Builds one immutable cursor-pagination window.
    *
@@ -24,7 +24,7 @@ export class ChatMessageCursorPagination {
   static from(
     limit: number,
     encodedCursor?: string,
-  ): ChatMessageCursorPagination {
+  ): ChatMessageListCursorPagination {
     if (!Number.isInteger(limit) || limit < MIN_LIMIT || limit > MAX_LIMIT) {
       throw new InvalidChatMessageCursorError(
         `Limit must be an integer between ${MIN_LIMIT} and ${MAX_LIMIT}`,
@@ -32,10 +32,10 @@ export class ChatMessageCursorPagination {
     }
 
     if (!encodedCursor) {
-      return new ChatMessageCursorPagination(limit);
+      return new ChatMessageListCursorPagination(limit);
     }
 
-    return new ChatMessageCursorPagination(
+    return new ChatMessageListCursorPagination(
       limit,
       this.decodeCursor(encodedCursor),
     );

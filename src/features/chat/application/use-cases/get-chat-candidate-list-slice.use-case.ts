@@ -1,10 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { UseCase } from '../../../../core/contracts/use-case';
-import { ChatCandidateCursorPagination } from '../pagination/chat-candidate.cursor';
+import { ChatCandidateListCursorPagination } from '../pagination/chat-candidate.cursor';
 import {
   CHAT_CANDIDATE_READER,
-  type ChatCandidateReader,
-} from '../ports/chat-candidate-reader.port';
+  type ChatCandidateListReader,
+} from '../ports/chat-candidate-list-reader.port';
 import { UserSummary } from '../../domain/entities/user-summary';
 
 /**
@@ -12,9 +12,9 @@ import { UserSummary } from '../../domain/entities/user-summary';
  * users that may be selected to start a chat.
  */
 @Injectable()
-export class GetChatCandidatesSliceUseCase implements UseCase<
-  GetChatCandidatesSliceParams,
-  ChatCandidatesSliceResponse
+export class GetChatCandidateListSliceUseCase implements UseCase<
+  GetChatCandidateListSliceParams,
+  ChatCandidateListSliceResult
 > {
   /**
    * Receives the capability required to read chat candidates from persistence.
@@ -23,7 +23,7 @@ export class GetChatCandidatesSliceUseCase implements UseCase<
    */
   constructor(
     @Inject(CHAT_CANDIDATE_READER)
-    private readonly chatCandidateReader: ChatCandidateReader,
+    private readonly chatCandidateReader: ChatCandidateListReader,
   ) {}
 
   /**
@@ -34,9 +34,9 @@ export class GetChatCandidatesSliceUseCase implements UseCase<
    * @returns Candidate slice data ready for presentation.
    */
   async execute(
-    params: GetChatCandidatesSliceParams,
-  ): Promise<ChatCandidatesSliceResponse> {
-    const pagination = ChatCandidateCursorPagination.from(
+    params: GetChatCandidateListSliceParams,
+  ): Promise<ChatCandidateListSliceResult> {
+    const pagination = ChatCandidateListCursorPagination.from(
       params.limit,
       params.cursor,
     );
@@ -49,7 +49,10 @@ export class GetChatCandidatesSliceUseCase implements UseCase<
 
     const lastItem = result.items.at(-1);
     const nextCursor = lastItem
-      ? ChatCandidateCursorPagination.encodeCursor(lastItem.name, lastItem.id)
+      ? ChatCandidateListCursorPagination.encodeCursor(
+          lastItem.name,
+          lastItem.id,
+        )
       : undefined;
 
     return {
@@ -59,13 +62,13 @@ export class GetChatCandidatesSliceUseCase implements UseCase<
   }
 }
 
-export type GetChatCandidatesSliceParams = {
+export type GetChatCandidateListSliceParams = {
   userId: string;
   limit: number;
   cursor?: string;
 };
 
-export type ChatCandidatesSliceResponse = {
+export type ChatCandidateListSliceResult = {
   items: UserSummary[];
   nextCursor?: string;
 };

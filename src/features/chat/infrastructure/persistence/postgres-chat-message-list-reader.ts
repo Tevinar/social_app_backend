@@ -1,17 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '../../../../core/database/database.service';
 import {
-  type ChatMessageFeedReader,
-  type FindRecentChatMessageFeedSliceParams,
-} from '../../application/ports/chat-message-feed-reader.port';
+  type ChatMessageListReader,
+  type FindRecentChatMessageListSliceParams,
+} from '../../application/ports/chat-message-list-reader.port';
 import { ChatMessage } from '../../domain/entities/chat-message';
 import { UserSummary } from '../../domain/entities/user-summary';
 
 /**
- * Postgres-backed implementation of the chat-message feed reader port.
+ * Postgres-backed implementation of the chat-message list reader port.
  */
 @Injectable()
-export class PostgresChatMessageFeedReader implements ChatMessageFeedReader {
+export class PostgresChatMessageListReader implements ChatMessageListReader {
   /**
    * Receives the shared database service used to query chat-message rows.
    *
@@ -26,7 +26,7 @@ export class PostgresChatMessageFeedReader implements ChatMessageFeedReader {
    * @returns Current slice of chat messages.
    */
   async findRecentSlice(
-    params: FindRecentChatMessageFeedSliceParams,
+    params: FindRecentChatMessageListSliceParams,
   ): Promise<ChatMessage[]> {
     const rows = params.cursor
       ? await this.database.sql<ChatMessageRow[]>`

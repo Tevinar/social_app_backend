@@ -1,46 +1,44 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { UseCase } from '../../../../core/contracts/use-case';
 import { Chat } from '../../domain/entities/chat';
-import { ChatFeedCursorPagination } from '../pagination/chat-feed.cursor';
+import { ChatListCursorPagination } from '../pagination/chat-list.cursor';
 import {
-  CHAT_FEED_READER,
-  type ChatFeedReader,
-} from '../ports/chat-feed-reader.port';
+  CHAT_LIST_READER,
+  type ChatListReader,
+} from '../ports/chat-list-reader.port';
 
 /**
  * Application use case responsible for listing one cursor-based slice of chats
- * visible in the authenticated caller's feed.
+ * visible in the authenticated caller's list.
  */
 @Injectable()
-export class GetChatFeedSliceUseCase implements UseCase<
-  GetChatFeedSliceParams,
-  ChatFeedSliceResponse
+export class GetChatListSliceUseCase implements UseCase<
+  GetChatListSliceParams,
+  ChatListSliceResult
 > {
   /**
-   * Receives the capability required to read chat-feed items from persistence.
+   * Receives the capability required to read chat-list items from persistence.
    *
-   * @param chatFeedReader Reads chats visible in the caller's feed.
+   * @param chatListReader Reads chats visible in the caller's list.
    */
   constructor(
-    @Inject(CHAT_FEED_READER)
-    private readonly chatFeedReader: ChatFeedReader,
+    @Inject(CHAT_LIST_READER)
+    private readonly chatListReader: ChatListReader,
   ) {}
 
   /**
    * Returns one cursor-based slice of chats for the authenticated caller.
    *
    * @param params Caller identity and requested slice window.
-   * @returns Chat-feed slice data ready for presentation.
+   * @returns Chat-list slice data ready for presentation.
    */
-  async execute(
-    params: GetChatFeedSliceParams,
-  ): Promise<ChatFeedSliceResponse> {
-    const pagination = ChatFeedCursorPagination.from(
+  async execute(params: GetChatListSliceParams): Promise<ChatListSliceResult> {
+    const pagination = ChatListCursorPagination.from(
       params.limit,
       params.cursor,
     );
 
-    const result = await this.chatFeedReader.findRecentSlice({
+    const result = await this.chatListReader.findRecentSlice({
       userId: params.userId,
       limit: pagination.limit,
       ...(pagination.cursor ? { cursor: pagination.cursor } : {}),
@@ -48,7 +46,7 @@ export class GetChatFeedSliceUseCase implements UseCase<
 
     const lastItem = result.items.at(-1);
     const nextCursor = lastItem
-      ? ChatFeedCursorPagination.encodeCursor(
+      ? ChatListCursorPagination.encodeCursor(
           lastItem.lastMessage?.createdAt ?? new Date(0),
           lastItem.id,
         )
@@ -61,13 +59,13 @@ export class GetChatFeedSliceUseCase implements UseCase<
   }
 }
 
-export type GetChatFeedSliceParams = {
+export type GetChatListSliceParams = {
   userId: string;
   limit: number;
   cursor?: string;
 };
 
-export type ChatFeedSliceResponse = {
+export type ChatListSliceResult = {
   items: Chat[];
   nextCursor?: string;
 };

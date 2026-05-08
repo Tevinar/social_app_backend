@@ -9,7 +9,7 @@ import {
 /**
  * HTTP query string accepted by the list-blogs endpoint.
  */
-export class ListBlogsCursorRequest {
+export class GetBlogListSliceRequest {
   /**
    * Maximum number of blogs to return in the current slice.
    */

@@ -1,21 +1,21 @@
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '../../../../core/database/database.service';
 import {
-  type ChatFeedReader,
-  type FindRecentChatFeedSliceParams,
-  type RecentChatFeedSlice,
-} from '../../application/ports/chat-feed-reader.port';
+  type ChatListReader,
+  type FindRecentChatListSliceParams,
+  type RecentChatListSlice,
+} from '../../application/ports/chat-list-reader.port';
 import { Chat } from '../../domain/entities/chat';
 import { ChatLastMessage } from '../../domain/entities/chat-last-message';
 import { UserSummary } from '../../domain/entities/user-summary';
 
 /**
- * Postgres-backed implementation of the chat-feed reader port.
+ * Postgres-backed implementation of the chat-list reader port.
  */
 @Injectable()
-export class PostgresChatFeedReader implements ChatFeedReader {
+export class PostgresChatListReader implements ChatListReader {
   /**
-   * Receives the shared database service used to query chat-feed rows.
+   * Receives the shared database service used to query chat-list rows.
    *
    * @param database Nest-injected Postgres access wrapper.
    */
@@ -26,13 +26,13 @@ export class PostgresChatFeedReader implements ChatFeedReader {
    * recent activity for the caller.
    *
    * @param params Cursor window requested by the caller.
-   * @returns Current slice of chat-feed items.
+   * @returns Current slice of chat-list items.
    */
   async findRecentSlice(
-    params: FindRecentChatFeedSliceParams,
-  ): Promise<RecentChatFeedSlice> {
+    params: FindRecentChatListSliceParams,
+  ): Promise<RecentChatListSlice> {
     const rows = params.cursor
-      ? await this.database.sql<ChatFeedRow[]>`
+      ? await this.database.sql<ChatListRow[]>`
         with visible_chats as (
           select
             c.id,
@@ -46,9 +46,9 @@ export class PostgresChatFeedReader implements ChatFeedReader {
           order by c.last_message_at desc, c.id desc
           limit ${params.limit}
         ),
-        ${this.chatFeedTail()}
+        ${this.chatListTail()}
       `
-      : await this.database.sql<ChatFeedRow[]>`
+      : await this.database.sql<ChatListRow[]>`
         with visible_chats as (
           select
             c.id,
@@ -61,11 +61,11 @@ export class PostgresChatFeedReader implements ChatFeedReader {
           order by c.last_message_at desc, c.id desc
           limit ${params.limit}
         ),
-        ${this.chatFeedTail()}
+        ${this.chatListTail()}
       `;
 
     return {
-      items: rows.map(mapChatFeedRowToEntity),
+      items: rows.map(mapChatListRowToEntity),
     };
   }
 
@@ -75,7 +75,7 @@ export class PostgresChatFeedReader implements ChatFeedReader {
    *
    * @returns Shared SQL fragment appended after the `visible_chats` CTE.
    */
-  private chatFeedTail() {
+  private chatListTail() {
     return this.database.sql`
       chat_members_view as (
         select
@@ -115,9 +115,9 @@ export class PostgresChatFeedReader implements ChatFeedReader {
 }
 
 /**
- * Row shape returned by the chat-feed SQL queries after aliases are applied.
+ * Row shape returned by the chat-list SQL queries after aliases are applied.
  */
-type ChatFeedRow = {
+type ChatListRow = {
   id: string;
   memberIds: string[];
   memberNames: string[];
@@ -129,19 +129,19 @@ type ChatFeedRow = {
 };
 
 /**
- * Maps one raw SQL row into the chat-feed domain entity.
+ * Maps one raw SQL row into the chat-list domain entity.
  *
  * @param row Raw SQL row returned by the persistence layer.
- * @returns Chat-feed entity ready for application use.
+ * @returns Chat-list entity ready for application use.
  */
-function mapChatFeedRowToEntity(row: ChatFeedRow): Chat {
+function mapChatListRowToEntity(row: ChatListRow): Chat {
   return Chat.create({
     id: row.id,
     members: row.memberIds.map((id, index) => {
       const name = row.memberNames[index];
 
       if (name === undefined) {
-        throw new Error('Chat feed row is malformed');
+        throw new Error('Chat list row is malformed');
       }
 
       return UserSummary.create({

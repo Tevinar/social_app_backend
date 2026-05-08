@@ -6,7 +6,7 @@ export const CHAT_CANDIDATE_READER = Symbol('CHAT_CANDIDATE_READER');
 /**
  * Application port used to read chat-creation candidates.
  */
-export interface ChatCandidateReader {
+export interface ChatCandidateListReader {
   /**
    * Reads one cursor-based slice of chat candidates.
    *
@@ -18,16 +18,16 @@ export interface ChatCandidateReader {
    * @returns Current slice of chat candidates.
    */
   findSlice(
-    params: FindRecentChatCandidatesSliceParams,
-  ): Promise<RecentChatCandidatesSlice>;
+    params: FindRecentChatCandidateListSliceParams,
+  ): Promise<RecentChatCandidateListSlice>;
 }
 
-export type FindRecentChatCandidatesSliceParams = {
+export type FindRecentChatCandidateListSliceParams = {
   userId: string;
   limit: number;
   cursor?: ChatCandidateCursor;
 };
 
-export type RecentChatCandidatesSlice = {
+export type RecentChatCandidateListSlice = {
   items: UserSummary[];
 };

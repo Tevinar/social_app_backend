@@ -10,7 +10,7 @@ import { GcsBlogImageStorage } from './infrastructure/storage/gcs-blog-image-sto
 import { BLOG_READER } from './application/ports/blog-reader.port';
 import { PostgresBlogReader } from './infrastructure/persistence/postgres-blog-reader';
 import { BlogController } from './presentation/blog.controller';
-import { GetBlogFeedSliceUseCase } from './application/use-cases/get-blog-feed-slice.use-case';
+import { GetBlogListSliceUseCase } from './application/use-cases/get-blog-list-slice.use-case';
 import { GetBlogImageUseCase } from './application/use-cases/get-blog-image.use-case';
 import { GcsBlogImageUrlSigner } from './infrastructure/storage/gcs-blog-image-url-signer';
 import { BLOG_IMAGE_URL_SIGNER } from './application/ports/blog-image-url-signer.port';
@@ -28,7 +28,7 @@ import { GetBlogByIdUseCase } from './application/use-cases/get-blog-by-id.use-c
   controllers: [BlogController],
   providers: [
     CreateBlogUseCase,
-    GetBlogFeedSliceUseCase,
+    GetBlogListSliceUseCase,
     GetBlogImageUseCase,
     GcsBlogImageUrlSigner, // Must be provided directly to be conditionally injected by the factory.
     LocalBlogImageUrlSigner, // Must be provided directly to be conditionally injected by the factory.

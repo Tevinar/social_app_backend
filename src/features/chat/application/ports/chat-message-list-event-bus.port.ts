@@ -1,19 +1,21 @@
 import { Observable } from 'rxjs';
-import { ChatMessageEvent } from '../../domain/events/chat-message.event';
+import { ChatMessageListEvent } from '../../domain/events/chat-message-list.event';
 
-export const CHAT_MESSAGE_EVENT_BUS = Symbol('CHAT_MESSAGE_EVENT_BUS');
+export const CHAT_MESSAGE_LIST_EVENT_BUS = Symbol(
+  'CHAT_MESSAGE_LIST_EVENT_BUS',
+);
 
 /**
- * Application port used to publish and consume live chat-message events across
+ * Application port used to publish and consume live chat-message list events across
  * all chats visible to one caller.
  */
-export interface ChatMessageEventBus {
+export interface ChatMessageListEventBus {
   /**
    * Publishes one chat-message event to current subscribers.
    *
    * @param event Message event to broadcast.
    */
-  publish(event: ChatMessageEvent): void;
+  publish(event: ChatMessageListEvent): void;
 
   /**
    * Opens a live stream of message events visible to the caller across all of
@@ -22,5 +24,5 @@ export interface ChatMessageEventBus {
    * @param userId Caller scope used to open the stream.
    * @returns Observable message-event stream.
    */
-  subscribe(userId: string): Observable<ChatMessageEvent>;
+  subscribe(userId: string): Observable<ChatMessageListEvent>;
 }

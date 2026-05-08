@@ -4,7 +4,7 @@ import { ChatMessage } from '../entities/chat-message';
  * Domain event emitted when one visible chat message changes inside a chat
  * conversation.
  */
-export class ChatMessageEvent {
+export class ChatMessageListEvent {
   /**
    * Creates one event indicating that a new message should appear in the
    * caller's visible message stream.
@@ -17,8 +17,12 @@ export class ChatMessageEvent {
   static messageAdded(
     item: ChatMessage,
     visibleToUserIds: string[],
-  ): ChatMessageEvent {
-    return new ChatMessageEvent('message.added', item, visibleToUserIds);
+  ): ChatMessageListEvent {
+    return new ChatMessageListEvent(
+      'chat_message.added',
+      item,
+      visibleToUserIds,
+    );
   }
 
   /**
@@ -30,10 +34,10 @@ export class ChatMessageEvent {
    * event.
    */
   private constructor(
-    readonly type: ChatMessageEventType,
+    readonly type: ChatMessageListEventType,
     readonly item: ChatMessage,
     readonly visibleToUserIds: string[],
   ) {}
 }
 
-export type ChatMessageEventType = 'message.added';
+export type ChatMessageListEventType = 'chat_message.added';

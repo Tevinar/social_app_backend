@@ -8,7 +8,7 @@ export const CHAT_MESSAGE_CREATOR = Symbol('CHAT_MESSAGE_CREATOR');
  */
 export interface ChatMessageCreator {
   /**
-   * Persists one new message and the resulting chat-feed update as one write
+   * Persists one new message and the resulting chat-list update as one write
    * transaction.
    *
    * @param params Chat-message creation data to store.

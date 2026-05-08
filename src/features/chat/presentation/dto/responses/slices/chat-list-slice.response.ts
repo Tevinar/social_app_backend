@@ -1,13 +1,13 @@
-import { ChatFeedSliceResponse } from '../../../../application/use-cases/get-chat-feed-slice.use-case';
+import { ChatListSliceResult } from '../../../../application/use-cases/get-chat-list-slice.use-case';
 import { GetChatResponse } from '../common/get-chat.response';
 
 /**
- * HTTP response body returned by the cursor-based get-chat-feed-slice
+ * HTTP response body returned by the cursor-based get-chat-list-slice
  * endpoint.
  */
-export class GetChatFeedSliceResponse {
+export class ChatListSliceResponse {
   /**
-   * Chat-feed items in the current slice.
+   * Chat-list items in the current slice.
    */
   chats!: GetChatResponse[];
 
@@ -19,12 +19,10 @@ export class GetChatFeedSliceResponse {
   /**
    * Builds the HTTP response DTO from the application-layer slice result.
    *
-   * @param slice Cursor-based chat-feed result returned by the use case.
+   * @param slice Cursor-based chat-list result returned by the use case.
    * @returns Response DTO ready for JSON serialization.
    */
-  static fromChatFeedSlice(
-    slice: ChatFeedSliceResponse,
-  ): GetChatFeedSliceResponse {
+  static fromSlice(slice: ChatListSliceResult): ChatListSliceResponse {
     return {
       chats: slice.items.map((item) => GetChatResponse.fromChat(item)),
       ...(slice.nextCursor ? { nextCursor: slice.nextCursor } : {}),

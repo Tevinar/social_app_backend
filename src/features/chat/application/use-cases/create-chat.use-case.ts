@@ -3,45 +3,25 @@ import { UseCase } from '../../../../core/contracts/use-case';
 import { ChatMessageContent } from '../../domain/value-objects/chat-message-content';
 import { ChatMembers } from '../../domain/value-objects/chat-members';
 import {
-  CHAT_FEED_EVENT_BUS,
-  type ChatFeedEventBus,
-} from '../ports/chat-feed-event-bus.port';
+  CHAT_LIST_EVENT_BUS,
+  type ChatListEventBus,
+} from '../ports/chat-list-event-bus.port';
 import {
-  CHAT_MESSAGE_EVENT_BUS,
-  type ChatMessageEventBus,
-} from '../ports/chat-message-event-bus.port';
+  CHAT_MESSAGE_LIST_EVENT_BUS,
+  type ChatMessageListEventBus,
+} from '../ports/chat-message-list-event-bus.port';
 import {
   CHAT_CREATOR,
   CreateChatRecordResultType,
   type ChatCreator,
 } from '../ports/chat-creator.port';
-import { ChatFeedEvent } from '../../domain/events/chat-feed.event';
-import { ChatMessageEvent } from '../../domain/events/chat-message.event';
+import { ChatListEvent } from '../../domain/events/chat-list.event';
+import { ChatMessageListEvent } from '../../domain/events/chat-message-list.event';
 import { ChatWriteResult } from './results/chat-write.result';
-
-/**
- * Signals that one requested chat member does not exist.
- */
-export class ChatMemberNotFoundError extends Error {
-  /**
-   * Creates a stable chat-member error message suitable for client-facing
-   * missing-user failures.
-   */
-  constructor() {
-    super('Chat member not found');
-  }
-}
 
 /**
  * Application use case responsible for creating one new chat with its first
  * message.
- *
- * Responsibilities:
- * - normalize and validate the selected member ids
- * - validate the submitted first-message content
- * - persist the chat, its membership set, and first message atomically
- * - return the created chat payload immediately to the initiating client
- * - publish feed and message events after the write succeeds
  */
 @Injectable()
 export class CreateChatUseCase implements UseCase<
@@ -53,16 +33,16 @@ export class CreateChatUseCase implements UseCase<
    * and notify realtime subscribers after creation.
    *
    * @param chatCreator Persists the chat write set atomically.
-   * @param chatFeedEventBus Broadcasts chat-feed events.
+   * @param chatListEventBus Broadcasts chat-list events.
    * @param chatMessageEventBus Broadcasts chat-message events.
    */
   constructor(
     @Inject(CHAT_CREATOR)
     private readonly chatCreator: ChatCreator,
-    @Inject(CHAT_FEED_EVENT_BUS)
-    private readonly chatFeedEventBus: ChatFeedEventBus,
-    @Inject(CHAT_MESSAGE_EVENT_BUS)
-    private readonly chatMessageEventBus: ChatMessageEventBus,
+    @Inject(CHAT_LIST_EVENT_BUS)
+    private readonly chatListEventBus: ChatListEventBus,
+    @Inject(CHAT_MESSAGE_LIST_EVENT_BUS)
+    private readonly chatMessageEventBus: ChatMessageListEventBus,
   ) {}
 
   /**
@@ -98,9 +78,9 @@ export class CreateChatUseCase implements UseCase<
       throw new ChatMemberNotFoundError();
     }
 
-    this.chatFeedEventBus.publish(ChatFeedEvent.chatAdded(result.chat));
+    this.chatListEventBus.publish(ChatListEvent.chatAdded(result.chat));
     this.chatMessageEventBus.publish(
-      ChatMessageEvent.messageAdded(
+      ChatMessageListEvent.messageAdded(
         result.firstMessage,
         result.chat.members.map((member) => member.id),
       ),
@@ -121,3 +101,16 @@ export type CreateChatParams = {
   members: string[];
   firstMessageContent: string;
 };
+
+/**
+ * Signals that one requested chat member does not exist.
+ */
+export class ChatMemberNotFoundError extends Error {
+  /**
+   * Creates a stable chat-member error message suitable for client-facing
+   * missing-user failures.
+   */
+  constructor() {
+    super('Chat member not found');
+  }
+}
