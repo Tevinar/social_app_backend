@@ -36,16 +36,21 @@ export class GlobalHttpRequestExceptionFilter implements ExceptionFilter {
     const response = context.getResponse<Response>();
 
     if (error instanceof HttpException) {
+      // The errors that are caught here:
+      // - ValidationPipe exceptions for invalid request data
+      // - Manually thrown HttpExceptions for expected error cases in controllers or guards
       response.status(error.getStatus()).json({
         statusCode: error.getStatus(),
-        message: error.getResponse(),
+        message: extractHttpExceptionMessage(error),
         path: request.url,
         timestamp: new Date().toISOString(),
       });
 
       return;
     }
-
+    // The errors that are caught here:
+    // - business errors
+    // - unexpected errors
     const mapped = this.errorToExceptionMapper.mapError(error);
 
     if (!mapped.isExpected) {
@@ -63,4 +68,36 @@ export class GlobalHttpRequestExceptionFilter implements ExceptionFilter {
       timestamp: new Date().toISOString(),
     });
   }
+}
+
+function extractHttpExceptionMessage(error: HttpException): string {
+  const response = error.getResponse();
+
+  if (typeof response === 'string') {
+    return response;
+  }
+
+  if (
+    typeof response === 'object' &&
+    response !== null &&
+    'message' in response
+  ) {
+    const message = (response as { message?: unknown }).message;
+
+    if (typeof message === 'string') {
+      return message;
+    }
+
+    if (Array.isArray(message)) {
+      const joined = message
+        .filter((value): value is string => typeof value === 'string')
+        .join('; ');
+
+      if (joined) {
+        return joined;
+      }
+    }
+  }
+
+  return error.message || 'Unexpected error';
 }
