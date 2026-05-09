@@ -70,7 +70,7 @@ export class ChatController {
    * chat-message slices.
    * @param subscribeToChatListUseCase Chat application service for live chat-list
    * events.
-   * @param subscribeToChatMessageChangesUseCase Chat application service for
+   * @param subscribeToChatMessageListChangesUseCase Chat application service for
    * live message events.
    */
   constructor(
@@ -81,7 +81,7 @@ export class ChatController {
     private readonly getChatListSliceUseCase: GetChatListSliceUseCase,
     private readonly getChatMessageListSliceUseCase: GetChatMessageListSliceUseCase,
     private readonly subscribeToChatListUseCase: SubscribeToChatListUseCase,
-    private readonly subscribeToChatMessageChangesUseCase: SubscribeToChatMessageListUseCase,
+    private readonly subscribeToChatMessageListChangesUseCase: SubscribeToChatMessageListUseCase,
   ) {}
 
   /**
@@ -265,14 +265,14 @@ export class ChatController {
    * @returns Observable SSE stream of chat-message events.
    */
   @Sse(':chatId/messages/events')
-  subscribeToChatMessageChanges(
+  subscribeToChatMessageListChanges(
     @Param('chatId', new ParseUUIDPipe({ version: '4' })) chatId: string,
     @AuthenticatedUser()
     auth: {
       userId: string;
     },
   ): Observable<MessageEvent> {
-    return this.subscribeToChatMessageChangesUseCase
+    return this.subscribeToChatMessageListChangesUseCase
       .execute({
         userId: auth.userId,
         chatId,

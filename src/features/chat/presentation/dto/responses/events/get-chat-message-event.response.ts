@@ -13,7 +13,7 @@ export class GetChatMessageEventResponse {
   /**
    * Chat message carried by the event.
    */
-  item!: GetChatMessageResponse;
+  chatMessage!: GetChatMessageResponse;
 
   /**
    * Builds the event payload from one chat-message event.
@@ -26,7 +26,7 @@ export class GetChatMessageEventResponse {
   ): GetChatMessageEventResponse {
     return {
       type: event.type,
-      item: GetChatMessageResponse.fromChatMessage(event.chatMessage),
+      chatMessage: GetChatMessageResponse.fromChatMessage(event.chatMessage),
     };
   }
 }
