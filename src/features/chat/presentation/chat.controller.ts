@@ -15,8 +15,6 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { Observable, map } from 'rxjs';
-import { AccessTokenGuard } from '../../auth/presentation/guards/access-tokens';
-import { AuthenticatedUser } from '../../auth/presentation/decorators/authenticated-user';
 import { CreateChatMessageUseCase } from '../application/use-cases/create-chat-message.use-case';
 import { CreateChatUseCase } from '../application/use-cases/create-chat.use-case';
 import { GetChatByMembersUseCase } from '../application/use-cases/get-chat-by-members.use-case';
@@ -38,6 +36,8 @@ import { ChatWriteResponse } from './dto/responses/writes/chat-write.response';
 import { GetChatListEventResponse } from './dto/responses/events/get-chat-list-event.response';
 import { ChatCandidateListSliceResponse } from './dto/responses/slices/chat-candidate-list-slice.response';
 import { ChatListSliceResponse } from './dto/responses/slices/chat-list-slice.response';
+import { AuthenticatedUser } from '../../../app/auth/decorators/authenticated-user';
+import { AccessTokenGuard } from '../../../app/auth/guards/access-tokens';
 
 /**
  * HTTP controller exposing chat endpoints.

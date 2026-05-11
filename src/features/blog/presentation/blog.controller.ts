@@ -23,13 +23,13 @@ import { EnvVariable } from '../../../core/config/env-variable';
 import { CreateBlogUseCase } from '../application/use-cases/create-blog.use-case';
 import { CreateBlogRequest } from './dto/requests/create-blog.request';
 import { GetBlogImageUseCase } from '../application/use-cases/get-blog-image.use-case';
-import { AccessTokenGuard } from '../../auth/presentation/guards/access-tokens';
-import { AuthenticatedUser } from '../../auth/presentation/decorators/authenticated-user';
 import { GetBlogByIdUseCase } from '../application/use-cases/get-blog-by-id.use-case';
 import { GetBlogListSliceRequest } from './dto/requests/get-blog-list-slice.request';
 import { GetBlogResponse } from './dto/responses/get-blog.response';
 import { GetBlogListSliceResponse } from './dto/responses/get-blog-list-slice.response';
 import { GetBlogListSliceUseCase } from '../application/use-cases/get-blog-list-slice.use-case';
+import { AccessTokenGuard } from '../../../app/auth/guards/access-tokens';
+import { AuthenticatedUser } from '../../../app/auth/decorators/authenticated-user';
 
 /**
  * HTTP controller exposing blog endpoints.

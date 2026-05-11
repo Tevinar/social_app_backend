@@ -4,9 +4,8 @@ import {
   ExecutionContext,
   Injectable,
 } from '@nestjs/common';
-import { type Request } from 'express';
-import { ValidateAccessTokenUseCase } from '../../application/use-cases/validate-access-token.use-case';
-
+import { ValidateAccessTokenUseCase } from '../../../features/auth/application/use-cases/validate-access-token.use-case';
+import { AuthenticatedRequest } from '../types/authenticated-request';
 /**
  * HTTP auth guard that validates bearer access tokens and enriches the request
  * with the authenticated user identity. Does not need to be declared in providers
@@ -66,9 +65,3 @@ function extractBearerToken(authorization: string | undefined): string {
 
   return authorization.slice('Bearer '.length);
 }
-
-export type AuthenticatedRequest = Request & {
-  auth: {
-    userId: string;
-  };
-};
