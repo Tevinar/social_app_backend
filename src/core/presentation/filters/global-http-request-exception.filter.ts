@@ -70,6 +70,10 @@ export class GlobalHttpRequestExceptionFilter implements ExceptionFilter {
   }
 }
 
+/**
+ *
+ * @param error
+ */
 function extractHttpExceptionMessage(error: HttpException): string {
   const response = error.getResponse();
 

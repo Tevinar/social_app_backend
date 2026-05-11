@@ -17,7 +17,6 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json",
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.spec.json",
     "migrate": "ts-node database/scripts/migrate.ts"
   },
@@ -49,7 +48,6 @@
     "@types/jest": "^30.0.0",
     "@types/multer": "^2.1.0",
     "@types/node": "^24.0.0",
-    "@types/supertest": "^7.0.0",
     "eslint": "^9.39.4",
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-jsdoc": "^62.9.0",
