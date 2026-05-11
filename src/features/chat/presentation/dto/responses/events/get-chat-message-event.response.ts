@@ -1,0 +1,32 @@
+import { ChatMessageListEvent } from '../../../../domain/events/chat-message-list.event';
+import { GetChatMessageResponse } from '../common/get-chat-message.response';
+
+/**
+ * SSE payload returned when one chat-message event is emitted.
+ */
+export class GetChatMessageEventResponse {
+  /**
+   * Stable chat-message event name.
+   */
+  type!: string;
+
+  /**
+   * Chat message carried by the event.
+   */
+  chatMessage!: GetChatMessageResponse;
+
+  /**
+   * Builds the event payload from one chat-message event.
+   *
+   * @param event Chat-message event.
+   * @returns Response DTO ready for SSE serialization.
+   */
+  static fromChatMessageEvent(
+    event: ChatMessageListEvent,
+  ): GetChatMessageEventResponse {
+    return {
+      type: event.type,
+      chatMessage: GetChatMessageResponse.fromChatMessage(event.chatMessage),
+    };
+  }
+}

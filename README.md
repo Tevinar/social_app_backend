@@ -1,98 +1,248 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Social App Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+A NestJS backend demo for the Flutter client "social_app".
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Overview
 
-## Description
+social_app_backend is a feature-first API organized around explicit
+architectural boundaries rather than a generic Nest starter layout.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+It currently covers three main capabilities:
 
-## Project setup
+- email/password authentication with server-managed refresh sessions
+- blog publishing with image upload to GCS-compatible storage
+- chat and messaging with cursor-based reads and SSE updates
 
-```bash
-$ npm install
+The repository is intended as a technical codebase that stays readable as it
+grows. The main idea is to keep transport concerns, application orchestration,
+domain rules, and technical adapters clearly separated.
+
+## Goals
+
+The main goals of the project are:
+
+- maintainability
+- scalability
+- readability
+- explicit boundaries
+- clear ownership of responsibilities
+- ease of testing
+- ease of evolution over time
+
+## Tech Stack
+
+### Core Technologies
+
+- Language: TypeScript
+- Framework: NestJS
+- Runtime: Node.js
+
+### Data / Persistence
+
+- Database: PostgreSQL
+- Database client: `postgres`
+- Schema management: SQL migrations in `database/migrations/`
+- Object storage: Google Cloud Storage via `@google-cloud/storage`
+- Local object-storage emulation: `fake-gcs-server`
+- Auth/session persistence: server-side refresh sessions with hashed tokens
+
+### Infrastructure / Runtime
+
+- Logging: `nestjs-pino` / `pino-http`
+- Validation: Nest `ValidationPipe`, `class-validator`,
+  `class-transformer`
+- Password hashing: `argon2`
+- Tokens: JWT access tokens and refresh tokens with separate secrets
+- Realtime transport: SSE endpoints backed by RxJS event streams
+
+### Testing Tooling
+
+- `jest`
+- `ts-jest`
+
+## Architecture Summary
+
+The backend follows a feature-first modular hexagonal structure:
+
+- `database/` contains migration and script assets outside the HTTP runtime
+- `src/main.ts` boots the Nest application
+- `src/app/bootstrap` is the composition root
+- `src/core` contains shared technical building blocks
+- `src/features/*` is split into `presentation`, `application`, `domain`,
+  and `infrastructure`
+
+At runtime, controllers validate and map transport input, use cases orchestrate
+business flows, domain objects protect invariants, and infrastructure adapters
+implement application ports for PostgreSQL, storage, security, and realtime
+delivery.
+
+Known business and validation failures are mapped centrally by the global HTTP
+exception boundary in `src/core/presentation/filters/`.
+
+One important current limitation: chat SSE updates are backed by in-memory
+event buses, so live events are process-local today. That is fine for local
+development and single-instance deployment, but not enough for horizontally
+scaled realtime delivery.
+
+For the full architectural rules, dependency direction, layer
+responsibilities, and error/logging conventions, see
+[architecture.md](./architecture.md).
+
+## Project Structure
+
+```text
+social_app_backend/
+  database/
+    migrations/
+    scripts/
+  src/
+    main.ts
+    app/
+      bootstrap/
+    core/
+      config/
+      contracts/
+      database/
+      presentation/filters/
+      storage/
+    features/
+      auth/
+      blog/
+      chat/
+  docker-compose.yml
+  .env
+  .secrets/
 ```
 
-## Compile and run the project
+Main folders:
+
+- `database/` contains SQL migrations and maintenance scripts
+- `src/` contains all runtime application code
+- `src/core/` contains shared technical modules and contracts
+- `src/features/` contains feature modules and their internal layers
+- `.secrets/` contains required local secret files
+
+## API Surface
+
+All `/blogs` and `/chats` routes require
+`Authorization: Bearer <access-token>`.
+
+Authentication:
+
+- `POST /auth/sign-up`
+- `POST /auth/sign-in`
+- `POST /auth/refresh`
+- `POST /auth/sign-out`
+
+Blogs:
+
+- `POST /blogs`
+- `GET /blogs`
+- `GET /blogs/:blogId`
+- `GET /blogs/:blogId/image`
+
+Notes:
+
+- blog creation expects `multipart/form-data`
+- the image file field name is `image`
+- `GET /blogs/:blogId/image` redirects to a signed URL in non-local
+  environments and to the fake GCS object URL in local mode
+
+Chats:
+
+- `POST /chats`
+- `GET /chats`
+- `GET /chats/candidates`
+- `GET /chats/by-members`
+- `GET /chats/:chatId/messages`
+- `POST /chats/:chatId/messages`
+- `SSE /chats/events`
+- `SSE /chats/:chatId/messages/events`
+
+## Getting Started
+
+### Prerequisites
+
+You need:
+
+- Node.js LTS and npm
+- Docker / Docker Compose
+- local `.env` values
+- local secret files under `.secrets/`
+
+### Installation
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+git clone <repository-url>
+cd social_app_backend
+npm install
 ```
 
-## Run tests
+### Configuration
+
+The backend reads runtime configuration from `.env` and secret files from
+`.secrets/`.
+
+Required secret files:
+
+- `.secrets/postgres_password.txt`
+- `.secrets/jwt_access_secret.txt`
+- `.secrets/jwt_refresh_secret.txt`
+- `.secrets/token_hash_secret.txt`
+
+For local development, `API_BASE_URL` should match the public address where the
+Nest app is reachable, typically `http://localhost:3000`.
+
+### Start Local Dependencies
+
+Prerequises: you have to have Docked Desktop instlled and launched
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+docker compose up -d
 ```
 
-## Deployment
+This starts:
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+- PostgreSQL 16
+- a fake GCS server used by the blog image flow
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+### Apply Migrations
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+npm run migrate
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### Start the Nest server in watch mode and accepting fake-gcs certificate:
 
-## Resources
+```bash
+NODE_EXTRA_CA_CERTS="$PWD/.certs/fake-gcs.pem" npm run start:debug
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+The Flutter mobile client defaults to `http://localhost:3000`, so the backend
+and the app line up locally without additional routing work.
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+## Testing and Quality
 
-## Support
+Run tests:
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+```bash
+npm test
+```
 
-## Stay in touch
+Coverage:
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+```bash
+npm run test:cov
+```
 
-## License
+Lint:
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+```bash
+npm run lint
+```
+
+Build:
+
+```bash
+npm run build
+```

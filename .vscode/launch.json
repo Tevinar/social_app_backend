@@ -1,0 +1,16 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Backend: Nest debug",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "npm run start:debug",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "docker: infra up",
+      "env": {
+        "NODE_EXTRA_CA_CERTS": "${workspaceFolder}/.certs/fake-gcs.pem"
+      }
+    }
+  ],
+}
