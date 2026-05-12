@@ -38,6 +38,7 @@ import { ChatCandidateListSliceResponse } from './dto/responses/slices/chat-cand
 import { ChatListSliceResponse } from './dto/responses/slices/chat-list-slice.response';
 import { AuthenticatedUser } from '../../../app/auth/decorators/authenticated-user';
 import { AccessTokenGuard } from '../../../app/auth/guards/access-tokens';
+import { ApiStandardErrorResponses } from '../../../core/presentation/swagger/api-standard-error-responses.swagger';
 import { ApiBearerAuth, ApiOkResponse, ApiProduces } from '@nestjs/swagger';
 
 /**
@@ -94,6 +95,11 @@ export class ChatController {
    * @param auth.userId Stable identifier of the authenticated user.
    * @returns HTTP response DTO containing the created chat and first message.
    */
+  @ApiStandardErrorResponses(
+    HttpStatus.BAD_REQUEST,
+    HttpStatus.UNAUTHORIZED,
+    HttpStatus.NOT_FOUND,
+  )
   @Post()
   @HttpCode(HttpStatus.CREATED)
   async createChat(
@@ -118,6 +124,7 @@ export class ChatController {
    * @param auth.userId Stable identifier of the authenticated user.
    * @returns HTTP response DTO containing the requested chat-list slice.
    */
+  @ApiStandardErrorResponses(HttpStatus.BAD_REQUEST, HttpStatus.UNAUTHORIZED)
   @Get()
   async getChatListSlice(
     @Query() query: GetChatListSliceRequest,
@@ -142,6 +149,7 @@ export class ChatController {
    * @param auth.userId Stable identifier of the authenticated user.
    * @returns HTTP response DTO containing the requested candidate slice.
    */
+  @ApiStandardErrorResponses(HttpStatus.BAD_REQUEST, HttpStatus.UNAUTHORIZED)
   @Get('candidates')
   async getChatCandidateListSlice(
     @Query() query: GetChatCandidateListSliceRequest,
@@ -166,6 +174,7 @@ export class ChatController {
    * @param auth.userId Stable identifier of the authenticated user.
    * @returns Matching chat when found, otherwise null.
    */
+  @ApiStandardErrorResponses(HttpStatus.BAD_REQUEST, HttpStatus.UNAUTHORIZED)
   @ApiOkResponse({
     // Explicitly document the nullable response for Swagger, since it can't be
     // inferred from the TypeScript return type (here it is union).
@@ -194,6 +203,7 @@ export class ChatController {
    * @param auth.userId Stable identifier of the authenticated user.
    * @returns Observable SSE stream of chat-list events.
    */
+  @ApiStandardErrorResponses(HttpStatus.UNAUTHORIZED)
   // Swagger cannot infer it because this function returns a streamed
   // Observable<...>, and the actual event payload shape is hidden
   // inside the RxJS mapping logic rather than exposed as a plain DTO return type.
@@ -238,6 +248,11 @@ export class ChatController {
    * @param auth.userId Stable identifier of the authenticated user.
    * @returns HTTP response DTO containing the requested chat-message slice.
    */
+  @ApiStandardErrorResponses(
+    HttpStatus.BAD_REQUEST,
+    HttpStatus.UNAUTHORIZED,
+    HttpStatus.NOT_FOUND,
+  )
   @Get(':chatId/messages')
   async getChatMessageListSlice(
     @Param('chatId', new ParseUUIDPipe({ version: '4' })) chatId: string,
@@ -265,6 +280,11 @@ export class ChatController {
    * @returns HTTP response DTO containing the created message and updated list
    * item.
    */
+  @ApiStandardErrorResponses(
+    HttpStatus.BAD_REQUEST,
+    HttpStatus.UNAUTHORIZED,
+    HttpStatus.NOT_FOUND,
+  )
   @Post(':chatId/messages')
   @HttpCode(HttpStatus.CREATED)
   async createChatMessage(
@@ -291,6 +311,11 @@ export class ChatController {
    * @param auth.userId Stable identifier of the authenticated user.
    * @returns Observable SSE stream of chat-message events.
    */
+  @ApiStandardErrorResponses(
+    HttpStatus.BAD_REQUEST,
+    HttpStatus.UNAUTHORIZED,
+    HttpStatus.NOT_FOUND,
+  )
   @ApiProduces('text/event-stream')
   @ApiOkResponse({
     description:

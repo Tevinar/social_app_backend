@@ -7,6 +7,7 @@ import {
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
+import { ApiStandardErrorResponses } from '../../../core/presentation/swagger/api-standard-error-responses.swagger';
 import { SignInWithEmailPasswordUseCase } from '../application/use-cases/sign-in-with-email-password.use-case';
 import { RefreshSessionUseCase } from '../application/use-cases/refresh-session.use-case';
 import { SignOutCurrentSessionUseCase } from '../application/use-cases/sign-out-current-session.use-case';
@@ -57,6 +58,7 @@ export class AuthController {
    * @param body Validated sign-up request body.
    * @returns HTTP response DTO containing the created auth session data.
    */
+  @ApiStandardErrorResponses(HttpStatus.BAD_REQUEST, HttpStatus.CONFLICT)
   @Post('sign-up')
   async signUp(@Body() body: SignUpRequest): Promise<AuthResponse> {
     const session = await this.signUpWithEmailPassword.execute({
@@ -78,6 +80,11 @@ export class AuthController {
    * @param body Validated sign-in request body.
    * @returns HTTP response DTO containing the issued auth session data.
    */
+  @ApiStandardErrorResponses(
+    HttpStatus.BAD_REQUEST,
+    HttpStatus.UNAUTHORIZED,
+    HttpStatus.CONFLICT,
+  )
   @Post('sign-in')
   async signIn(@Body() body: SignInRequest): Promise<AuthResponse> {
     const session = await this.signInWithEmailPassword.execute({
@@ -98,6 +105,7 @@ export class AuthController {
    * @param body Validated refresh-session request body.
    * @returns HTTP response DTO containing the rotated token pair.
    */
+  @ApiStandardErrorResponses(HttpStatus.BAD_REQUEST, HttpStatus.UNAUTHORIZED)
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   async refresh(
@@ -120,6 +128,7 @@ export class AuthController {
    *
    * @param body Validated sign-out request body.
    */
+  @ApiStandardErrorResponses(HttpStatus.BAD_REQUEST)
   @Post('sign-out')
   @HttpCode(HttpStatus.NO_CONTENT)
   async signOut(@Body() body: SignOutCurrentSessionRequest): Promise<void> {

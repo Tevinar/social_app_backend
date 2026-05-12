@@ -10,6 +10,12 @@ import { InvalidDeviceIdError } from '../../../features/auth/domain/value-object
 import { InvalidEmailError } from '../../../features/auth/domain/value-objects/email';
 import { InvalidNameError } from '../../../features/auth/domain/value-objects/name';
 import { InvalidNewPasswordError } from '../../../features/auth/domain/value-objects/new-password';
+import { BlogNotFoundError } from '../../../features/blog/application/errors/blog-not-found';
+import { InvalidBlogCursorError } from '../../../features/blog/application/pagination/blog.cursor';
+import { InvalidBlogContentError } from '../../../features/blog/domain/value-objects/blog-content';
+import { InvalidBlogImageError } from '../../../features/blog/domain/value-objects/blog-image';
+import { InvalidBlogTitleError } from '../../../features/blog/domain/value-objects/blog-title';
+import { InvalidBlogTopicError } from '../../../features/blog/domain/value-objects/blog-topic';
 import { InvalidChatCandidateCursorError } from '../../../features/chat/application/pagination/chat-candidate.cursor';
 import { InvalidChatListCursorError } from '../../../features/chat/application/pagination/chat-list.cursor';
 import { InvalidChatMessageCursorError } from '../../../features/chat/application/pagination/chat-message-list.cursor';
@@ -116,6 +122,36 @@ const EXPECTED_ERROR_MAPPINGS: readonly ExpectedErrorMapping[] = [
     errorType: InvalidNewPasswordError,
     code: 'invalid_new_password',
     httpStatus: HttpStatus.BAD_REQUEST,
+  },
+  {
+    errorType: InvalidBlogCursorError,
+    code: 'invalid_blog_cursor',
+    httpStatus: HttpStatus.BAD_REQUEST,
+  },
+  {
+    errorType: InvalidBlogTitleError,
+    code: 'invalid_blog_title',
+    httpStatus: HttpStatus.BAD_REQUEST,
+  },
+  {
+    errorType: InvalidBlogContentError,
+    code: 'invalid_blog_content',
+    httpStatus: HttpStatus.BAD_REQUEST,
+  },
+  {
+    errorType: InvalidBlogImageError,
+    code: 'invalid_blog_image',
+    httpStatus: HttpStatus.BAD_REQUEST,
+  },
+  {
+    errorType: InvalidBlogTopicError,
+    code: 'invalid_blog_topic',
+    httpStatus: HttpStatus.BAD_REQUEST,
+  },
+  {
+    errorType: BlogNotFoundError,
+    code: 'blog_not_found',
+    httpStatus: HttpStatus.NOT_FOUND,
   },
   {
     errorType: InvalidChatMemberIdError,
