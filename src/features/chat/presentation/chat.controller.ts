@@ -38,6 +38,7 @@ import { ChatCandidateListSliceResponse } from './dto/responses/slices/chat-cand
 import { ChatListSliceResponse } from './dto/responses/slices/chat-list-slice.response';
 import { AuthenticatedUser } from '../../../app/auth/decorators/authenticated-user';
 import { AccessTokenGuard } from '../../../app/auth/guards/access-tokens';
+import { ApiBearerAuth, ApiOkResponse, ApiProduces } from '@nestjs/swagger';
 
 /**
  * HTTP controller exposing chat endpoints.
@@ -45,6 +46,7 @@ import { AccessTokenGuard } from '../../../app/auth/guards/access-tokens';
  * This presentation adapter is responsible for request validation and mapping
  * use-case results into response DTOs.
  */
+@ApiBearerAuth()
 @UseGuards(AccessTokenGuard)
 @Controller('chats')
 @UsePipes(
@@ -164,6 +166,13 @@ export class ChatController {
    * @param auth.userId Stable identifier of the authenticated user.
    * @returns Matching chat when found, otherwise null.
    */
+  @ApiOkResponse({
+    // Explicitly document the nullable response for Swagger, since it can't be
+    // inferred from the TypeScript return type (here it is union).
+    description: 'Matching chat when found, otherwise null.',
+    type: GetChatResponse,
+    nullable: true,
+  })
   @Get('by-members')
   async getChatByMembers(
     @Query() query: GetChatByMembersRequest,
@@ -185,6 +194,24 @@ export class ChatController {
    * @param auth.userId Stable identifier of the authenticated user.
    * @returns Observable SSE stream of chat-list events.
    */
+  // Swagger cannot infer it because this function returns a streamed
+  // Observable<...>, and the actual event payload shape is hidden
+  // inside the RxJS mapping logic rather than exposed as a plain DTO return type.
+  @ApiProduces('text/event-stream')
+  @ApiOkResponse({
+    description:
+      'SSE stream of chat-list events. Each emitted event contains a chat-list event payload.',
+    content: {
+      'text/event-stream': {
+        schema: {
+          type: 'string',
+          example:
+            'event: created\n' +
+            'data: {"type":"created","chat":{"id":"chat-id","members":[{"id":"user-1","name":"Alice"}],"lastMessage":null}}\n\n',
+        },
+      },
+    },
+  })
   @Sse('events')
   subscribeToChatList(
     @AuthenticatedUser()
@@ -264,6 +291,21 @@ export class ChatController {
    * @param auth.userId Stable identifier of the authenticated user.
    * @returns Observable SSE stream of chat-message events.
    */
+  @ApiProduces('text/event-stream')
+  @ApiOkResponse({
+    description:
+      'SSE stream of chat-message events. Each emitted event is sent as a server-sent event frame.',
+    content: {
+      'text/event-stream': {
+        schema: {
+          type: 'string',
+          example:
+            'event: created\n' +
+            'data: {"type":"created","chatMessage":{"id":"message-id","chatId":"chat-id","author":{"id":"user-id","name":"Alice"},"content":"Hello","createdAt":"2026-05-12T10:00:00.000Z","updatedAt":"2026-05-12T10:00:00.000Z"}}\n\n',
+        },
+      },
+    },
+  })
   @Sse(':chatId/messages/events')
   subscribeToChatMessageListChanges(
     @Param('chatId', new ParseUUIDPipe({ version: '4' })) chatId: string,

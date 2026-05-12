@@ -30,6 +30,7 @@ import { GetBlogListSliceResponse } from './dto/responses/get-blog-list-slice.re
 import { GetBlogListSliceUseCase } from '../application/use-cases/get-blog-list-slice.use-case';
 import { AccessTokenGuard } from '../../../app/auth/guards/access-tokens';
 import { AuthenticatedUser } from '../../../app/auth/decorators/authenticated-user';
+import { ApiBearerAuth, ApiBody, ApiConsumes } from '@nestjs/swagger';
 
 /**
  * HTTP controller exposing blog endpoints.
@@ -37,6 +38,7 @@ import { AuthenticatedUser } from '../../../app/auth/decorators/authenticated-us
  * This presentation adapter is responsible for request validation, file
  * extraction, and mapping use-case results into response DTOs.
  */
+@ApiBearerAuth()
 @UseGuards(AccessTokenGuard)
 @Controller('blogs')
 @UsePipes(
@@ -75,6 +77,25 @@ export class BlogController {
    * @param auth.userId Stable identifier of the authenticated blog author.
    * @returns HTTP response DTO containing the created blog data.
    */
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      required: ['title', 'content', 'topics', 'image'],
+      properties: {
+        title: { type: 'string' },
+        content: { type: 'string' },
+        topics: {
+          type: 'array',
+          items: { type: 'string' },
+        },
+        image: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @UseInterceptors(FileInterceptor('image'))
