@@ -29,6 +29,19 @@ The main goals of the project are:
 - ease of testing
 - ease of evolution over time
 
+## API Compatibility
+
+API v1
+
+- supported by Android 1.0+
+- supported by iOS 1.0+
+
+Notes
+
+- v1 is the current API contract
+- clients should remain compatible with additive backend changes
+- a new API version is introduced only for breaking changes
+
 ## Tech Stack
 
 ### Core Technologies

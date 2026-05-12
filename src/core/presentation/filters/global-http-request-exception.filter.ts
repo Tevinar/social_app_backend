@@ -71,8 +71,18 @@ export class GlobalHttpRequestExceptionFilter implements ExceptionFilter {
 }
 
 /**
+ * Extracts one human-readable message from a Nest HTTP exception response.
  *
- * @param error
+ * Nest HTTP exceptions may expose their response body as:
+ * - a plain string
+ * - an object with a string `message`
+ * - an object with a `message` array produced by validation failures
+ *
+ * This helper normalizes those variants into one displayable message for the
+ * public HTTP error payload.
+ *
+ * @param error HTTP exception whose message payload should be normalized.
+ * @returns One public error message suitable for the JSON response body.
  */
 function extractHttpExceptionMessage(error: HttpException): string {
   const response = error.getResponse();
