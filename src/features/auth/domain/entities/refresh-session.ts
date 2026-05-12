@@ -67,6 +67,22 @@ export class RefreshSession {
   }
 
   /**
+   * Evaluates whether the presented access-token data may authorize requests for
+   * this session.
+   *
+   * @param attempt User and timestamp for the access-token authorization
+   * attempt.
+   * @param attempt.userId User identifier presented by the validated access
+   * token.
+   * @param attempt.now Current timestamp used to evaluate whether the session is
+   * still active.
+   * @returns `true` when the session is active and owned by the same user.
+   */
+  canAuthorizeAccessToken(attempt: { userId: string; now: Date }): boolean {
+    return this.userId === attempt.userId && this.isActiveAt(attempt.now);
+  }
+
+  /**
    * Evaluates whether the presented refresh-token data may revoke this session.
    *
    * @param attempt User, token hash, and timestamp for the sign-out attempt.
