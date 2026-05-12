@@ -55,4 +55,4 @@ export class BlogImage {
 /**
  * Signals that the submitted blog image cannot be accepted.
  */
-class InvalidBlogImageError extends Error {}
+export class InvalidBlogImageError extends Error {}

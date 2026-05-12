@@ -234,6 +234,17 @@ NODE_EXTRA_CA_CERTS="$PWD/.certs/fake-gcs.pem" npm run start:debug
 The Flutter mobile client defaults to `http://localhost:3000`, so the backend
 and the app line up locally without additional routing work.
 
+### Swagger Documentation
+
+In non-production environments, the API is also available through Swagger UI at:
+
+- `http://localhost:3000/docs`
+
+The raw OpenAPI specification is exposed at:
+
+- `http://localhost:3000/docs-json`
+- `http://localhost:3000/docs-yaml`
+
 ## Testing and Quality
 
 Run tests:

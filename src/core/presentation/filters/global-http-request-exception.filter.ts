@@ -39,8 +39,11 @@ export class GlobalHttpRequestExceptionFilter implements ExceptionFilter {
       // The errors that are caught here:
       // - ValidationPipe exceptions for invalid request data
       // - Manually thrown HttpExceptions for expected error cases in controllers or guards
-      response.status(error.getStatus()).json({
-        statusCode: error.getStatus(),
+      const statusCode = error.getStatus();
+
+      response.status(statusCode).json({
+        statusCode,
+        code: extractHttpExceptionCode(error),
         message: extractHttpExceptionMessage(error),
         path: request.url,
         timestamp: new Date().toISOString(),
@@ -114,4 +117,46 @@ function extractHttpExceptionMessage(error: HttpException): string {
   }
 
   return error.message || 'Unexpected error';
+}
+
+/**
+ * Extracts one stable public code from a Nest HTTP exception response.
+ *
+ * Validation failures are normalized to `validation_error`. Other HTTP
+ * exceptions are normalized by status code so all HTTP failures expose the
+ * same response contract to clients.
+ *
+ * @param error HTTP exception whose public code should be normalized.
+ * @returns One public code suitable for the JSON response body.
+ */
+function extractHttpExceptionCode(error: HttpException): string {
+  const response = error.getResponse();
+
+  if (
+    typeof response === 'object' &&
+    response !== null &&
+    'message' in response
+  ) {
+    const message = (response as { message?: unknown }).message;
+
+    if (Array.isArray(message)) {
+      return 'validation_error';
+    }
+  }
+
+  const status = error.getStatus();
+
+  switch (status) {
+    case 400:
+      return 'bad_request';
+    case 401:
+      return 'unauthorized';
+    case 403:
+      return 'forbidden';
+    case 404:
+      return 'not_found';
+    case 409:
+      return 'conflict';
+  }
+  return 'http_exception';
 }

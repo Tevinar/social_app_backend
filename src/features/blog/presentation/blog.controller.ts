@@ -20,6 +20,7 @@ import { ConfigService } from '@nestjs/config';
 import { type Response } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { EnvVariable } from '../../../core/config/env-variable';
+import { ApiStandardErrorResponses } from '../../../core/presentation/swagger/api-standard-error-responses.swagger';
 import { CreateBlogUseCase } from '../application/use-cases/create-blog.use-case';
 import { CreateBlogRequest } from './dto/requests/create-blog.request';
 import { GetBlogImageUseCase } from '../application/use-cases/get-blog-image.use-case';
@@ -98,6 +99,7 @@ export class BlogController {
   })
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @ApiStandardErrorResponses(HttpStatus.BAD_REQUEST, HttpStatus.UNAUTHORIZED)
   @UseInterceptors(FileInterceptor('image'))
   async createBlog(
     @Body() body: CreateBlogRequest,
@@ -126,6 +128,7 @@ export class BlogController {
    * @param query Validated cursor-pagination query string.
    * @returns HTTP response DTO containing the requested blog slice.
    */
+  @ApiStandardErrorResponses(HttpStatus.BAD_REQUEST, HttpStatus.UNAUTHORIZED)
   @Get()
   async getBlogListSlice(
     @Query() query: GetBlogListSliceRequest,
@@ -144,6 +147,7 @@ export class BlogController {
    * @param blogId Stable identifier of the target blog.
    * @param response Express response object used to send the redirect.
    */
+  @ApiStandardErrorResponses(HttpStatus.UNAUTHORIZED, HttpStatus.NOT_FOUND)
   @Get(':blogId/image')
   async getBlogImage(
     @Param('blogId') blogId: string,
@@ -159,6 +163,11 @@ export class BlogController {
    * @param blogId Stable UUIDv4 blog identifier.
    * @returns HTTP response DTO containing the requested blog.
    */
+  @ApiStandardErrorResponses(
+    HttpStatus.BAD_REQUEST,
+    HttpStatus.UNAUTHORIZED,
+    HttpStatus.NOT_FOUND,
+  )
   @Get(':blogId')
   async getBlogById(
     @Param('blogId', new ParseUUIDPipe({ version: '4' })) blogId: string,
