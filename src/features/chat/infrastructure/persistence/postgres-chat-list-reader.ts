@@ -5,9 +5,7 @@ import {
   type FindRecentChatListSliceParams,
   type RecentChatListSlice,
 } from '../../application/ports/chat-list-reader.port';
-import { Chat } from '../../domain/entities/chat';
-import { ChatLastMessage } from '../../domain/entities/chat-last-message';
-import { UserSummary } from '../../domain/entities/user-summary';
+import { ChatRow, mapPersistedChatRowToEntity } from './chat-row';
 
 /**
  * Postgres-backed implementation of the chat-list reader port.
@@ -32,7 +30,7 @@ export class PostgresChatListReader implements ChatListReader {
     params: FindRecentChatListSliceParams,
   ): Promise<RecentChatListSlice> {
     const rows = params.cursor
-      ? await this.database.sql<ChatListRow[]>`
+      ? await this.database.sql<ChatRow[]>`
         with visible_chats as (
           select
             c.id,
@@ -48,7 +46,7 @@ export class PostgresChatListReader implements ChatListReader {
         ),
         ${this.chatListTail()}
       `
-      : await this.database.sql<ChatListRow[]>`
+      : await this.database.sql<ChatRow[]>`
         with visible_chats as (
           select
             c.id,
@@ -65,7 +63,9 @@ export class PostgresChatListReader implements ChatListReader {
       `;
 
     return {
-      items: rows.map(mapChatListRowToEntity),
+      items: rows.map((row) =>
+        mapPersistedChatRowToEntity(row, 'Chat list row'),
+      ),
     };
   }
 
@@ -112,60 +112,4 @@ export class PostgresChatListReader implements ChatListReader {
       order by cmv.last_message_at desc, cmv.id desc
     `;
   }
-}
-
-/**
- * Row shape returned by the chat-list SQL queries after aliases are applied.
- */
-type ChatListRow = {
-  id: string;
-  memberIds: string[];
-  memberNames: string[];
-  lastMessageId: string | null;
-  lastMessageAuthorId: string | null;
-  lastMessageAuthorName: string | null;
-  lastMessageContent: string | null;
-  lastMessageCreatedAt: Date | null;
-};
-
-/**
- * Maps one raw SQL row into the chat-list domain entity.
- *
- * @param row Raw SQL row returned by the persistence layer.
- * @returns Chat-list entity ready for application use.
- */
-function mapChatListRowToEntity(row: ChatListRow): Chat {
-  return Chat.create({
-    id: row.id,
-    members: row.memberIds.map((id, index) => {
-      const name = row.memberNames[index];
-
-      if (name === undefined) {
-        throw new Error('Chat list row is malformed');
-      }
-
-      return UserSummary.create({
-        id,
-        name,
-      });
-    }),
-    lastMessage:
-      row.lastMessageId !== null &&
-      row.lastMessageContent !== null &&
-      row.lastMessageCreatedAt !== null
-        ? ChatLastMessage.create({
-            id: row.lastMessageId,
-            author:
-              row.lastMessageAuthorId !== null &&
-              row.lastMessageAuthorName !== null
-                ? UserSummary.create({
-                    id: row.lastMessageAuthorId,
-                    name: row.lastMessageAuthorName,
-                  })
-                : null,
-            content: row.lastMessageContent,
-            createdAt: row.lastMessageCreatedAt,
-          })
-        : null,
-  });
 }

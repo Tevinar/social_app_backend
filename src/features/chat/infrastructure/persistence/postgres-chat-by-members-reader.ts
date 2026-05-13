@@ -2,8 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '../../../../core/database/database.service';
 import { type ChatByMembersReader } from '../../application/ports/chat-by-members-reader.port';
 import { Chat } from '../../domain/entities/chat';
-import { ChatLastMessage } from '../../domain/entities/chat-last-message';
-import { UserSummary } from '../../domain/entities/user-summary';
+import { ChatRow, mapPersistedChatRowToEntity } from './chat-row';
 
 /**
  * Postgres-backed implementation of the exact-chat lookup port.
@@ -42,7 +41,7 @@ export class PostgresChatByMembersReader implements ChatByMembersReader {
         limit 1
       )
       select
-        mc.id as "chatId",
+        mc.id as id,
         array_agg(cm.member_id order by lower(p.name), cm.member_id) as "memberIds",
         array_agg(p.name order by lower(p.name), cm.member_id) as "memberNames",
         lm.id as "lastMessageId",
@@ -75,59 +74,6 @@ export class PostgresChatByMembersReader implements ChatByMembersReader {
       return null;
     }
 
-    return mapChatRowToEntity(row);
+    return mapPersistedChatRowToEntity(row, 'Chat row');
   }
-}
-
-type ChatRow = {
-  chatId: string;
-  memberIds: string[];
-  memberNames: string[];
-  lastMessageId: string | null;
-  lastMessageAuthorId: string | null;
-  lastMessageAuthorName: string | null;
-  lastMessageContent: string | null;
-  lastMessageCreatedAt: Date | null;
-};
-
-/**
- * Maps one raw SQL row into the chat domain entity.
- *
- * @param row Raw SQL row returned by the persistence layer.
- * @returns Chat entity ready for application use.
- */
-function mapChatRowToEntity(row: ChatRow): Chat {
-  return Chat.create({
-    id: row.chatId,
-    members: row.memberIds.map((id, index) => {
-      const name = row.memberNames[index];
-
-      if (name === undefined) {
-        throw new Error('Chat row is malformed');
-      }
-
-      return UserSummary.create({
-        id,
-        name,
-      });
-    }),
-    lastMessage:
-      row.lastMessageId !== null &&
-      row.lastMessageContent !== null &&
-      row.lastMessageCreatedAt !== null
-        ? ChatLastMessage.create({
-            id: row.lastMessageId,
-            author:
-              row.lastMessageAuthorId !== null &&
-              row.lastMessageAuthorName !== null
-                ? UserSummary.create({
-                    id: row.lastMessageAuthorId,
-                    name: row.lastMessageAuthorName,
-                  })
-                : null,
-            content: row.lastMessageContent,
-            createdAt: row.lastMessageCreatedAt,
-          })
-        : null,
-  });
 }
