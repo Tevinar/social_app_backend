@@ -11,4 +11,19 @@
     "editor.defaultFormatter": "bradymholt.pgformatter",
     "editor.formatOnSave": true
   },
+  "jest": {
+  "coveragePathIgnorePatterns": [
+    "src/main.ts",
+    "**/src/app/bootstrap/**",
+    "**/src/core/**",
+    "**/src/features/auth/presentation/**",
+    "**/src/features/auth/infrastructure/**",
+    "**/src/features/user/**",
+    "**/src/features/post/**"
+  ]
+},
+"sonarlint.connectedMode.project": {
+  "connectionId": "tevinar-sonarqube-cloud",
+  "projectKey": "Tevinar_social_app_backend"
+}
 }
