@@ -1,0 +1,138 @@
+# This workflow deploys the backend to the development environment on Google Cloud.
+# It builds the backend Docker image, pushes it to Artifact Registry so that it
+# can be used in Google Compute Engine.
+name: Deploy Dev
+
+on:
+  # Allow manual deployments.
+  workflow_dispatch:
+
+permissions:
+  # Allow the workflow to read repository contents so it can build the Docker image
+  contents: read
+  # Allow the workflow to mint an identity token.
+  # That token is then exchanged with Google Cloud for temporary credentials
+  id-token: write
+
+jobs:
+  deploy-dev:
+    runs-on: ubuntu-latest
+    # Use variables and secrets stored in the environment named "development" in GitHub.
+    environment: development
+
+    steps:
+      # Make the repository contents available on the runner so later steps can
+      # build the Docker image.
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      # Build the backend image from the repository Dockerfile.
+      # Tag the image with the GitHub SHA (commit hash that triggered the workflow)for traceability.
+      - name: Build backend Docker image
+        run: docker build -t social-app-backend:${{ github.sha }} .
+
+      # Gives this step an internal identifier named auth
+      # so later steps can reference outputs from it if needed
+      - id: auth
+        name: Authenticate to Google Cloud
+        # use Google’s official GitHub Action for authentication
+        uses: google-github-actions/auth@v2
+        with:
+          # Tells the action which Google Cloud Workload Identity Provider to use
+          # that provider is the trust bridge between GitHub Actions and GCP
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          # Tells the action which Google Cloud service account
+          # the workflow should impersonate after authentication
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT_EMAIL }}
+
+      - name: Set up gcloud
+        # use Google’s official GitHub Action that prepares the gcloud CLI
+        uses: google-github-actions/setup-gcloud@v3
+        with:
+          # sets the default Google Cloud project for later gcloud commands in the workflow
+          project_id: social-app-dev-123456
+
+      - name: Configure Docker for Artifact Registry
+        # Configure Docker in the workflow runner so it can log in to the
+        # Artifact Registry host in europe-west9 and push images there.
+        run: gcloud auth configure-docker europe-west9-docker.pkg.dev --quiet
+
+      - name: Tag backend image
+        # Take the backend image built in this workflow and add the full Artifact Registry name to it,
+        # using the current commit SHA as the tag, so it can be pushed to Google Cloud.
+        run: |
+          docker tag social-app-backend:${{ github.sha }} \
+            europe-west9-docker.pkg.dev/social-app-dev-123456/backend-images/social-app-backend:${{ github.sha }}
+
+      - name: Push backend image
+        # Push the backend image built in this workflow to the Artifact Registry repository in Google Cloud
+        run: |
+          docker push \
+            europe-west9-docker.pkg.dev/social-app-dev-123456/backend-images/social-app-backend:${{ github.sha }}
+
+      # creates a file named .env in the workflow runner’s current directory
+      # and fills it with values from GitHub variables
+      - name: Generate runtime .env
+        run: |
+          cat > .env <<EOF
+          NODE_ENV=${{ vars.NODE_ENV }}
+          LOG_LEVEL=${{ vars.LOG_LEVEL }}
+          PORT=${{ vars.PORT }}
+          API_BASE_URL=${{ vars.API_BASE_URL }}
+          POSTGRES_HOST=postgres
+          POSTGRES_PORT=${{ vars.POSTGRES_PORT }}
+          POSTGRES_DB=${{ vars.POSTGRES_DB }}
+          POSTGRES_USER=${{ vars.POSTGRES_USER }}
+          GCS_PROJECT_ID=${{ vars.GCS_PROJECT_ID }}
+          GCS_BUCKET_NAME=${{ vars.GCS_BUCKET_NAME }}
+          AUTH_ACCESS_TTL_MINUTES=${{ vars.AUTH_ACCESS_TTL_MINUTES }}
+          AUTH_REFRESH_TTL_DAYS=${{ vars.AUTH_REFRESH_TTL_DAYS }}
+          EOF
+
+      # creates a local .secrets/ directory on the GitHub runner
+      # writes each GitHub secret into the file name your app expects
+      - name: Generate secret files
+        run: |
+          mkdir -p .secrets
+          printf '%s' '${{ secrets.POSTGRES_PASSWORD }}' > .secrets/postgres_password.txt
+          printf '%s' '${{ secrets.JWT_ACCESS_SECRET }}' > .secrets/jwt_access_secret.txt
+          printf '%s' '${{ secrets.JWT_REFRESH_SECRET }}' > .secrets/jwt_refresh_secret.txt
+          printf '%s' '${{ secrets.TOKEN_HASH_SECRET }}' > .secrets/token_hash_secret.txt
+
+      # Create the target deployment directory on the VM ahead of time so the
+      # copied .env file and secret files land in the structure Compose expects.
+      - name: Ensure deploy directory exists on the VM
+        run: |
+          gcloud compute ssh social-app-dev-vm \
+          --zone=europe-west9-b \
+          --command='mkdir -p ~/social-app-dev/.secrets'
+
+      # Copy the deploy-time files from the GitHub runner to the VM.
+      - name: Copy deploy files to the VM
+        run: |
+          gcloud compute scp \
+          deploy/dev/docker-compose.yml \
+          social-app-dev-vm:~/social-app-dev/docker-compose.yml \
+          --zone=europe-west9-b
+
+          gcloud compute scp \
+          .env \
+          social-app-dev-vm:~/social-app-dev/.env \
+          --zone=europe-west9-b
+
+          gcloud compute scp --recurse \
+          .secrets \
+          social-app-dev-vm:~/social-app-dev \
+          --zone=europe-west9-b
+
+      - name: Pull and start containers on the VM
+        run: |
+          gcloud compute ssh social-app-dev-vm \
+          --zone=europe-west9-b \
+          --command='cd ~/social-app-dev && export IMAGE_TAG=${{ github.sha }} && docker compose pull && docker compose up -d'
+
+      - name: Run database migrations on the VM
+        run: |
+          gcloud compute ssh social-app-dev-vm \
+          --zone=europe-west9-b \
+          --command='cd ~/social-app-dev && export IMAGE_TAG=${{ github.sha }} && docker compose run --rm backend npm run migrate'
