@@ -36,7 +36,7 @@ jobs:
       - id: auth
         name: Authenticate to Google Cloud
         # use Google’s official GitHub Action for authentication
-        uses: google-github-actions/auth@v2
+        uses: google-github-actions/auth@v3
         with:
           # Tells the action which Google Cloud Workload Identity Provider to use
           # that provider is the trust bridge between GitHub Actions and GCP
@@ -103,36 +103,36 @@ jobs:
       # copied .env file and secret files land in the structure Compose expects.
       - name: Ensure deploy directory exists on the VM
         run: |
-          gcloud compute ssh social-app-dev-vm \
+          gcloud compute ssh --quiet slouis_contact@social-app-dev-vm \
           --zone=europe-west9-b \
           --command='mkdir -p ~/social-app-dev/.secrets'
 
       # Copy the deploy-time files from the GitHub runner to the VM.
       - name: Copy deploy files to the VM
         run: |
-          gcloud compute scp \
+          gcloud compute scp --quiet \
           deploy/dev/docker-compose.yml \
-          social-app-dev-vm:~/social-app-dev/docker-compose.yml \
+          slouis_contact@social-app-dev-vm:~/social-app-dev/docker-compose.yml \
           --zone=europe-west9-b
 
-          gcloud compute scp \
+          gcloud compute scp --quiet \
           .env \
-          social-app-dev-vm:~/social-app-dev/.env \
+          slouis_contact@social-app-dev-vm:~/social-app-dev/.env \
           --zone=europe-west9-b
 
-          gcloud compute scp --recurse \
+          gcloud compute scp --recurse --quiet \
           .secrets \
-          social-app-dev-vm:~/social-app-dev \
+          slouis_contact@social-app-dev-vm:~/social-app-dev \
           --zone=europe-west9-b
 
       - name: Pull and start containers on the VM
         run: |
-          gcloud compute ssh social-app-dev-vm \
+          gcloud compute ssh --quiet slouis_contact@social-app-dev-vm \
           --zone=europe-west9-b \
           --command='cd ~/social-app-dev && export IMAGE_TAG=${{ github.sha }} && docker compose pull && docker compose up -d'
 
       - name: Run database migrations on the VM
         run: |
-          gcloud compute ssh social-app-dev-vm \
+          gcloud compute ssh --quiet slouis_contact@social-app-dev-vm \
           --zone=europe-west9-b \
           --command='cd ~/social-app-dev && export IMAGE_TAG=${{ github.sha }} && docker compose run --rm backend npm run migrate'
