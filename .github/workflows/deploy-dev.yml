@@ -104,35 +104,50 @@ jobs:
       - name: Ensure deploy directory exists on the VM
         run: |
           gcloud compute ssh --quiet slouis_contact@social-app-dev-vm \
-          --zone=europe-west9-b \
-          --command='mkdir -p ~/social-app-dev/.secrets'
+            --zone=europe-west9-b \
+            --tunnel-through-iap \
+            --command='mkdir -p ~/social-app-dev/.secrets'
 
       # Copy the deploy-time files from the GitHub runner to the VM.
       - name: Copy deploy files to the VM
         run: |
           gcloud compute scp --quiet \
-          deploy/dev/docker-compose.yml \
-          slouis_contact@social-app-dev-vm:~/social-app-dev/docker-compose.yml \
-          --zone=europe-west9-b
+            --tunnel-through-iap \
+            deploy/dev/docker-compose.yml \
+            slouis_contact@social-app-dev-vm:~/social-app-dev/docker-compose.yml \
+            --zone=europe-west9-b
 
           gcloud compute scp --quiet \
-          .env \
-          slouis_contact@social-app-dev-vm:~/social-app-dev/.env \
-          --zone=europe-west9-b
+            --tunnel-through-iap \
+            .env \
+            slouis_contact@social-app-dev-vm:~/social-app-dev/.env \
+            --zone=europe-west9-b
 
           gcloud compute scp --recurse --quiet \
-          .secrets \
-          slouis_contact@social-app-dev-vm:~/social-app-dev \
-          --zone=europe-west9-b
+            --tunnel-through-iap \
+            .secrets \
+            slouis_contact@social-app-dev-vm:~/social-app-dev \
+            --zone=europe-west9-b
 
       - name: Pull and start containers on the VM
         run: |
           gcloud compute ssh --quiet slouis_contact@social-app-dev-vm \
-          --zone=europe-west9-b \
-          --command='cd ~/social-app-dev && export IMAGE_TAG=${{ github.sha }} && docker compose pull && docker compose up -d'
+            --zone=europe-west9-b \
+            --tunnel-through-iap \
+            --command='cd ~/social-app-dev && export IMAGE_TAG=${{ github.sha }} && docker compose pull && docker compose up -d'
 
       - name: Run database migrations on the VM
         run: |
           gcloud compute ssh --quiet slouis_contact@social-app-dev-vm \
-          --zone=europe-west9-b \
-          --command='cd ~/social-app-dev && export IMAGE_TAG=${{ github.sha }} && docker compose run --rm backend npm run migrate'
+            --zone=europe-west9-b \
+            --tunnel-through-iap \
+            --command='cd ~/social-app-dev && export IMAGE_TAG=${{ github.sha }} && docker compose run --rm backend npm run migrate'
+
+      # Verify that the deployed backend is responding on the VM-local port
+      # exposed only through the private tunnel setup.
+      - name: Run VM-local smoke test
+        run: |
+          gcloud compute ssh --quiet slouis_contact@social-app-dev-vm \
+            --zone=europe-west9-b \
+            --tunnel-through-iap \
+            --command='curl http://localhost:3000/docs'
