@@ -12,7 +12,7 @@ export interface ChatListEventBus {
    *
    * @param event List event to broadcast.
    */
-  publish(event: ChatListEvent): void;
+  publish(event: ChatListEvent): Promise<void>;
 
   /**
    * Opens a live stream of chat list events.

@@ -15,7 +15,7 @@ export interface ChatMessageListEventBus {
    *
    * @param event Message event to broadcast.
    */
-  publish(event: ChatMessageListEvent): void;
+  publish(event: ChatMessageListEvent): Promise<void>;
 
   /**
    * Opens a live stream of message events visible to the caller inside one

@@ -34,7 +34,7 @@ export class CreateChatUseCase implements UseCase<
    *
    * @param chatCreator Persists the chat write set atomically.
    * @param chatListEventBus Broadcasts chat-list events.
-   * @param chatMessageEventBus Broadcasts chat-message events.
+   * @param chatMessageListEventBus Broadcasts chat-message events.
    */
   constructor(
     @Inject(CHAT_CREATOR)
@@ -42,7 +42,7 @@ export class CreateChatUseCase implements UseCase<
     @Inject(CHAT_LIST_EVENT_BUS)
     private readonly chatListEventBus: ChatListEventBus,
     @Inject(CHAT_MESSAGE_LIST_EVENT_BUS)
-    private readonly chatMessageEventBus: ChatMessageListEventBus,
+    private readonly chatMessageListEventBus: ChatMessageListEventBus,
   ) {}
 
   /**
@@ -78,8 +78,8 @@ export class CreateChatUseCase implements UseCase<
       throw new ChatMemberNotFoundError();
     }
 
-    this.chatListEventBus.publish(ChatListEvent.chatAdded(result.chat));
-    this.chatMessageEventBus.publish(
+    await this.chatListEventBus.publish(ChatListEvent.chatAdded(result.chat));
+    await this.chatMessageListEventBus.publish(
       ChatMessageListEvent.messageAdded(
         result.firstMessage,
         result.chat.members.map((member) => member.id),

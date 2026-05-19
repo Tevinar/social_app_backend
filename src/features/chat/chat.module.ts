@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { DatabaseModule } from '../../core/database/database.module';
+import { KafkaModule } from '../../core/kafka/kafka.module';
 import { AuthModule } from '../auth/auth.module';
 import { CHAT_CANDIDATE_READER } from './application/ports/chat-candidate-list-reader.port';
 import { CHAT_CREATOR } from './application/ports/chat-creator.port';
@@ -15,8 +16,8 @@ import { GetChatByMembersUseCase } from './application/use-cases/get-chat-by-mem
 import { GetChatCandidateListSliceUseCase } from './application/use-cases/get-chat-candidate-list-slice.use-case';
 import { GetChatListSliceUseCase } from './application/use-cases/get-chat-list-slice.use-case';
 import { SubscribeToChatMessageListUseCase } from './application/use-cases/subscribe-to-chat-message-list.use-case';
-import { InMemoryChatListEventBus } from './infrastructure/events/in-memory-chat-event-bus';
-import { InMemoryChatMessageEventBus } from './infrastructure/events/in-memory-chat-message-event-bus';
+import { KafkaChatListEventBus } from './infrastructure/events/kafka-chat-list-event-bus';
+import { KafkaChatMessageListEventBus } from './infrastructure/events/kafka-chat-message-list-event-bus';
 import { PostgresChatByMembersReader } from './infrastructure/persistence/postgres-chat-by-members-reader';
 import { PostgresChatCandidateListReader } from './infrastructure/persistence/postgres-chat-candidate-reader';
 import { PostgresChatCreator } from './infrastructure/persistence/postgres-chat-creator';
@@ -31,7 +32,7 @@ import { PostgresChatMessageListReader } from './infrastructure/persistence/post
  * Feature module that wires the chat slice into Nest's DI graph.
  */
 @Module({
-  imports: [AuthModule, DatabaseModule],
+  imports: [AuthModule, DatabaseModule, KafkaModule],
   controllers: [ChatController],
   providers: [
     CreateChatUseCase,
@@ -42,6 +43,8 @@ import { PostgresChatMessageListReader } from './infrastructure/persistence/post
     GetChatMessageListSliceUseCase,
     SubscribeToChatListUseCase,
     SubscribeToChatMessageListUseCase,
+    KafkaChatListEventBus,
+    KafkaChatMessageListEventBus,
     {
       provide: CHAT_CANDIDATE_READER,
       useClass: PostgresChatCandidateListReader,
@@ -64,7 +67,7 @@ import { PostgresChatMessageListReader } from './infrastructure/persistence/post
     },
     {
       provide: CHAT_LIST_EVENT_BUS,
-      useClass: InMemoryChatListEventBus,
+      useClass: KafkaChatListEventBus,
     },
     {
       provide: CHAT_MESSAGE_LIST_READER,
@@ -72,7 +75,7 @@ import { PostgresChatMessageListReader } from './infrastructure/persistence/post
     },
     {
       provide: CHAT_MESSAGE_LIST_EVENT_BUS,
-      useClass: InMemoryChatMessageEventBus,
+      useClass: KafkaChatMessageListEventBus,
     },
   ],
   exports: [

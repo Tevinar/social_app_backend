@@ -66,7 +66,8 @@ Notes
   `class-transformer`
 - Password hashing: `argon2`
 - Tokens: JWT access tokens and refresh tokens with separate secrets
-- Realtime transport: SSE endpoints backed by RxJS event streams
+- Realtime transport: SSE endpoints backed by RxJS event streams, with
+  Kafka fan-out for multi-instance delivery
 
 ### Testing Tooling
 
@@ -92,10 +93,7 @@ delivery.
 Known business and validation failures are mapped centrally by the global HTTP
 exception boundary in `src/core/presentation/filters/`.
 
-One important current limitation: chat SSE updates are backed by in-memory
-event buses, so live events are process-local today. That is fine for local
-development and single-instance deployment, but not enough for horizontally
-scaled realtime delivery.
+Chat realtime delivery uses Kafka for multi-instance-safe fan-out.
 
 For the full architectural rules, dependency direction, layer
 responsibilities, and error/logging conventions, see
