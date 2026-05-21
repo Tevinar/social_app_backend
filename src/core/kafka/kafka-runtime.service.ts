@@ -3,8 +3,8 @@ import { hostname } from 'node:os';
 import {
   Inject,
   Injectable,
+  OnApplicationBootstrap,
   OnModuleDestroy,
-  OnModuleInit,
 } from '@nestjs/common';
 import { Consumer, Kafka, Producer } from 'kafkajs';
 import { KAFKA_CLIENT } from './kafka.provider';
@@ -36,7 +36,9 @@ export interface KafkaTopicHandler {
  * dispatch for the whole Nest application instance.
  */
 @Injectable()
-export class KafkaRuntimeService implements OnModuleInit, OnModuleDestroy {
+export class KafkaRuntimeService
+  implements OnApplicationBootstrap, OnModuleDestroy
+{
   private readonly handlers = new Map<string, KafkaTopicHandler>();
 
   private producer: Producer | null = null;
@@ -73,7 +75,7 @@ export class KafkaRuntimeService implements OnModuleInit, OnModuleDestroy {
    * Connects the shared Kafka producer and consumer, then starts dispatching
    * consumed topic payloads to registered feature handlers.
    */
-  async onModuleInit(): Promise<void> {
+  async onApplicationBootstrap(): Promise<void> {
     this.producer = this.kafka.producer();
     this.consumer = this.kafka.consumer({
       groupId: this.getConsumerGroupId(),

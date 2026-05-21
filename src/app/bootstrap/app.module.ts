@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
 import { DatabaseModule } from '../../core/database/database.module';
+import { OutboxModule } from '../../core/outbox/outbox.module';
 import { ErrorToExceptionMapper } from '../../core/presentation/filters/error-to-exception.mapper';
 import { GlobalHttpRequestExceptionFilter } from '../../core/presentation/filters/global-http-request-exception.filter';
 import { StorageModule } from '../../core/storage/storage.module';
@@ -62,6 +63,7 @@ import { ChatModule } from '../../features/chat/chat.module';
       },
     }),
     DatabaseModule,
+    OutboxModule,
     StorageModule,
     AuthModule,
     BlogModule,

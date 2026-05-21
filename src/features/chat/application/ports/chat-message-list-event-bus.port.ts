@@ -6,17 +6,10 @@ export const CHAT_MESSAGE_LIST_EVENT_BUS = Symbol(
 );
 
 /**
- * Application port used to publish and consume live chat-message list events
- * for one caller inside one chat.
+ * Application port used to consume live chat-message list events for one
+ * caller inside one chat.
  */
 export interface ChatMessageListEventBus {
-  /**
-   * Publishes one chat-message event to current subscribers.
-   *
-   * @param event Message event to broadcast.
-   */
-  publish(event: ChatMessageListEvent): Promise<void>;
-
   /**
    * Opens a live stream of message events visible to the caller inside one
    * chat.

@@ -114,6 +114,7 @@ social_app_backend/
       config/
       contracts/
       database/
+      outbox/
       presentation/filters/
       storage/
     features/
@@ -130,6 +131,7 @@ Main folders:
 - `database/` contains SQL migrations and maintenance scripts
 - `src/` contains all runtime application code
 - `src/core/` contains shared technical modules and contracts
+- `src/core/outbox/` contains the transactional outbox publisher
 - `src/features/` contains feature modules and their internal layers
 - `.secrets/` contains required local secret files
 

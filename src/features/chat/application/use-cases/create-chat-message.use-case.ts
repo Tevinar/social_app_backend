@@ -1,21 +1,11 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { UseCase } from '../../../../core/contracts/use-case';
-import { ChatListEvent } from '../../domain/events/chat-list.event';
-import { ChatMessageListEvent } from '../../domain/events/chat-message-list.event';
 import { ChatMessageContent } from '../../domain/value-objects/chat-message-content';
-import {
-  CHAT_LIST_EVENT_BUS,
-  type ChatListEventBus,
-} from '../ports/chat-list-event-bus.port';
 import {
   CHAT_MESSAGE_CREATOR,
   CreateChatMessageRecordResultType,
   type ChatMessageCreator,
 } from '../ports/chat-message-creator.port';
-import {
-  CHAT_MESSAGE_LIST_EVENT_BUS,
-  type ChatMessageListEventBus,
-} from '../ports/chat-message-list-event-bus.port';
 import { ChatWriteResult } from './results/chat-write.result';
 
 /**
@@ -38,9 +28,9 @@ export class ChatNotFoundError extends Error {
  *
  * Responsibilities:
  * - validate the submitted message content
- * - persist the message and resulting list update atomically
+ * - persist the message, list update, and outbox rows atomically
  * - return the created message payload immediately to the initiating client
- * - publish list and message events after the write succeeds
+ * - let the background outbox publisher deliver live events after commit
  */
 @Injectable()
 export class CreateChatMessageUseCase implements UseCase<
@@ -48,20 +38,14 @@ export class CreateChatMessageUseCase implements UseCase<
   ChatWriteResult
 > {
   /**
-   * Receives the feature ports required to persist a new message
-   * transactionally and notify realtime subscribers after creation.
+   * Receives the feature port required to persist a new message
+   * transactionally together with its durable realtime outbox rows.
    *
    * @param chatMessageCreator Persists the message write set atomically.
-   * @param chatListEventBus Broadcasts chat-list events.
-   * @param chatMessageListEventBus Broadcasts chat-message events.
    */
   constructor(
     @Inject(CHAT_MESSAGE_CREATOR)
     private readonly chatMessageCreator: ChatMessageCreator,
-    @Inject(CHAT_LIST_EVENT_BUS)
-    private readonly chatListEventBus: ChatListEventBus,
-    @Inject(CHAT_MESSAGE_LIST_EVENT_BUS)
-    private readonly chatMessageListEventBus: ChatMessageListEventBus,
   ) {}
 
   /**
@@ -86,14 +70,6 @@ export class CreateChatMessageUseCase implements UseCase<
     if (result.type === CreateChatMessageRecordResultType.CHAT_NOT_FOUND) {
       throw new ChatNotFoundError();
     }
-
-    await this.chatListEventBus.publish(ChatListEvent.chatUpdated(result.chat));
-    await this.chatMessageListEventBus.publish(
-      ChatMessageListEvent.messageAdded(
-        result.chatMessage,
-        result.chat.members.map((member) => member.id),
-      ),
-    );
 
     return {
       chat: result.chat,

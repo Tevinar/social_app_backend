@@ -9,10 +9,8 @@ import {
   type SubscribeToChatMessageListParams,
 } from '../../application/ports/chat-message-list-event-bus.port';
 import { ChatMessageListEvent } from '../../domain/events/chat-message-list.event';
-import {
-  decodeChatMessageListEvent,
-  encodeChatMessageListEvent,
-} from './kafka-chat-event.codec';
+import { decodeChatMessageListEvent } from './kafka-chat-event.codec';
+import { CHAT_KAFKA_MESSAGE_LIST_TOPIC } from './chat-kafka-topics';
 
 /**
  * Kafka-backed implementation of the chat-message event bus port.
@@ -21,7 +19,7 @@ import {
 export class KafkaChatMessageListEventBus
   implements ChatMessageListEventBus, KafkaTopicHandler
 {
-  readonly topic = 'chat-message-list-events';
+  readonly topic = CHAT_KAFKA_MESSAGE_LIST_TOPIC;
 
   private readonly subject = new Subject<ChatMessageListEvent>();
 
@@ -33,20 +31,6 @@ export class KafkaChatMessageListEventBus
    */
   constructor(private readonly kafkaRuntime: KafkaRuntimeService) {
     this.kafkaRuntime.registerHandler(this);
-  }
-
-  /**
-   * Publishes one chat-message event to the shared Kafka topic.
-   *
-   * @param event Message event to broadcast.
-   * @returns Promise that resolves once Kafka accepts the event.
-   */
-  publish(event: ChatMessageListEvent): Promise<void> {
-    return this.kafkaRuntime.send({
-      topic: this.topic,
-      key: event.chatMessage.chatId,
-      value: encodeChatMessageListEvent(event),
-    });
   }
 
   /**
