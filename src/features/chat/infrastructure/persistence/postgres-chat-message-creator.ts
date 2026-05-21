@@ -1,5 +1,7 @@
+import { randomUUID } from 'node:crypto';
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '../../../../core/database/database.service';
+import { insertOutboxEvent } from '../../../../core/outbox/insert-outbox-event';
 import {
   CreateChatMessageRecordResultType,
   type ChatMessageCreator,
@@ -9,7 +11,17 @@ import {
 import { Chat } from '../../domain/entities/chat';
 import { ChatLastMessage } from '../../domain/entities/chat-last-message';
 import { ChatMessage } from '../../domain/entities/chat-message';
+import { ChatListEvent } from '../../domain/events/chat-list.event';
+import { ChatMessageListEvent } from '../../domain/events/chat-message-list.event';
 import { UserSummary } from '../../domain/entities/user-summary';
+import {
+  encodeChatListEvent,
+  encodeChatMessageListEvent,
+} from '../events/kafka-chat-event.codec';
+import {
+  CHAT_KAFKA_LIST_TOPIC,
+  CHAT_KAFKA_MESSAGE_LIST_TOPIC,
+} from '../events/chat-kafka-topics';
 
 /**
  * Postgres-backed implementation of the chat-message creator port.
@@ -128,19 +140,45 @@ export class PostgresChatMessageCreator implements ChatMessageCreator {
         createdAt: createdMessage.createdAt,
         updatedAt: createdMessage.updatedAt,
       });
+      const chat = Chat.create({
+        id: params.chatId,
+        members,
+        lastMessage: ChatLastMessage.create({
+          id: createdMessage.id,
+          author,
+          content: params.content,
+          createdAt: createdMessage.createdAt,
+        }),
+      });
+      const chatListEvent = ChatListEvent.chatUpdated(chat);
+      const chatMessageEvent = ChatMessageListEvent.messageAdded(
+        chatMessage,
+        chat.members.map((member) => member.id),
+      );
+
+      await insertOutboxEvent(sql, {
+        id: randomUUID(),
+        aggregateType: 'chat',
+        aggregateId: chat.id,
+        eventType: chatListEvent.type,
+        topic: CHAT_KAFKA_LIST_TOPIC,
+        messageKey: chat.id,
+        payload: encodeChatListEvent(chatListEvent),
+      });
+
+      await insertOutboxEvent(sql, {
+        id: randomUUID(),
+        aggregateType: 'chat_message',
+        aggregateId: chatMessage.id,
+        eventType: chatMessageEvent.type,
+        topic: CHAT_KAFKA_MESSAGE_LIST_TOPIC,
+        messageKey: chatMessage.chatId,
+        payload: encodeChatMessageListEvent(chatMessageEvent),
+      });
 
       return {
         type: CreateChatMessageRecordResultType.CREATED,
-        chat: Chat.create({
-          id: params.chatId,
-          members,
-          lastMessage: ChatLastMessage.create({
-            id: createdMessage.id,
-            author,
-            content: params.content,
-            createdAt: createdMessage.createdAt,
-          }),
-        }),
+        chat,
         chatMessage,
       };
     });

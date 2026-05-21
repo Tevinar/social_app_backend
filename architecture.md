@@ -335,14 +335,12 @@ The chat feature combines paginated reads with SSE updates:
 
 - chat lists and message lists are read from PostgreSQL with cursor-based
   queries
-- writes persist data first, then publish chat-list and chat-message events
-- SSE controllers expose those events as `text/event-stream`
-
-Current limitation:
-
-- the event buses are in-memory RxJS subjects
-- live updates therefore work only inside one running app instance
-- multi-instance deployment would require an external pub/sub mechanism
+- writes persist business data and durable outbox rows in the same PostgreSQL
+  transaction
+- the background outbox publisher sends those chat-list and chat-message
+  events to shared Kafka topics
+- each app instance consumes those topics before forwarding matching events to
+  its local SSE subscribers as `text/event-stream`
 
 ## 7. Error Handling and Logging
 

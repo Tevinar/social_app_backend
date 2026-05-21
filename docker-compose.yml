@@ -51,6 +51,13 @@ services:
     volumes:
       - fake_gcs_data:/storage
 
+  # Kafka service using the official Apache Kafka image.
+  kafka:
+    image: apache/kafka:4.2.0
+    container_name: social_app_kafka
+    ports:
+      - "9092:9092"
+
 # Declare the named volume used to store PostgreSQL data files.
 volumes:
   postgres_data:

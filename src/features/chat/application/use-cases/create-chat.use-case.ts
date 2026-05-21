@@ -3,20 +3,10 @@ import { UseCase } from '../../../../core/contracts/use-case';
 import { ChatMessageContent } from '../../domain/value-objects/chat-message-content';
 import { ChatMembers } from '../../domain/value-objects/chat-members';
 import {
-  CHAT_LIST_EVENT_BUS,
-  type ChatListEventBus,
-} from '../ports/chat-list-event-bus.port';
-import {
-  CHAT_MESSAGE_LIST_EVENT_BUS,
-  type ChatMessageListEventBus,
-} from '../ports/chat-message-list-event-bus.port';
-import {
   CHAT_CREATOR,
   CreateChatRecordResultType,
   type ChatCreator,
 } from '../ports/chat-creator.port';
-import { ChatListEvent } from '../../domain/events/chat-list.event';
-import { ChatMessageListEvent } from '../../domain/events/chat-message-list.event';
 import { ChatWriteResult } from './results/chat-write.result';
 
 /**
@@ -29,20 +19,14 @@ export class CreateChatUseCase implements UseCase<
   ChatWriteResult
 > {
   /**
-   * Receives the feature ports required to persist a new chat transactionally
-   * and notify realtime subscribers after creation.
+   * Receives the feature port required to persist a new chat transactionally
+   * together with its durable realtime outbox rows.
    *
    * @param chatCreator Persists the chat write set atomically.
-   * @param chatListEventBus Broadcasts chat-list events.
-   * @param chatMessageEventBus Broadcasts chat-message events.
    */
   constructor(
     @Inject(CHAT_CREATOR)
     private readonly chatCreator: ChatCreator,
-    @Inject(CHAT_LIST_EVENT_BUS)
-    private readonly chatListEventBus: ChatListEventBus,
-    @Inject(CHAT_MESSAGE_LIST_EVENT_BUS)
-    private readonly chatMessageEventBus: ChatMessageListEventBus,
   ) {}
 
   /**
@@ -77,14 +61,6 @@ export class CreateChatUseCase implements UseCase<
     if (result.type === CreateChatRecordResultType.MEMBER_NOT_FOUND) {
       throw new ChatMemberNotFoundError();
     }
-
-    this.chatListEventBus.publish(ChatListEvent.chatAdded(result.chat));
-    this.chatMessageEventBus.publish(
-      ChatMessageListEvent.messageAdded(
-        result.firstMessage,
-        result.chat.members.map((member) => member.id),
-      ),
-    );
 
     return {
       chat: result.chat,

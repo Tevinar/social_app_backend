@@ -4,7 +4,7 @@
     {
       "label": "docker: infra up",
       "type": "shell",
-      "command": "docker compose up -d postgres fake-gcs",
+      "command": "docker compose up -d postgres fake-gcs kafka",
       "problemMatcher": []
     }
   ]

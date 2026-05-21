@@ -5,6 +5,9 @@ export enum EnvVariable {
   port = 'PORT',
   ApiBaseUrl = 'API_BASE_URL',
 
+  KafkaBootstrapServers = 'KAFKA_BOOTSTRAP_SERVERS',
+  KafkaSecurityProtocol = 'KAFKA_SECURITY_PROTOCOL',
+
   PostgresHost = 'POSTGRES_HOST',
   PostgresPort = 'POSTGRES_PORT',
   PostgresDb = 'POSTGRES_DB',

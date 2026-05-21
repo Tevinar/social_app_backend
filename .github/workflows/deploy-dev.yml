@@ -36,7 +36,7 @@ jobs:
       - id: auth
         name: Authenticate to Google Cloud
         # use Google’s official GitHub Action for authentication
-        uses: google-github-actions/auth@v3
+        uses: google-github-actions/auth/@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3
         with:
           # Tells the action which Google Cloud Workload Identity Provider to use
           # that provider is the trust bridge between GitHub Actions and GCP
@@ -47,7 +47,7 @@ jobs:
 
       - name: Set up gcloud
         # use Google’s official GitHub Action that prepares the gcloud CLI
-        uses: google-github-actions/setup-gcloud@v3
+        uses: google-github-actions/setup-gcloud/@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
         with:
           # sets the default Google Cloud project for later gcloud commands in the workflow
           project_id: social-app-dev-123456
@@ -92,12 +92,17 @@ jobs:
       # creates a local .secrets/ directory on the GitHub runner
       # writes each GitHub secret into the file name your app expects
       - name: Generate secret files
+        env:
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          JWT_ACCESS_SECRET: ${{ secrets.JWT_ACCESS_SECRET }}
+          JWT_REFRESH_SECRET: ${{ secrets.JWT_REFRESH_SECRET }}
+          TOKEN_HASH_SECRET: ${{ secrets.TOKEN_HASH_SECRET }}
         run: |
           mkdir -p .secrets
-          printf '%s' '${{ secrets.POSTGRES_PASSWORD }}' > .secrets/postgres_password.txt
-          printf '%s' '${{ secrets.JWT_ACCESS_SECRET }}' > .secrets/jwt_access_secret.txt
-          printf '%s' '${{ secrets.JWT_REFRESH_SECRET }}' > .secrets/jwt_refresh_secret.txt
-          printf '%s' '${{ secrets.TOKEN_HASH_SECRET }}' > .secrets/token_hash_secret.txt
+          printf '%s' "$POSTGRES_PASSWORD" > .secrets/postgres_password.txt
+          printf '%s' "$JWT_ACCESS_SECRET" > .secrets/jwt_access_secret.txt
+          printf '%s' "$JWT_REFRESH_SECRET" > .secrets/jwt_refresh_secret.txt
+          printf '%s' "$TOKEN_HASH_SECRET" > .secrets/token_hash_secret.txt
 
       # Create the target deployment directory on the VM ahead of time so the
       # copied .env file and secret files land in the structure Compose expects.
