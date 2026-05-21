@@ -43,8 +43,6 @@ import { PostgresChatMessageListReader } from './infrastructure/persistence/post
     GetChatMessageListSliceUseCase,
     SubscribeToChatListUseCase,
     SubscribeToChatMessageListUseCase,
-    KafkaChatListEventBus,
-    KafkaChatMessageListEventBus,
     {
       provide: CHAT_CANDIDATE_READER,
       useClass: PostgresChatCandidateListReader,
