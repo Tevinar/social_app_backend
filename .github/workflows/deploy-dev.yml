@@ -83,7 +83,7 @@ jobs:
           POSTGRES_PORT=${{ vars.POSTGRES_PORT }}
           POSTGRES_DB=${{ vars.POSTGRES_DB }}
           POSTGRES_USER=${{ vars.POSTGRES_USER }}
-          GCS_PROJECT_ID=${{ vars.GCS_PROJECT_ID }}
+          GOOGLE_CLOUD_PROJECT_ID=${{ vars.GOOGLE_CLOUD_PROJECT_ID }}
           GCS_BUCKET_NAME=${{ vars.GCS_BUCKET_NAME }}
           AUTH_ACCESS_TTL_MINUTES=${{ vars.AUTH_ACCESS_TTL_MINUTES }}
           AUTH_REFRESH_TTL_DAYS=${{ vars.AUTH_REFRESH_TTL_DAYS }}

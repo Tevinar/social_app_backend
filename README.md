@@ -67,7 +67,7 @@ Notes
 - Password hashing: `argon2`
 - Tokens: JWT access tokens and refresh tokens with separate secrets
 - Realtime transport: SSE endpoints backed by RxJS event streams, with
-  Kafka fan-out for multi-instance delivery
+  Google Pub/Sub fan-out for multi-instance delivery
 
 ### Testing Tooling
 
@@ -93,7 +93,10 @@ delivery.
 Known business and validation failures are mapped centrally by the global HTTP
 exception boundary in `src/core/presentation/filters/`.
 
-Chat realtime delivery uses Kafka for multi-instance-safe fan-out.
+Chat realtime delivery uses Google Pub/Sub for multi-instance-safe fan-out.
+The runtime creates one short-lived pull subscription per app instance, so the
+deployed service account needs Pub/Sub publish plus subscription
+create/consume/delete permissions.
 
 For the full architectural rules, dependency direction, layer
 responsibilities, and error/logging conventions, see

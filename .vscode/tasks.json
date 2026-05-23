@@ -4,7 +4,26 @@
     {
       "label": "docker: infra up",
       "type": "shell",
-      "command": "docker compose up -d postgres fake-gcs kafka",
+      "command": "docker compose up -d postgres fake-gcs",
+      "problemMatcher": []
+    },
+    {
+      "label": "pubsub: emulator start",
+      "type": "shell",
+      "command": "gcloud beta emulators pubsub start --project=social-app-local --host-port=127.0.0.1:8085",
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "backend: infra bootstrap",
+      "dependsOn": [
+        "docker: infra up",
+        "pubsub: emulator start"
+      ],
       "problemMatcher": []
     }
   ]

@@ -5,7 +5,7 @@ import {
   OnModuleDestroy,
 } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
-import { KafkaRuntimeService } from '../kafka/kafka-runtime.service';
+import { PubSubRuntimeService } from '../pubsub/pubsub-runtime.service';
 
 const OUTBOX_POLL_INTERVAL_MS = 1_000;
 const OUTBOX_BATCH_SIZE = 50;
@@ -22,7 +22,7 @@ type ClaimedOutboxEvent = {
 };
 
 /**
- * Background worker that publishes durable outbox rows to Kafka and retries
+ * Background worker that publishes durable outbox rows to Pub/Sub and retries
  * transient failures with backoff.
  */
 @Injectable()
@@ -35,14 +35,14 @@ export class OutboxPublisherService
   private isFlushInProgress = false;
 
   /**
-   * Receives the shared database and Kafka runtime services.
+   * Receives the shared database and Pub/Sub runtime services.
    *
    * @param database Shared Postgres service.
-   * @param kafkaRuntime Shared Kafka runtime used for publishing.
+   * @param pubsubRuntime Shared Pub/Sub runtime used for publishing.
    */
   constructor(
     private readonly database: DatabaseService,
-    private readonly kafkaRuntime: KafkaRuntimeService,
+    private readonly pubsubRuntime: PubSubRuntimeService,
   ) {}
 
   /**
@@ -150,7 +150,7 @@ export class OutboxPublisherService
               value: event.payload,
             };
 
-      await this.kafkaRuntime.send(message);
+      await this.pubsubRuntime.send(message);
 
       await this.markEventPublished(event.id);
     } catch (error) {
@@ -182,7 +182,7 @@ export class OutboxPublisherService
    *
    * @param outboxEventId Failed row id.
    * @param attempts Current attempt count after claiming the row.
-   * @param error Last Kafka publication error.
+   * @param error Last Pub/Sub publication error.
    */
   private async markEventFailed(
     outboxEventId: string,
