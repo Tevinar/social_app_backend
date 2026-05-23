@@ -228,11 +228,33 @@ This starts:
 npm run migrate
 ```
 
-### Start the Nest server in watch mode and accepting fake-gcs certificate:
+### Start Local Pub/Sub
+
+Start the Pub/Sub emulator in a separate terminal:
 
 ```bash
-NODE_EXTRA_CA_CERTS="$PWD/.certs/fake-gcs.pem" npm run start:debug
+gcloud beta emulators pubsub start \
+  --project=social-app-local \
+  --host-port=127.0.0.1:8085
 ```
+
+Create the local chat topics after the emulator is running:
+
+```bash
+PUBSUB_EMULATOR_HOST=127.0.0.1:8085 node -r dotenv/config -e 'const {PubSub}=require("@google-cloud/pubsub"); const pubsub=new PubSub({projectId: process.env.GOOGLE_CLOUD_PROJECT_ID}); (async()=>{for (const name of ["chat-list-events","chat-message-list-events"]) { const topic=pubsub.topic(name); const [exists]=await topic.exists(); if (!exists) await topic.create(); console.log("ready:", name); } await pubsub.close();})().catch(err=>{console.error(err); process.exit(1);});'
+```
+
+### Start the Nest server in watch mode, accepting fake-gcs certificate and connecting to Pub/Sub
+
+Run the backend in a third terminal:
+
+```bash
+NODE_EXTRA_CA_CERTS="$PWD/.certs/fake-gcs.pem" PUBSUB_EMULATOR_HOST=127.0.0.1:8085 npm run start:debug
+```
+
+If you use VS Code, the `Backend: Nest debug` launch configuration automates
+the Docker startup, Pub/Sub emulator startup, topic bootstrap, and backend
+launch sequence.
 
 The Flutter mobile client defaults to `http://localhost:3000`, so the backend
 and the app line up locally without additional routing work.

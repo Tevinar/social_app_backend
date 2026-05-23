@@ -16,7 +16,7 @@ import { CHAT_LIST_REALTIME_TOPIC } from './chat-realtime-topics';
 export class PubSubChatListEventBus
   implements ChatListEventBus, PubSubTopicHandler
 {
-  readonly topic = CHAT_LIST_REALTIME_TOPIC;
+  readonly topicName = CHAT_LIST_REALTIME_TOPIC;
 
   private readonly subject = new Subject<ChatListEvent>();
 

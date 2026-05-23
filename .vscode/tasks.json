@@ -12,17 +12,53 @@
       "type": "shell",
       "command": "gcloud beta emulators pubsub start --project=social-app-local --host-port=127.0.0.1:8085",
       "isBackground": true,
-      "problemMatcher": [],
+      "problemMatcher": {
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".",
+          "endsPattern": "Server started, listening on 8085"
+        },
+        "pattern": {
+          "regexp": "."
+        }
+      },
       "presentation": {
         "reveal": "always",
         "panel": "dedicated"
       }
     },
     {
+      "label": "pubsub: topics init",
+      "type": "process",
+      "command": "node",
+      "args": [
+        "-r",
+        "dotenv/config",
+        "-e",
+        "const {PubSub}=require('@google-cloud/pubsub'); const pubsub=new PubSub({projectId: process.env.GOOGLE_CLOUD_PROJECT_ID}); (async()=>{for (const name of ['chat-list-events','chat-message-list-events']) { const topic=pubsub.topic(name); const [exists]=await topic.exists(); if (!exists) await topic.create(); console.log('ready:', name); } await pubsub.close();})().catch(err=>{console.error(err); process.exit(1);});"
+      ],
+      "options": {
+        "env": {
+          "PUBSUB_EMULATOR_HOST": "127.0.0.1:8085"
+        }
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "pubsub: bootstrap",
+      "dependsOrder": "sequence",
+      "dependsOn": [
+        "pubsub: emulator start",
+        "pubsub: topics init"
+      ],
+      "problemMatcher": []
+    },
+    {
       "label": "backend: infra bootstrap",
+      "dependsOrder": "parallel",
       "dependsOn": [
         "docker: infra up",
-        "pubsub: emulator start"
+        "pubsub: bootstrap"
       ],
       "problemMatcher": []
     }
