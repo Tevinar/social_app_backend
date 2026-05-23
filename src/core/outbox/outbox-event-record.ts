@@ -7,6 +7,6 @@ export type OutboxEventRecord = {
   aggregateId: string;
   eventType: string;
   topic: string;
-  messageKey: string | null;
+  orderingKey: string;
   payload: string;
 };

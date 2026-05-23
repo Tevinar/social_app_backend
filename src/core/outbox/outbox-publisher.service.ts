@@ -16,7 +16,7 @@ const OUTBOX_RETRY_DELAYS_MS = [5_000, 15_000, 60_000, 300_000, 900_000];
 type ClaimedOutboxEvent = {
   id: string;
   topic: string;
-  messageKey: string | null;
+  orderingKey: string;
   payload: string;
   attempts: number;
 };
@@ -124,7 +124,7 @@ export class OutboxPublisherService
         returning
           oe.id,
           oe.topic,
-          oe.message_key as "messageKey",
+          oe.ordering_key as "orderingKey",
           oe.payload,
           oe.attempts
       `;
@@ -138,19 +138,11 @@ export class OutboxPublisherService
    */
   private async publishClaimedEvent(event: ClaimedOutboxEvent): Promise<void> {
     try {
-      const message =
-        event.messageKey === null
-          ? {
-              topic: event.topic,
-              value: event.payload,
-            }
-          : {
-              topic: event.topic,
-              key: event.messageKey,
-              value: event.payload,
-            };
-
-      await this.pubsubRuntime.send(message);
+      await this.pubsubRuntime.send({
+        topic: event.topic,
+        orderingKey: event.orderingKey,
+        value: event.payload,
+      });
 
       await this.markEventPublished(event.id);
     } catch (error) {

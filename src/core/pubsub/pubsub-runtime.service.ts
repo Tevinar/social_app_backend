@@ -12,7 +12,7 @@ import { PUBSUB_CLIENT } from './pubsub.provider';
 
 type PubSubOutboundMessage = {
   topic: string;
-  key?: string;
+  orderingKey: string;
   value: string;
 };
 
@@ -148,13 +148,7 @@ export class PubSubRuntimeService
 
     await topic.publishMessage({
       data: Buffer.from(message.value, 'utf8'),
-      ...(message.key === undefined
-        ? {}
-        : {
-            attributes: {
-              messageKey: message.key,
-            },
-          }),
+      orderingKey: message.orderingKey,
     });
   }
 
@@ -326,7 +320,9 @@ export class PubSubRuntimeService
       return existingTopic;
     }
 
-    const topic = this.pubsub.topic(topicName);
+    const topic = this.pubsub.topic(topicName, {
+      messageOrdering: true,
+    });
 
     this.topics.set(topicName, topic);
 
@@ -382,6 +378,7 @@ export class PubSubRuntimeService
     }
 
     const [createdSubscription] = await topic.createSubscription(entry.name, {
+      enableMessageOrdering: true,
       // if this ephemeral subscription is inactive long enough,
       // Pub/Sub can automatically remove it after about one day.
       expirationPolicy: {

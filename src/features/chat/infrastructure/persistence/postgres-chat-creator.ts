@@ -185,7 +185,7 @@ export class PostgresChatCreator implements ChatCreator {
         aggregateId: chat.id,
         eventType: chatListEvent.type,
         topic: CHAT_LIST_REALTIME_TOPIC,
-        messageKey: chat.id,
+        orderingKey: chat.id,
         payload: encodeChatListEvent(chatListEvent),
       });
 
@@ -195,7 +195,7 @@ export class PostgresChatCreator implements ChatCreator {
         aggregateId: firstMessageEntity.id,
         eventType: chatMessageEvent.type,
         topic: CHAT_MESSAGE_LIST_REALTIME_TOPIC,
-        messageKey: firstMessageEntity.chatId,
+        orderingKey: firstMessageEntity.chatId,
         payload: encodeChatMessageListEvent(chatMessageEvent),
       });
 
