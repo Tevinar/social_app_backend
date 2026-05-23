@@ -17,11 +17,11 @@ import { UserSummary } from '../../domain/entities/user-summary';
 import {
   encodeChatListEvent,
   encodeChatMessageListEvent,
-} from '../events/kafka-chat-event.codec';
+} from '../events/chat-realtime-event.codec';
 import {
-  CHAT_KAFKA_LIST_TOPIC,
-  CHAT_KAFKA_MESSAGE_LIST_TOPIC,
-} from '../events/chat-kafka-topics';
+  CHAT_LIST_REALTIME_TOPIC,
+  CHAT_MESSAGE_LIST_REALTIME_TOPIC,
+} from '../events/chat-realtime-topics';
 
 /**
  * Postgres-backed implementation of the chat-message creator port.
@@ -161,8 +161,8 @@ export class PostgresChatMessageCreator implements ChatMessageCreator {
         aggregateType: 'chat',
         aggregateId: chat.id,
         eventType: chatListEvent.type,
-        topic: CHAT_KAFKA_LIST_TOPIC,
-        messageKey: chat.id,
+        topic: CHAT_LIST_REALTIME_TOPIC,
+        orderingKey: chat.id,
         payload: encodeChatListEvent(chatListEvent),
       });
 
@@ -171,8 +171,8 @@ export class PostgresChatMessageCreator implements ChatMessageCreator {
         aggregateType: 'chat_message',
         aggregateId: chatMessage.id,
         eventType: chatMessageEvent.type,
-        topic: CHAT_KAFKA_MESSAGE_LIST_TOPIC,
-        messageKey: chatMessage.chatId,
+        topic: CHAT_MESSAGE_LIST_REALTIME_TOPIC,
+        orderingKey: chatMessage.chatId,
         payload: encodeChatMessageListEvent(chatMessageEvent),
       });
 

@@ -7,9 +7,10 @@
       "request": "launch",
       "command": "npm run start:debug",
       "cwd": "${workspaceFolder}",
-      "preLaunchTask": "docker: infra up",
+      "preLaunchTask": "backend: infra bootstrap",
       "env": {
-        "NODE_EXTRA_CA_CERTS": "${workspaceFolder}/.certs/fake-gcs.pem"
+        "NODE_EXTRA_CA_CERTS": "${workspaceFolder}/.certs/fake-gcs.pem",
+        "PUBSUB_EMULATOR_HOST": "127.0.0.1:8085"
       }
     }
   ],

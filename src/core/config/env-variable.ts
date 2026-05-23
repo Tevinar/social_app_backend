@@ -5,15 +5,12 @@ export enum EnvVariable {
   port = 'PORT',
   ApiBaseUrl = 'API_BASE_URL',
 
-  KafkaBootstrapServers = 'KAFKA_BOOTSTRAP_SERVERS',
-  KafkaSecurityProtocol = 'KAFKA_SECURITY_PROTOCOL',
-
   PostgresHost = 'POSTGRES_HOST',
   PostgresPort = 'POSTGRES_PORT',
   PostgresDb = 'POSTGRES_DB',
   PostgresUser = 'POSTGRES_USER',
 
-  GcsProjectId = 'GCS_PROJECT_ID',
+  GoogleCloudProjectId = 'GOOGLE_CLOUD_PROJECT_ID',
   GcsBucketName = 'GCS_BUCKET_NAME',
   GcsHost = 'GCS_HOST',
   GcsPort = 'GCS_PORT',

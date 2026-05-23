@@ -1,33 +1,33 @@
 import { Injectable } from '@nestjs/common';
 import { Observable, Subject, filter } from 'rxjs';
 import {
-  KafkaRuntimeService,
-  type KafkaTopicHandler,
-} from '../../../../core/kafka/kafka-runtime.service';
+  PubSubRuntimeService,
+  type PubSubTopicHandler,
+} from '../../../../core/pubsub/pubsub-runtime.service';
 import { type ChatListEventBus } from '../../application/ports/chat-list-event-bus.port';
 import { ChatListEvent } from '../../domain/events/chat-list.event';
-import { decodeChatListEvent } from './kafka-chat-event.codec';
-import { CHAT_KAFKA_LIST_TOPIC } from './chat-kafka-topics';
+import { decodeChatListEvent } from './chat-realtime-event.codec';
+import { CHAT_LIST_REALTIME_TOPIC } from './chat-realtime-topics';
 
 /**
- * Kafka-backed implementation of the chat-list event bus port.
+ * Pub/Sub-backed implementation of the chat-list event bus port.
  */
 @Injectable()
-export class KafkaChatListEventBus
-  implements ChatListEventBus, KafkaTopicHandler
+export class PubSubChatListEventBus
+  implements ChatListEventBus, PubSubTopicHandler
 {
-  readonly topic = CHAT_KAFKA_LIST_TOPIC;
+  readonly topicName = CHAT_LIST_REALTIME_TOPIC;
 
   private readonly subject = new Subject<ChatListEvent>();
 
   /**
-   * Receives the shared Kafka runtime and registers the chat-list topic
+   * Receives the shared Pub/Sub runtime and registers the chat-list topic
    * handler.
    *
-   * @param kafkaRuntime Shared Kafka runtime.
+   * @param pubsubRuntime Shared Pub/Sub runtime.
    */
-  constructor(private readonly kafkaRuntime: KafkaRuntimeService) {
-    this.kafkaRuntime.registerHandler(this);
+  constructor(private readonly pubsubRuntime: PubSubRuntimeService) {
+    this.pubsubRuntime.registerHandler(this);
   }
 
   /**
@@ -47,9 +47,9 @@ export class KafkaChatListEventBus
   }
 
   /**
-   * Decodes one consumed Kafka payload and forwards it to local subscribers.
+   * Decodes one consumed Pub/Sub payload and forwards it to local subscribers.
    *
-   * @param payload Kafka payload consumed from the chat-list topic.
+   * @param payload Pub/Sub payload consumed from the chat-list topic.
    */
   handleMessage(payload: string): void {
     this.subject.next(decodeChatListEvent(payload));

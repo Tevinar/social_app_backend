@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
 import { DatabaseModule } from '../database/database.module';
-import { KafkaModule } from '../kafka/kafka.module';
+import { PubSubModule } from '../pubsub/pubsub.module';
 import { OutboxPublisherService } from './outbox-publisher.service';
 
 /**
- * Shared module that publishes transactional outbox rows to Kafka.
+ * Shared module that publishes transactional outbox rows to Pub/Sub.
  */
 @Module({
-  imports: [DatabaseModule, KafkaModule],
+  imports: [DatabaseModule, PubSubModule],
   providers: [OutboxPublisherService],
 })
 export class OutboxModule {}

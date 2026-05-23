@@ -338,9 +338,10 @@ The chat feature combines paginated reads with SSE updates:
 - writes persist business data and durable outbox rows in the same PostgreSQL
   transaction
 - the background outbox publisher sends those chat-list and chat-message
-  events to shared Kafka topics
-- each app instance consumes those topics before forwarding matching events to
-  its local SSE subscribers as `text/event-stream`
+  events to shared Pub/Sub topics
+- each app instance consumes those topics through its own subscriptions before
+  forwarding matching events to its local SSE subscribers as
+  `text/event-stream`
 
 ## 7. Error Handling and Logging
 

@@ -19,7 +19,7 @@ export async function insertOutboxEvent(
       aggregate_id,
       event_type,
       topic,
-      message_key,
+      ordering_key,
       payload
     )
     values (
@@ -28,7 +28,7 @@ export async function insertOutboxEvent(
       ${event.aggregateId},
       ${event.eventType},
       ${event.topic},
-      ${event.messageKey},
+      ${event.orderingKey},
       ${event.payload}
     )
   `;

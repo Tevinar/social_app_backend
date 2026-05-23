@@ -34,7 +34,7 @@ export const storageProvider: Provider = {
   inject: [ConfigService],
   useFactory: (configService: ConfigService): Storage => {
     const projectId = configService.getOrThrow<string>(
-      EnvVariable.GcsProjectId,
+      EnvVariable.GoogleCloudProjectId,
     );
     const apiEndpoint = getStorageApiEndpoint(configService);
     const options = {

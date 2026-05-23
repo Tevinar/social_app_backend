@@ -50,10 +50,10 @@ type ChatMessageListEventPayload = {
 };
 
 /**
- * Serializes one chat-list domain event to a Kafka payload string.
+ * Serializes one chat-list domain event to a transport payload string.
  *
  * @param event Chat-list event to encode.
- * @returns JSON payload ready to publish to Kafka.
+ * @returns JSON payload ready to publish to the realtime transport.
  */
 export function encodeChatListEvent(event: ChatListEvent): string {
   const payload: ChatListEventPayload = {
@@ -78,9 +78,9 @@ export function encodeChatListEvent(event: ChatListEvent): string {
 }
 
 /**
- * Rebuilds one chat-list domain event from a Kafka payload string.
+ * Rebuilds one chat-list domain event from a transport payload string.
  *
- * @param payload JSON payload consumed from Kafka.
+ * @param payload JSON payload consumed from the realtime transport.
  * @returns Reconstructed chat-list domain event.
  */
 export function decodeChatListEvent(payload: string): ChatListEvent {
@@ -96,10 +96,10 @@ export function decodeChatListEvent(payload: string): ChatListEvent {
 }
 
 /**
- * Serializes one chat-message domain event to a Kafka payload string.
+ * Serializes one chat-message domain event to a transport payload string.
  *
  * @param event Chat-message event to encode.
- * @returns JSON payload ready to publish to Kafka.
+ * @returns JSON payload ready to publish to the realtime transport.
  */
 export function encodeChatMessageListEvent(
   event: ChatMessageListEvent,
@@ -123,27 +123,26 @@ export function encodeChatMessageListEvent(
 }
 
 /**
- * Rebuilds one chat-message domain event from a Kafka payload string.
+ * Rebuilds one chat-message domain event from a transport payload string.
  *
- * @param payload JSON payload consumed from Kafka.
+ * @param payload JSON payload consumed from the realtime transport.
  * @returns Reconstructed chat-message domain event.
  */
 export function decodeChatMessageListEvent(
   payload: string,
 ): ChatMessageListEvent {
   const parsedPayload = JSON.parse(payload) as ChatMessageListEventPayload;
-
-  switch (parsedPayload.type) {
-    case 'chat_message.added':
-      return ChatMessageListEvent.messageAdded(
-        decodeChatMessage(parsedPayload.chatMessage),
-        parsedPayload.visibleToUserIds,
-      );
+  if (parsedPayload.type === 'chat_message.added') {
+    return ChatMessageListEvent.messageAdded(
+      decodeChatMessage(parsedPayload.chatMessage),
+      parsedPayload.visibleToUserIds,
+    );
   }
+  throw new Error('Unsupported chat message event type');
 }
 
 /**
- * Serializes one user summary for transport through Kafka.
+ * Serializes one user summary for transport through the realtime transport.
  *
  * @param userSummary Domain user summary to encode.
  * @returns Primitive payload safe to JSON-serialize.
@@ -156,7 +155,7 @@ function encodeUserSummary(userSummary: UserSummary): UserSummaryPayload {
 }
 
 /**
- * Rebuilds one user summary from its primitive Kafka payload.
+ * Rebuilds one user summary from its primitive transport payload.
  *
  * @param payload Primitive user-summary payload.
  * @returns Reconstructed user summary entity.
@@ -169,7 +168,7 @@ function decodeUserSummary(payload: UserSummaryPayload): UserSummary {
 }
 
 /**
- * Rebuilds one last-message preview from its primitive Kafka payload.
+ * Rebuilds one last-message preview from its primitive transport payload.
  *
  * @param payload Primitive last-message payload.
  * @returns Reconstructed last-message entity.
@@ -186,7 +185,7 @@ function decodeChatLastMessage(
 }
 
 /**
- * Rebuilds one chat from its primitive Kafka payload.
+ * Rebuilds one chat from its primitive transport payload.
  *
  * @param payload Primitive chat payload.
  * @returns Reconstructed chat entity.
@@ -202,7 +201,7 @@ function decodeChat(payload: ChatPayload): Chat {
 }
 
 /**
- * Rebuilds one chat message from its primitive Kafka payload.
+ * Rebuilds one chat message from its primitive transport payload.
  *
  * @param payload Primitive chat-message payload.
  * @returns Reconstructed chat-message entity.
