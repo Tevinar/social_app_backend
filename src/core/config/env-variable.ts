@@ -12,8 +12,8 @@ export enum EnvVariable {
 
   GoogleCloudProjectId = 'GOOGLE_CLOUD_PROJECT_ID',
   GcsBucketName = 'GCS_BUCKET_NAME',
-  GcsHost = 'GCS_HOST',
-  GcsPort = 'GCS_PORT',
+  FakeGcsHost = 'FAKE_GCS_HOST',
+  FakeGcsPort = 'FAKE_GCS_PORT',
 
   AuthAccessTtlMinutes = 'AUTH_ACCESS_TTL_MINUTES',
   AuthRefreshTtlDays = 'AUTH_REFRESH_TTL_DAYS',

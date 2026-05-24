@@ -25,12 +25,12 @@ export class LocalBlogImageUrlSigner implements BlogImageUrlSigner {
    * @param params.expiresInSeconds Requested signed URL lifetime in seconds.
    * @returns Direct fake GCS object URL.
    */
-  signReadUrl(params: {
+  fakeSignReadUrl(params: {
     imageKey: string;
     expiresInSeconds: number;
   }): Promise<string> {
-    const host = this.configService.getOrThrow<string>(EnvVariable.GcsHost);
-    const port = this.configService.getOrThrow<string>(EnvVariable.GcsPort);
+    const host = this.configService.getOrThrow<string>(EnvVariable.FakeGcsHost);
+    const port = this.configService.getOrThrow<string>(EnvVariable.FakeGcsPort);
     const bucket = this.configService.getOrThrow<string>(
       EnvVariable.GcsBucketName,
     );

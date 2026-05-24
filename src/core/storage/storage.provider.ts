@@ -16,11 +16,11 @@ export const STORAGE_CLIENT = Symbol('STORAGE_CLIENT');
  * @returns The emulator endpoint, or `undefined` when no custom host/port is
  *   configured.
  */
-function getStorageApiEndpoint(
+function getFakeStorageApiEndpoint(
   configService: ConfigService,
 ): string | undefined {
-  const host = configService.get<string>(EnvVariable.GcsHost);
-  const port = configService.get<string>(EnvVariable.GcsPort);
+  const host = configService.get<string>(EnvVariable.FakeGcsHost);
+  const port = configService.get<string>(EnvVariable.FakeGcsPort);
 
   return host && port ? `https://${host}:${port}` : undefined;
 }
@@ -36,7 +36,10 @@ export const storageProvider: Provider = {
     const projectId = configService.getOrThrow<string>(
       EnvVariable.GoogleCloudProjectId,
     );
-    const apiEndpoint = getStorageApiEndpoint(configService);
+    const apiEndpoint = getFakeStorageApiEndpoint(configService);
+
+    // When no fake-GCS endpoint override is configured, the official client
+    // falls back to the real Google Cloud Storage service automatically.
     const options = {
       projectId,
       ...(apiEndpoint ? { apiEndpoint } : {}),

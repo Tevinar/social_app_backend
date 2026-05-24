@@ -20,7 +20,8 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "migrate": "ts-node database/scripts/migrate.ts"
+    "database:migrate": "ts-node scripts/migrate-database.ts",
+    "pubsub:init-topics": "ts-node database/scripts/init-pubsub-topics.ts"
   },
   "dependencies": {
     "@google-cloud/pubsub": "^4.8.0",

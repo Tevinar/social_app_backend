@@ -22,7 +22,7 @@ export class GcsBlogImageUrlSigner implements BlogImageUrlSigner {
    * @param params.expiresInSeconds Signed URL lifetime expressed in seconds.
    * @returns Temporary signed URL for the image object.
    */
-  async signReadUrl(params: {
+  async fakeSignReadUrl(params: {
     imageKey: string;
     expiresInSeconds: number;
   }): Promise<string> {

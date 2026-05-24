@@ -7,7 +7,7 @@ import {
 import { type ChatListEventBus } from '../../application/ports/chat-list-event-bus.port';
 import { ChatListEvent } from '../../domain/events/chat-list.event';
 import { decodeChatListEvent } from './chat-realtime-event.codec';
-import { CHAT_LIST_REALTIME_TOPIC } from './chat-realtime-topics';
+import { CHAT_LIST_TOPIC_NAME } from '../../../../core/pubsub/topic-names';
 
 /**
  * Pub/Sub-backed implementation of the chat-list event bus port.
@@ -16,7 +16,7 @@ import { CHAT_LIST_REALTIME_TOPIC } from './chat-realtime-topics';
 export class PubSubChatListEventBus
   implements ChatListEventBus, PubSubTopicHandler
 {
-  readonly topicName = CHAT_LIST_REALTIME_TOPIC;
+  readonly topicName = CHAT_LIST_TOPIC_NAME;
 
   private readonly subject = new Subject<ChatListEvent>();
 
