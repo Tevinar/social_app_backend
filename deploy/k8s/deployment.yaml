@@ -17,7 +17,7 @@ spec:
       # service account through Workload Identity.
       # We ignore this warning because this Pod uses a Kubernetes service account for GKE Workload Identity to
       # access Google Cloud APIs, so the mounted service-account token is intentional.
-      serviceAccountName: social-app-backend-runtime
+      serviceAccountName: backend-runtime
 
       # Start the Cloud SQL Auth Proxy inside the Pod so the backend can reach
       # Cloud SQL over localhost instead of exposing the database publicly.

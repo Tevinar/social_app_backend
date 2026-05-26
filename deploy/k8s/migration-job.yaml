@@ -17,7 +17,7 @@ spec:
       restartPolicy: Never
       # We ignore this warning because this Pod uses a Kubernetes service account for GKE Workload Identity to
       # access Google Cloud APIs, so the mounted service-account token is intentional.
-      serviceAccountName: social-app-backend-runtime
+      serviceAccountName: backend-runtime
 
       # Start the Cloud SQL Auth Proxy inside the Job Pod so the migration
       # script can connect to Cloud SQL over localhost.
