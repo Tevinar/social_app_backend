@@ -8,9 +8,13 @@ WORKDIR /app
 # Copy only these files first so dependency installation can be cached (if the github workflow allows it).
 COPY package*.json ./
 # Install dependencies exactly as locked in package-lock.json.
+# npm install scripts are required by some dependencies in this backend,
+# so we intentionally allow them here.
 RUN npm ci
 
 # Copy the rest of the repository into the image after dependencies are installed.
+# We intentionally keep `COPY . .` because `.dockerignore` restricts the build 
+# context to the files needed for this image.
 COPY . .
 
 # Compile the NestJS application into the dist/ directory.

@@ -1,0 +1,157 @@
+# This workflow deploys the backend to the production or staging GKE cluster.
+# It builds the backend Docker image, pushes it to Artifact Registry, creates
+# the runtime ConfigMap and Secret, runs the migration Job, and rolls out the
+# updated Deployment.
+name: Deploy Backend To GKE
+
+# Set the workflow-run label shown in the GitHub Actions UI.
+run-name: Deploy ${{ inputs.target_environment }} @ ${{ github.sha }}
+
+on:
+  workflow_dispatch:
+    # Ask the operator which GitHub environment to deploy so the job reads the
+    # matching environment-scoped variables and secrets.
+    inputs:
+      target_environment:
+        description: GitHub environment to deploy (choose staging or production)
+        type: environment
+        required: true
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.target_environment }}
+
+    env:
+      # Deploy all Kubernetes resources into the shared backend namespace.
+      K8S_NAMESPACE: social-app
+      # Tag the built image with the triggering commit SHA for traceability.
+      IMAGE_TAG: ${{ github.sha }}
+
+    steps:
+      # Fetch the repository contents so the workflow can build the image and
+      # apply the checked-in Kubernetes manifests.
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      # Exchange the GitHub OIDC token for short-lived Google Cloud credentials
+      # through the configured Workload Identity Federation trust.
+      - id: auth
+        name: Authenticate to Google Cloud
+        uses: google-github-actions/auth/@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_SERVICE_ACCOUNT_EMAIL }}
+
+      # Install and configure the gcloud CLI for the target Google Cloud project.
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud/@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
+        with:
+          project_id: ${{ vars.GOOGLE_CLOUD_PROJECT_ID }}
+
+      # Load kubeconfig credentials for the shared GKE cluster so later kubectl
+      # commands talk to the right Kubernetes API server.
+      - name: Get GKE credentials
+        uses: google-github-actions/get-gke-credentials@3da1e46a907576cefaa90c484278bb5b259dd395 #v3.0.0
+        with:
+          cluster_name: social-app-cluster
+          location: europe-west9
+          project_id: ${{ vars.GOOGLE_CLOUD_PROJECT_ID }}
+
+      # Teach Docker how to authenticate pushes to Artifact Registry in the
+      # target Google Cloud region.
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker europe-west9-docker.pkg.dev --quiet
+
+      # Build the backend image from the root Dockerfile for the current commit.
+      - name: Build backend Docker image
+        run: docker build -t social-app-backend:${{ env.IMAGE_TAG }} .
+
+      # Add the full Artifact Registry image name so the built image can be
+      # pushed and later referenced by Kubernetes.
+      - name: Tag backend image
+        run: |
+          docker tag social-app-backend:${IMAGE_TAG} \
+            europe-west9-docker.pkg.dev/${GCP_PROJECT_ID}/backend-images/social-app-backend:${IMAGE_TAG}
+        env:
+          GCP_PROJECT_ID: ${{ vars.GOOGLE_CLOUD_PROJECT_ID }}
+
+      # Publish the image that GKE will pull for the migration Job and backend
+      # Deployment rollout.
+      - name: Push backend image
+        run: |
+          docker push \
+            europe-west9-docker.pkg.dev/${GCP_PROJECT_ID}/backend-images/social-app-backend:${IMAGE_TAG}
+        env:
+          GCP_PROJECT_ID: ${{ vars.GOOGLE_CLOUD_PROJECT_ID }}
+
+      # Materialize the non-secret runtime configuration inside Kubernetes from
+      # the selected GitHub environment variables plus shared fixed values.
+      - name: Create or update runtime ConfigMap
+        run: |
+          kubectl create configmap social-app-backend-config \
+            --namespace "${K8S_NAMESPACE}" \
+            --from-literal=NODE_ENV="${NODE_ENV}" \
+            --from-literal=LOG_LEVEL="${LOG_LEVEL}" \
+            --from-literal=PORT="3000" \
+            --from-literal=API_BASE_URL="${API_BASE_URL}" \
+            --from-literal=POSTGRES_HOST="127.0.0.1" \
+            --from-literal=POSTGRES_PORT="5432" \
+            --from-literal=POSTGRES_DB="social_app" \
+            --from-literal=POSTGRES_USER="social_app_user" \
+            --from-literal=CLOUD_SQL_INSTANCE_CONNECTION_NAME="${CLOUD_SQL_INSTANCE_CONNECTION_NAME}" \
+            --from-literal=GOOGLE_CLOUD_PROJECT_ID="${GOOGLE_CLOUD_PROJECT_ID}" \
+            --from-literal=GCS_BUCKET_NAME="${GCS_BUCKET_NAME}" \
+            --from-literal=AUTH_ACCESS_TTL_MINUTES="60" \
+            --from-literal=AUTH_REFRESH_TTL_DAYS="30" \
+            --dry-run=client -o yaml | kubectl apply -f -
+        env:
+          NODE_ENV: ${{ vars.NODE_ENV }}
+          LOG_LEVEL: ${{ vars.LOG_LEVEL }}
+          API_BASE_URL: ${{ vars.API_BASE_URL }}
+          CLOUD_SQL_INSTANCE_CONNECTION_NAME: ${{ vars.CLOUD_SQL_INSTANCE_CONNECTION_NAME }}
+          GOOGLE_CLOUD_PROJECT_ID: ${{ vars.GOOGLE_CLOUD_PROJECT_ID }}
+          GCS_BUCKET_NAME: ${{ vars.GCS_BUCKET_NAME }}
+
+      # Materialize the secret files the app expects under /app/.secrets from
+      # the selected GitHub environment secrets.
+      - name: Create or update runtime Secret
+        run: |
+          kubectl create secret generic social-app-backend-secret-files \
+            --namespace "${K8S_NAMESPACE}" \
+            --from-literal=postgres_password.txt="${POSTGRES_PASSWORD}" \
+            --from-literal=jwt_access_secret.txt="${JWT_ACCESS_SECRET}" \
+            --from-literal=jwt_refresh_secret.txt="${JWT_REFRESH_SECRET}" \
+            --from-literal=token_hash_secret.txt="${TOKEN_HASH_SECRET}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+        env:
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          JWT_ACCESS_SECRET: ${{ secrets.JWT_ACCESS_SECRET }}
+          JWT_REFRESH_SECRET: ${{ secrets.JWT_REFRESH_SECRET }}
+          TOKEN_HASH_SECRET: ${{ secrets.TOKEN_HASH_SECRET }}
+
+      # Apply the long-lived networking resources that expose the backend inside
+      # the cluster and at the public HTTPS entrypoint.
+      - name: Apply stable Kubernetes resources
+        run: |
+          kubectl apply -f deploy/k8s/service.yaml
+          kubectl apply -f deploy/k8s/ingress.yaml
+
+      # Recreate the migration Job with the new image tag, wait for it to finish,
+      # and fail the workflow if the schema update does not complete in time.
+      - name: Run database migrations
+        run: |
+          sed "s|\${IMAGE_TAG}|${IMAGE_TAG}|g" deploy/k8s/migration-job.yaml | kubectl delete -f - --ignore-not-found=true
+          sed "s|\${IMAGE_TAG}|${IMAGE_TAG}|g" deploy/k8s/migration-job.yaml | kubectl apply -f -
+          kubectl wait --namespace "${K8S_NAMESPACE}" --for=condition=complete job/social-app-backend-migrate --timeout=10m
+
+      # Roll out the backend Deployment with the freshly pushed image and wait
+      # until Kubernetes reports the new Pods ready.
+      - name: Apply backend Deployment
+        run: |
+          sed "s|\${IMAGE_TAG}|${IMAGE_TAG}|g" deploy/k8s/deployment.yaml | kubectl apply -f -
+          kubectl rollout status deployment/social-app-backend --namespace "${K8S_NAMESPACE}" --timeout=10m

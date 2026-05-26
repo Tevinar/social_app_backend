@@ -104,34 +104,10 @@ responsibilities, and error/logging conventions, see
 
 ## Project Structure
 
-```text
-social_app_backend/
-  database/
-    migrations/
-    scripts/
-  src/
-    main.ts
-    app/
-      bootstrap/
-    core/
-      config/
-      contracts/
-      database/
-      outbox/
-      presentation/filters/
-      storage/
-    features/
-      auth/
-      blog/
-      chat/
-  docker-compose.yml
-  .env
-  .secrets/
-```
-
 Main folders:
 
-- `database/` contains SQL migrations and maintenance scripts
+- `database-migrations/` contains SQL migrations
+- `scripts/` contains maintenance scripts
 - `src/` contains all runtime application code
 - `src/core/` contains shared technical modules and contracts
 - `src/core/outbox/` contains the transactional outbox publisher
@@ -211,10 +187,10 @@ Nest app is reachable, typically `http://localhost:3000`.
 
 ### Start Local Dependencies
 
-Prerequises: you have to have Docked Desktop instlled and launched
+Prerequises: you have to have Docked Desktop installed and launched
 
 ```bash
-docker compose up -d
+docker compose --env-file .env --env-file .env.local up -d
 ```
 
 This starts:
@@ -225,7 +201,7 @@ This starts:
 ### Apply Migrations
 
 ```bash
-npm run migrate
+npm run database:migrate
 ```
 
 ### Start Local Pub/Sub
@@ -241,7 +217,7 @@ gcloud beta emulators pubsub start \
 Create the local chat topics after the emulator is running:
 
 ```bash
-PUBSUB_EMULATOR_HOST=127.0.0.1:8085 node -r dotenv/config -e 'const {PubSub}=require("@google-cloud/pubsub"); const pubsub=new PubSub({projectId: process.env.GOOGLE_CLOUD_PROJECT_ID}); (async()=>{for (const name of ["chat-list-events","chat-message-list-events"]) { const topic=pubsub.topic(name); const [exists]=await topic.exists(); if (!exists) await topic.create(); console.log("ready:", name); } await pubsub.close();})().catch(err=>{console.error(err); process.exit(1);});'
+npm run pubsub:init-topics
 ```
 
 ### Start the Nest server in watch mode, accepting fake-gcs certificate and connecting to Pub/Sub
@@ -249,7 +225,7 @@ PUBSUB_EMULATOR_HOST=127.0.0.1:8085 node -r dotenv/config -e 'const {PubSub}=req
 Run the backend in a third terminal:
 
 ```bash
-NODE_EXTRA_CA_CERTS="$PWD/.certs/fake-gcs.pem" PUBSUB_EMULATOR_HOST=127.0.0.1:8085 npm run start:debug
+NODE_EXTRA_CA_CERTS="$PWD/.certs/fake-gcs.pem" npm run start:debug
 ```
 
 If you use VS Code, the `Backend: Nest debug` launch configuration automates

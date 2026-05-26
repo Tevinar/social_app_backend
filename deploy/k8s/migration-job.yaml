@@ -1,0 +1,85 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: social-app-backend-migrate
+  namespace: social-app
+spec:
+  # Retry the whole Job at most once if the Pod fails.
+  backoffLimit: 1
+  # Let Kubernetes garbage-collect the finished Job object after one hour.
+  ttlSecondsAfterFinished: 3600
+  template:
+    metadata:
+      labels:
+        app: social-app-backend-migrate
+    spec:
+      # A migration run is a one-shot task, so the Pod should not restart forever.
+      restartPolicy: Never
+      # We ignore this warning because this Pod uses a Kubernetes service account for GKE Workload Identity to
+      # access Google Cloud APIs, so the mounted service-account token is intentional.
+      serviceAccountName: social-app-backend-runtime
+
+      # Start the Cloud SQL Auth Proxy inside the Job Pod so the migration
+      # script can connect to Cloud SQL over localhost.
+      initContainers:
+        - name: cloud-sql-proxy
+          # Jobs cannot use a normal long-lived sidecar here because it would
+          # keep the Pod alive after the migration container exits.
+          restartPolicy: Always
+          image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.20.0
+          args:
+            - '--structured-logs'
+            - '--port=5432'
+            - '$(CLOUD_SQL_INSTANCE_CONNECTION_NAME)'
+          # Reuse the same environment-specific database config as the backend.
+          envFrom:
+            - configMapRef:
+                name: social-app-backend-config
+          # Wait until the proxy is ready before the migration script starts.
+          startupProbe:
+            tcpSocket:
+              port: 5432
+            periodSeconds: 2
+            failureThreshold: 15
+          securityContext:
+            runAsNonRoot: true
+          resources:
+            requests:
+              cpu: '100m'
+              memory: '128Mi'
+            limits:
+              cpu: '250m'
+              memory: '256Mi'
+
+      # Run the migration command from the same image used by the backend so the
+      # schema changes stay in sync with the deployed application code.
+      containers:
+        - name: migrate
+          image: europe-west9-docker.pkg.dev/social-app-prod-123456/backend-images/social-app-backend:${IMAGE_TAG}
+          command: ['npm', 'run', 'database:migrate']
+          # Load the database connection settings and other non-secret app config.
+          envFrom:
+            - configMapRef:
+                name: social-app-backend-config
+          # Mount the required secret files because the migration script reads
+          # them through requireSecretFile(...).
+          volumeMounts:
+            - name: secret-files
+              mountPath: /app/.secrets
+              readOnly: true
+          # Requests and limits bound the temporary resources used by the
+          # one-shot migration process.
+          resources:
+            requests:
+              cpu: '250m'
+              memory: '512Mi'
+              ephemeral-storage: '256Mi'
+            limits:
+              cpu: '500m'
+              memory: '1Gi'
+              ephemeral-storage: '512Mi'
+      # Expose one file per secret under /app/.secrets inside the Pod.
+      volumes:
+        - name: secret-files
+          secret:
+            secretName: social-app-backend-secret-files

@@ -43,10 +43,10 @@ services:
     image: fsouza/fake-gcs-server:1.52.3
     container_name: social_app_fake_gcs
     # Use the host/port that local clients should see in generated URLs.
-    command: -public-host ${GCS_HOST}:${GCS_PORT}
+    command: -public-host ${FAKE_GCS_HOST}:${FAKE_GCS_PORT}
     # Expose fake GCS on the host while keeping the container's internal port fixed.
     ports:
-      - "${GCS_HOST}:${GCS_PORT}:4443"
+      - "${FAKE_GCS_HOST}:${FAKE_GCS_PORT}:4443"
     # Bind local fake storage data to a project folder for easy inspection/reset.
     volumes:
       - fake_gcs_data:/storage

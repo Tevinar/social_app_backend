@@ -3,8 +3,8 @@ import postgres from 'postgres';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { requireEnv } from './helpers/require-env';
-import { requireSecretFile } from '../../src/core/config/require-secret-file';
-import { buildDatabaseUrl } from '../../src/core/database/build-database-url';
+import { requireSecretFile } from '../src/core/config/require-secret-file';
+import { buildDatabaseUrl } from '../src/core/database/build-database-url';
 
 /**
  * Applies SQL migration files in filename order and records each successful
@@ -41,7 +41,7 @@ async function main() {
     const appliedNames = new Set(applied.map((row) => row.name));
 
     // Treat the migrations directory as the source of truth for schema history.
-    const migrationsDir = join(process.cwd(), 'database', 'migrations');
+    const migrationsDir = join(process.cwd(), 'database-migrations');
 
     const files = readdirSync(migrationsDir)
       .filter((file) => file.endsWith('.sql'))

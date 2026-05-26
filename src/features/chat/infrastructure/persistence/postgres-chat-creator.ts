@@ -19,9 +19,9 @@ import {
   encodeChatMessageListEvent,
 } from '../events/chat-realtime-event.codec';
 import {
-  CHAT_LIST_REALTIME_TOPIC,
-  CHAT_MESSAGE_LIST_REALTIME_TOPIC,
-} from '../events/chat-realtime-topics';
+  CHAT_LIST_TOPIC_NAME,
+  CHAT_MESSAGE_LIST_TOPIC_NAME,
+} from '../../../../core/pubsub/topic-names';
 
 /**
  * Postgres-backed implementation of the chat creator port.
@@ -184,7 +184,7 @@ export class PostgresChatCreator implements ChatCreator {
         aggregateType: 'chat',
         aggregateId: chat.id,
         eventType: chatListEvent.type,
-        topic: CHAT_LIST_REALTIME_TOPIC,
+        topic: CHAT_LIST_TOPIC_NAME,
         orderingKey: chat.id,
         payload: encodeChatListEvent(chatListEvent),
       });
@@ -194,7 +194,7 @@ export class PostgresChatCreator implements ChatCreator {
         aggregateType: 'chat_message',
         aggregateId: firstMessageEntity.id,
         eventType: chatMessageEvent.type,
-        topic: CHAT_MESSAGE_LIST_REALTIME_TOPIC,
+        topic: CHAT_MESSAGE_LIST_TOPIC_NAME,
         orderingKey: firstMessageEntity.chatId,
         payload: encodeChatMessageListEvent(chatMessageEvent),
       });

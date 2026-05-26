@@ -11,7 +11,7 @@ export interface BlogImageUrlSigner {
    * @param params Storage object key and expiration settings.
    * @returns Temporary signed URL for image download.
    */
-  signReadUrl(params: {
+  fakeSignReadUrl(params: {
     imageKey: string;
     expiresInSeconds: number;
   }): Promise<string>;

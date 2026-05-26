@@ -4,7 +4,7 @@
     {
       "label": "docker: infra up",
       "type": "shell",
-      "command": "docker compose up -d postgres fake-gcs",
+      "command": "docker compose --env-file .env --env-file .env.local up -d postgres fake-gcs",
       "problemMatcher": []
     },
     {
@@ -29,19 +29,8 @@
     },
     {
       "label": "pubsub: topics init",
-      "type": "process",
-      "command": "node",
-      "args": [
-        "-r",
-        "dotenv/config",
-        "-e",
-        "const {PubSub}=require('@google-cloud/pubsub'); const pubsub=new PubSub({projectId: process.env.GOOGLE_CLOUD_PROJECT_ID}); (async()=>{for (const name of ['chat-list-events','chat-message-list-events']) { const topic=pubsub.topic(name); const [exists]=await topic.exists(); if (!exists) await topic.create(); console.log('ready:', name); } await pubsub.close();})().catch(err=>{console.error(err); process.exit(1);});"
-      ],
-      "options": {
-        "env": {
-          "PUBSUB_EMULATOR_HOST": "127.0.0.1:8085"
-        }
-      },
+      "type": "shell",
+      "command": "npm run pubsub:init-topics",
       "problemMatcher": []
     },
     {

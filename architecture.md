@@ -17,21 +17,10 @@ The architecture is designed to provide:
 
 ## 2. High-Level Shape
 
-```text
-social_app_backend/
-  database/
-  src/
-    main.ts
-    app/
-      bootstrap/
-    core/
-    features/
-```
+The project is intentionally split into three top-level zones:
 
-The project is intentionally split into two top-level zones:
-
-- `database/` for schema assets and operational scripts outside the HTTP
-  runtime
+- `database-migrations/` for schema assets
+- `scripts/` for operational scripts outside the HTTP runtime
 - `src/` for everything the Nest application needs at runtime
 
 Current runtime feature modules are:
@@ -42,26 +31,27 @@ Current runtime feature modules are:
 
 ## 3. Responsibility Zones
 
-### `database/`
+### `database-migrations/`
 
 Purpose:
 
-- hold database assets and operations outside the app runtime
+- hold database assets
 
 Typical contents:
 
-- `migrations/` for ordered SQL schema changes
-- `scripts/` for migration and maintenance commands
+- ordered SQL schema changes
+
+### `scripts/`
+
+Purpose:
+
+- hold operations outside the app runtime
 
 Must not contain:
 
 - Nest controllers
 - runtime feature logic
 - application services
-
-Rule:
-
-- `database/` is operational support, not an application layer
 
 ### `src/main.ts`
 

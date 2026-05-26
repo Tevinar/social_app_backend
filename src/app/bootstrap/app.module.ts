@@ -21,7 +21,7 @@ import { ChatModule } from '../../features/chat/chat.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: '.env',
+      envFilePath: ['.env.local', '.env'],
     }),
     LoggerModule.forRootAsync({
       inject: [ConfigService],
