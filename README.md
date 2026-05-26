@@ -104,34 +104,10 @@ responsibilities, and error/logging conventions, see
 
 ## Project Structure
 
-```text
-social_app_backend/
-  database/
-    migrations/
-    scripts/
-  src/
-    main.ts
-    app/
-      bootstrap/
-    core/
-      config/
-      contracts/
-      database/
-      outbox/
-      presentation/filters/
-      storage/
-    features/
-      auth/
-      blog/
-      chat/
-  docker-compose.yml
-  .env
-  .secrets/
-```
-
 Main folders:
 
-- `database/` contains SQL migrations and maintenance scripts
+- `database-migrations/` contains SQL migrations
+- `scripts/` contains maintenance scripts
 - `src/` contains all runtime application code
 - `src/core/` contains shared technical modules and contracts
 - `src/core/outbox/` contains the transactional outbox publisher

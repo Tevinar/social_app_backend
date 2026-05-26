@@ -7,21 +7,21 @@
   "license": "UNLICENSED",
   "scripts": {
     "build": "nest build",
-    "format": "prettier --write \"src/**/*.ts\" \"database/**/*.ts\"",
-    "format:check": "prettier --check \"src/**/*.ts\" \"database/**/*.ts\"",
+    "format": "prettier --write \"src/**/*.ts\" \"scripts/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\" \"scripts/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/src/main.js",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
-    "lint:check": "eslint \"{src,apps,libs,test,database}/**/*.ts\"",
+    "lint:check": "eslint \"{src,apps,libs,test,scripts}/**/*.ts\"",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "database:migrate": "ts-node scripts/migrate-database.ts",
-    "pubsub:init-topics": "ts-node database/scripts/init-pubsub-topics.ts"
+    "pubsub:init-topics": "ts-node scripts/init-pubsub-topics.ts"
   },
   "dependencies": {
     "@google-cloud/pubsub": "^4.8.0",
