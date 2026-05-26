@@ -1,0 +1,106 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: social-app-backend
+  namespace: social-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: social-app-backend
+  template:
+    metadata:
+      labels:
+        app: social-app-backend
+    spec:
+      # Pods use this Kubernetes service account, which is mapped to the Google
+      # service account through Workload Identity.
+      # We ignore this warning because this Pod uses a Kubernetes service account for GKE Workload Identity to
+      # access Google Cloud APIs, so the mounted service-account token is intentional.
+      serviceAccountName: social-app-backend-runtime
+
+      # Start the Cloud SQL Auth Proxy inside the Pod so the backend can reach
+      # Cloud SQL over localhost instead of exposing the database publicly.
+      initContainers:
+        - name: cloud-sql-proxy
+          # This restartable init container acts as a sidecar and stays alive
+          # for the lifetime of the Pod while the app connects through localhost.
+          restartPolicy: Always
+          image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.20.0
+          args:
+            - '--structured-logs'
+            - '--port=5432'
+            - '$(CLOUD_SQL_INSTANCE_CONNECTION_NAME)'
+          # The proxy reads the Cloud SQL instance connection name from the
+          # ConfigMap so the deployment stays environment-specific.
+          envFrom:
+            - configMapRef:
+                name: social-app-backend-config
+          # Wait until the proxy is listening before the backend tries to use it.
+          startupProbe:
+            tcpSocket:
+              port: 5432
+            periodSeconds: 2
+            failureThreshold: 15
+          securityContext:
+            runAsNonRoot: true
+          resources:
+            requests:
+              cpu: '100m'
+              memory: '128Mi'
+            limits:
+              cpu: '250m'
+              memory: '256Mi'
+
+      # The main application container serves the NestJS API on port 3000.
+      containers:
+        - name: backend
+          image: europe-west9-docker.pkg.dev/social-app-prod-123456/backend-images/social-app-backend:${IMAGE_TAG}
+          ports:
+            - name: http
+              containerPort: 3000
+          # Load non-secret runtime configuration from the ConfigMap created by
+          # the deployment workflow.
+          envFrom:
+            - configMapRef:
+                name: social-app-backend-config
+          # The app reads secrets from files under /app/.secrets, so the
+          # Kubernetes Secret is mounted as a volume instead of injected as env vars.
+          volumeMounts:
+            - name: secret-files
+              mountPath: /app/.secrets
+              readOnly: true
+          # Give Nest time to boot before Kubernetes treats the container as failed.
+          startupProbe:
+            tcpSocket:
+              port: 3000
+            periodSeconds: 5
+            failureThreshold: 30
+          # Only send traffic to Pods whose HTTP port is already open.
+          readinessProbe:
+            tcpSocket:
+              port: 3000
+            periodSeconds: 10
+            failureThreshold: 3
+          # Restart the container if it stops answering on its serving port.
+          livenessProbe:
+            tcpSocket:
+              port: 3000
+            periodSeconds: 20
+            failureThreshold: 3
+          # Requests drive scheduling and billing; limits cap how much one Pod
+          # can consume before Kubernetes throttles or kills it.
+          resources:
+            requests:
+              cpu: '250m'
+              memory: '512Mi'
+              ephemeral-storage: '256Mi'
+            limits:
+              cpu: '500m'
+              memory: '1Gi'
+              ephemeral-storage: '512Mi'
+      # This volume exposes one file per secret, matching requireSecretFile(...).
+      volumes:
+        - name: secret-files
+          secret:
+            secretName: social-app-backend-secret-files

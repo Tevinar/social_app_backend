@@ -30,6 +30,8 @@ jobs:
           cache: npm
 
       - name: Install dependencies
+        # npm install scripts are required by some dependencies in this backend,
+        # so we intentionally allow them here.
         run: npm ci
 
       # Fail if TypeScript files are not formatted with the committed Prettier style.
@@ -70,6 +72,8 @@ jobs:
           cache: npm
 
       - name: Install dependencies
+        # npm install scripts are required by some dependencies in this backend,
+        # so we intentionally allow them here.
         run: npm ci
 
       - name: Verify application build

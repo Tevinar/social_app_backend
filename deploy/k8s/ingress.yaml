@@ -1,0 +1,20 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: social-app-backend
+  namespace: social-app
+  annotations:
+    kubernetes.io/ingress.class: 'gce'
+    kubernetes.io/ingress.global-static-ip-name: 'social-app-backend-ip'
+spec:
+  rules:
+    - host: api.tevinar.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: social-app-backend
+                port:
+                  number: 80
