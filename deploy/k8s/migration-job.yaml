@@ -27,15 +27,23 @@ spec:
           # keep the Pod alive after the migration container exits.
           restartPolicy: Always
           image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.20.0
+          # Kubernetes TCP probes test the Pod IP on port 5432, while the
+          # Cloud SQL proxy listens only on localhost by default. Binding the
+          # proxy to 0.0.0.0 makes it listen on all Pod interfaces, including
+          # both localhost and the Pod IP, so the probe can confirm the proxy
+          # is up before the migration process connects through localhost.
           args:
             - '--structured-logs'
+            - '--address'
+            - '0.0.0.0'
             - '--port=5432'
             - '$(CLOUD_SQL_INSTANCE_CONNECTION_NAME)'
           # Reuse the same environment-specific database config as the backend.
           envFrom:
             - configMapRef:
                 name: social-app-backend-config
-          # Wait until the proxy is ready before the migration script starts.
+          # Wait until the proxy is reachable on the Pod network before the
+          # migration script starts using the localhost listener.
           startupProbe:
             tcpSocket:
               port: 5432

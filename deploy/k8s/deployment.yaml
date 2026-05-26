@@ -27,8 +27,15 @@ spec:
           # for the lifetime of the Pod while the app connects through localhost.
           restartPolicy: Always
           image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.20.0
+          # Kubernetes TCP probes test the Pod IP on port 5432, while the
+          # Cloud SQL proxy listens only on localhost by default. Binding the
+          # proxy to 0.0.0.0 makes it listen on all Pod interfaces, including
+          # both localhost and the Pod IP, so the probe can confirm the proxy
+          # is up before the backend connects through localhost.
           args:
             - '--structured-logs'
+            - '--address'
+            - '0.0.0.0'
             - '--port=5432'
             - '$(CLOUD_SQL_INSTANCE_CONNECTION_NAME)'
           # The proxy reads the Cloud SQL instance connection name from the
@@ -36,7 +43,8 @@ spec:
           envFrom:
             - configMapRef:
                 name: social-app-backend-config
-          # Wait until the proxy is listening before the backend tries to use it.
+          # Wait until the proxy is listening on the Pod network before the
+          # backend tries to use it through localhost.
           startupProbe:
             tcpSocket:
               port: 5432
