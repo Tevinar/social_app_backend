@@ -44,7 +44,7 @@ export class GetBlogImageUseCase implements UseCase<
       throw new BlogNotFoundError();
     }
 
-    const signedUrl = await this.blogImageUrlSigner.fakeSignReadUrl({
+    const signedUrl = await this.blogImageUrlSigner.signReadUrl({
       imageKey: blogImage.imageKey,
       expiresInSeconds: 60,
     });
