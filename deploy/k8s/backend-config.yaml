@@ -4,6 +4,13 @@ metadata:
   name: social-app-backend
   namespace: social-app
 spec:
+  # External Application Load Balancers cap backend HTTP responses at 30
+  # seconds by default. SSE responses stay open indefinitely by design, so
+  # raise the backend service timeout well beyond the expected chat session
+  # length or the load balancer will abort the stream around the 30-second mark
+  # even if keepalive comments are flowing.
+  # We set a new timeout of 24 hours (86400 seconds) to allow for long-lived SSE connections without interruption.
+  timeoutSec: 86400
   healthCheck:
     # Tell the Google load balancer to consider the backend healthy only when
     # an HTTP GET request to /health returns 200. Without this override, GKE
