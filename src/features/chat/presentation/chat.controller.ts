@@ -4,17 +4,19 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Logger,
   MessageEvent,
   Param,
   ParseUUIDPipe,
   Post,
   Query,
-  Sse,
+  Req,
+  Res,
   UseGuards,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
-import { Observable, map } from 'rxjs';
+import { Observable, Subscription, map } from 'rxjs';
 import { CreateChatMessageUseCase } from '../application/use-cases/create-chat-message.use-case';
 import { CreateChatUseCase } from '../application/use-cases/create-chat.use-case';
 import { GetChatByMembersUseCase } from '../application/use-cases/get-chat-by-members.use-case';
@@ -40,6 +42,7 @@ import { AuthenticatedUser } from '../../../app/auth/decorators/authenticated-us
 import { AccessTokenGuard } from '../../../app/auth/guards/access-tokens';
 import { ApiStandardErrorResponses } from '../../../core/presentation/swagger/api-standard-error-responses.swagger';
 import { ApiBearerAuth, ApiOkResponse, ApiProduces } from '@nestjs/swagger';
+import { type Request, type Response } from 'express';
 
 /**
  * HTTP controller exposing chat endpoints.
@@ -57,6 +60,10 @@ import { ApiBearerAuth, ApiOkResponse, ApiProduces } from '@nestjs/swagger';
   }),
 )
 export class ChatController {
+  private static readonly SSE_KEEPALIVE_INTERVAL_MS = 15_000;
+
+  private readonly logger = new Logger(ChatController.name);
+
   /**
    * Receives the chat use cases used by the controller actions.
    *
@@ -201,12 +208,12 @@ export class ChatController {
    *
    * @param auth Authenticated user identity resolved by the access-token guard.
    * @param auth.userId Stable identifier of the authenticated user.
-   * @returns Observable SSE stream of chat-list events.
+   * @param request Incoming HTTP request kept open for the SSE subscription.
+   * @param response Outgoing HTTP response used to stream SSE frames directly.
    */
   @ApiStandardErrorResponses(HttpStatus.UNAUTHORIZED)
-  // Swagger cannot infer it because this function returns a streamed
-  // Observable<...>, and the actual event payload shape is hidden
-  // inside the RxJS mapping logic rather than exposed as a plain DTO return type.
+  // Swagger cannot infer the streamed payload shape because the response is a
+  // manually written SSE stream rather than a regular JSON DTO.
   @ApiProduces('text/event-stream')
   @ApiOkResponse({
     description:
@@ -222,19 +229,25 @@ export class ChatController {
       },
     },
   })
-  @Sse('events')
+  @Get('events')
   subscribeToChatList(
     @AuthenticatedUser()
     auth: {
       userId: string;
     },
-  ): Observable<MessageEvent> {
-    return this.subscribeToChatListUseCase.execute(auth.userId).pipe(
-      map(
-        (event): MessageEvent => ({
-          type: event.type,
-          data: GetChatListEventResponse.fromChatListEvent(event),
-        }),
+    @Req() request: Request,
+    @Res() response: Response,
+  ): void {
+    this.openSseStream(
+      request,
+      response,
+      this.subscribeToChatListUseCase.execute(auth.userId).pipe(
+        map(
+          (event): MessageEvent => ({
+            type: event.type,
+            data: GetChatListEventResponse.fromChatListEvent(event),
+          }),
+        ),
       ),
     );
   }
@@ -309,7 +322,8 @@ export class ChatController {
    * @param chatId Stable UUIDv4 chat identifier.
    * @param auth Authenticated user identity resolved by the access-token guard.
    * @param auth.userId Stable identifier of the authenticated user.
-   * @returns Observable SSE stream of chat-message events.
+   * @param request Incoming HTTP request kept open for the SSE subscription.
+   * @param response Outgoing HTTP response used to stream SSE frames directly.
    */
   @ApiStandardErrorResponses(
     HttpStatus.BAD_REQUEST,
@@ -331,26 +345,156 @@ export class ChatController {
       },
     },
   })
-  @Sse(':chatId/messages/events')
+  @Get(':chatId/messages/events')
   subscribeToChatMessageListChanges(
     @Param('chatId', new ParseUUIDPipe({ version: '4' })) chatId: string,
     @AuthenticatedUser()
     auth: {
       userId: string;
     },
-  ): Observable<MessageEvent> {
-    return this.subscribeToChatMessageListChangesUseCase
-      .execute({
-        userId: auth.userId,
-        chatId,
-      })
-      .pipe(
-        map(
-          (event): MessageEvent => ({
-            type: event.type,
-            data: GetChatMessageEventResponse.fromChatMessageEvent(event),
-          }),
+    @Req() request: Request,
+    @Res() response: Response,
+  ): void {
+    this.openSseStream(
+      request,
+      response,
+      this.subscribeToChatMessageListChangesUseCase
+        .execute({
+          userId: auth.userId,
+          chatId,
+        })
+        .pipe(
+          map(
+            (event): MessageEvent => ({
+              type: event.type,
+              data: GetChatMessageEventResponse.fromChatMessageEvent(event),
+            }),
+          ),
         ),
-      );
+    );
+  }
+
+  /**
+   * Streams SSE frames manually so the backend can emit protocol-level comment
+   * keepalives during idle periods. Nest's public `@Sse()` helper serializes
+   * normal events but does not expose protocol comment heartbeats, so the
+   * controller has to write the stream output itself. GKE closes silent
+   * streaming responses after roughly 30 seconds, and these comments keep the
+   * connection active without changing the chat event payload shape that the
+   * client already consumes.
+   *
+   * @param request Incoming HTTP request whose socket is upgraded for
+   * streaming.
+   * @param response Express response used to write SSE frames directly.
+   * @param source$ Observable source of chat events to serialize as SSE.
+   */
+  private openSseStream(
+    request: Request,
+    response: Response,
+    source$: Observable<MessageEvent>,
+  ): void {
+    // Convert one Nest MessageEvent into the raw SSE frame text that gets
+    // written to the HTTP response.
+    const serializeMessage = (message: MessageEvent): string => {
+      // SSE control fields like `event:` and `id:` must stay on one line, so
+      // strip any CR/LF characters before writing them into the stream.
+      const sanitize = (value: string | number): string =>
+        String(value).replace(/[\r\n]/g, '');
+
+      const payload =
+        typeof message.data === 'string'
+          ? message.data
+          : JSON.stringify(message.data ?? null);
+
+      let frame = message.type ? `event: ${sanitize(message.type)}\n` : '';
+      frame += message.id ? `id: ${sanitize(message.id)}\n` : '';
+      frame += message.retry ? `retry: ${sanitize(message.retry)}\n` : '';
+      frame += payload
+        .split(/\r\n|\r|\n/)
+        .map((line) => `data: ${line}\n`)
+        .join('');
+      frame += '\n';
+
+      return frame;
+    };
+
+    // Mirror Nest's built-in SSE stream helper defaults now that this
+    // controller writes the stream manually: keep the TCP socket alive,
+    // disable Nagle buffering, and remove the socket inactivity timeout.
+    request.socket.setKeepAlive(true);
+    request.socket.setNoDelay(true);
+    request.socket.setTimeout(0);
+
+    // SSE subscriptions stay on the initial HTTP 200 response while the body
+    // remains open and receives event frames over time.
+    response.status(HttpStatus.OK);
+    response.set({
+      // Tell the client and intermediaries that this response is an SSE stream.
+      'Content-Type': 'text/event-stream',
+      // Keep the HTTP connection open for incremental event delivery.
+      Connection: 'keep-alive',
+      // Prevent browsers and proxies from caching or transforming the live
+      // stream response.
+      'Cache-Control':
+        'private, no-cache, no-store, must-revalidate, max-age=0, no-transform',
+    });
+    // Send the headers immediately so the client can treat the response as an
+    // active SSE stream without waiting for the first application event.
+    response.flushHeaders();
+    // Start the body with a blank line, matching Nest's SSE stream helper and
+    // confirming the stream is open before any real event arrives.
+    response.write('\n');
+
+    const streamSubscription = new Subscription();
+    let isClosed = false;
+
+    // Tear down the timer, RxJS subscription, and HTTP response exactly once
+    // when the client disconnects, the stream completes, or an error occurs.
+    const cleanup = (): void => {
+      if (isClosed) {
+        return;
+      }
+
+      isClosed = true;
+      clearInterval(keepaliveInterval);
+      streamSubscription.unsubscribe();
+      request.off('close', cleanup);
+      response.off('close', cleanup);
+
+      if (!response.writableEnded) {
+        response.end();
+      }
+    };
+
+    // Emit protocol-level SSE comments often enough to keep the stream from
+    // looking idle to the load balancer when no chat events are flowing yet.
+    const keepaliveInterval = setInterval(() => {
+      // only write if the stream has not already been closed
+      if (!response.writableEnded) {
+        response.write(': keepalive\n\n');
+      }
+    }, ChatController.SSE_KEEPALIVE_INTERVAL_MS);
+
+    streamSubscription.add(
+      source$.subscribe({
+        next: (event) => {
+          // only write if the stream has not already been closed
+          if (!response.writableEnded) {
+            response.write(serializeMessage(event));
+          }
+        },
+        error: (error) => {
+          this.logger.error(
+            `SSE stream failed: ${request.method} ${request.url}`,
+            error instanceof Error ? error.stack : 'No stack trace available',
+          );
+          cleanup();
+        },
+        complete: cleanup,
+      }),
+    );
+
+    request.on('close', cleanup);
+    response.on('close', cleanup);
   }
 }
