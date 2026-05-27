@@ -1,0 +1,17 @@
+apiVersion: cloud.google.com/v1
+kind: BackendConfig
+metadata:
+  name: social-app-backend
+  namespace: social-app
+spec:
+  healthCheck:
+    # Tell the Google load balancer to consider the backend healthy only when
+    # an HTTP GET request to /health returns 200. Without this override, GKE
+    # Ingress defaults to GET /, which this backend does not expose as a
+    # stable 200 route, leading the load balancer to return 502.
+    requestPath: /health
+    # Send the health-check request to the Nest app's real listening port
+    # inside the Pod instead of the Service-facing port 80.
+    port: 3000
+    # The ingress terminates TLS; the backend Pod itself serves plain HTTP on port 3000.
+    type: HTTP

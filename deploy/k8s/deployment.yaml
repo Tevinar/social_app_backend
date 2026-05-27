@@ -84,15 +84,19 @@ spec:
               port: 3000
             periodSeconds: 5
             failureThreshold: 30
-          # Only send traffic to Pods whose HTTP port is already open.
+          # Only send traffic to Pods whose HTTP server answers the dedicated
+          # health route. This matches the path used by the external GKE load
+          # balancer health check.
           readinessProbe:
-            tcpSocket:
+            httpGet:
+              path: /health
               port: 3000
             periodSeconds: 10
             failureThreshold: 3
-          # Restart the container if it stops answering on its serving port.
+          # Restart the container if the health endpoint stops responding.
           livenessProbe:
-            tcpSocket:
+            httpGet:
+              path: /health
               port: 3000
             periodSeconds: 20
             failureThreshold: 3

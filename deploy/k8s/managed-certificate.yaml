@@ -1,0 +1,10 @@
+apiVersion: networking.gke.io/v1
+kind: ManagedCertificate
+metadata:
+  name: social-app-backend-tls
+  namespace: social-app
+spec:
+  # Provision the Google-managed certificate used by the external HTTPS
+  # load balancer for the backend API hostname.
+  domains:
+    - social-app-api.tevinar.com

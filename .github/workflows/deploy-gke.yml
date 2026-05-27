@@ -138,6 +138,8 @@ jobs:
       # the cluster and at the public HTTPS entrypoint.
       - name: Apply stable Kubernetes resources
         run: |
+          kubectl apply -f deploy/k8s/backend-config.yaml
+          kubectl apply -f deploy/k8s/managed-certificate.yaml
           kubectl apply -f deploy/k8s/service.yaml
           kubectl apply -f deploy/k8s/ingress.yaml
 
