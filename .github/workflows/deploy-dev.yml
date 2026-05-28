@@ -168,7 +168,7 @@ jobs:
           gcloud compute ssh --quiet slouis_contact@social-app-dev-vm \
             --zone=europe-west9-b \
             --tunnel-through-iap \
-            --command='cd ~/social-app-dev && export IMAGE_TAG=${{ github.sha }} && docker compose run --rm backend npm run migrate-database'
+            --command='cd ~/social-app-dev && export IMAGE_TAG=${{ github.sha }} && docker compose run --rm backend npm run database:migrate'
 
       # Verify that the deployed backend is responding on the VM-local port
       # exposed only through the private tunnel setup.
