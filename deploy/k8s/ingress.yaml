@@ -6,9 +6,11 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: 'gce'
     kubernetes.io/ingress.global-static-ip-name: 'social-app-backend-ip'
+    # Attach the Google-managed certificate that serves HTTPS for social-app-api.tevinar.com.
+    networking.gke.io/managed-certificates: 'social-app-backend-tls'
 spec:
   rules:
-    - host: api.tevinar.com
+    - host: social-app-api.tevinar.com
       http:
         paths:
           - path: /

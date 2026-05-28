@@ -17,7 +17,7 @@ spec:
       # service account through Workload Identity.
       # We ignore this warning because this Pod uses a Kubernetes service account for GKE Workload Identity to
       # access Google Cloud APIs, so the mounted service-account token is intentional.
-      serviceAccountName: social-app-backend-runtime
+      serviceAccountName: backend-runtime
 
       # Start the Cloud SQL Auth Proxy inside the Pod so the backend can reach
       # Cloud SQL over localhost instead of exposing the database publicly.
@@ -27,8 +27,15 @@ spec:
           # for the lifetime of the Pod while the app connects through localhost.
           restartPolicy: Always
           image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.20.0
+          # Kubernetes TCP probes test the Pod IP on port 5432, while the
+          # Cloud SQL proxy listens only on localhost by default. Binding the
+          # proxy to 0.0.0.0 makes it listen on all Pod interfaces, including
+          # both localhost and the Pod IP, so the probe can confirm the proxy
+          # is up before the backend connects through localhost.
           args:
             - '--structured-logs'
+            - '--address'
+            - '0.0.0.0'
             - '--port=5432'
             - '$(CLOUD_SQL_INSTANCE_CONNECTION_NAME)'
           # The proxy reads the Cloud SQL instance connection name from the
@@ -36,7 +43,8 @@ spec:
           envFrom:
             - configMapRef:
                 name: social-app-backend-config
-          # Wait until the proxy is listening before the backend tries to use it.
+          # Wait until the proxy is listening on the Pod network before the
+          # backend tries to use it through localhost.
           startupProbe:
             tcpSocket:
               port: 5432
@@ -76,15 +84,19 @@ spec:
               port: 3000
             periodSeconds: 5
             failureThreshold: 30
-          # Only send traffic to Pods whose HTTP port is already open.
+          # Only send traffic to Pods whose HTTP server answers the dedicated
+          # health route. This matches the path used by the external GKE load
+          # balancer health check.
           readinessProbe:
-            tcpSocket:
+            httpGet:
+              path: /health
               port: 3000
             periodSeconds: 10
             failureThreshold: 3
-          # Restart the container if it stops answering on its serving port.
+          # Restart the container if the health endpoint stops responding.
           livenessProbe:
-            tcpSocket:
+            httpGet:
+              path: /health
               port: 3000
             periodSeconds: 20
             failureThreshold: 3

@@ -138,11 +138,15 @@ jobs:
       # the cluster and at the public HTTPS entrypoint.
       - name: Apply stable Kubernetes resources
         run: |
+          kubectl apply -f deploy/k8s/backend-config.yaml
+          kubectl apply -f deploy/k8s/managed-certificate.yaml
           kubectl apply -f deploy/k8s/service.yaml
           kubectl apply -f deploy/k8s/ingress.yaml
 
-      # Recreate the migration Job with the new image tag, wait for it to finish,
-      # and fail the workflow if the schema update does not complete in time.
+      # Delete any previous Job with this fixed name because Kubernetes Jobs are
+      # one-shot resources: once created, they are not rerun in place with a new
+      # Pod template or image tag. Then recreate it with the new backend image,
+      # wait for it to finish, and fail the workflow if it does not complete.
       - name: Run database migrations
         run: |
           sed "s|\${IMAGE_TAG}|${IMAGE_TAG}|g" deploy/k8s/migration-job.yaml | kubectl delete -f - --ignore-not-found=true

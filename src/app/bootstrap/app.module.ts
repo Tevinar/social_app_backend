@@ -13,6 +13,7 @@ import { Environment } from '../../core/config/environment';
 import { LogLevel } from '../../core/config/log-level';
 import { EnvVariable } from '../../core/config/env-variable';
 import { ChatModule } from '../../features/chat/chat.module';
+import { HealthController } from '../../core/presentation/health.controller';
 /**
  * Root application module that composes the shared infrastructure modules and
  * global application-level providers.
@@ -69,7 +70,7 @@ import { ChatModule } from '../../features/chat/chat.module';
     BlogModule,
     ChatModule,
   ],
-  controllers: [],
+  controllers: [HealthController],
   providers: [
     ErrorToExceptionMapper,
     {

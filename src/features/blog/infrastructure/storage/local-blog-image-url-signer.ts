@@ -25,7 +25,7 @@ export class LocalBlogImageUrlSigner implements BlogImageUrlSigner {
    * @param params.expiresInSeconds Requested signed URL lifetime in seconds.
    * @returns Direct fake GCS object URL.
    */
-  fakeSignReadUrl(params: {
+  signReadUrl(params: {
     imageKey: string;
     expiresInSeconds: number;
   }): Promise<string> {
