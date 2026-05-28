@@ -16,6 +16,24 @@ services:
       # Mount the password file at the path expected by the Postgres image.
       - ./.secrets/postgres_password.txt:/run/secrets/postgres_password:ro
 
+  # Run the official Google Cloud Pub/Sub emulator locally on the VM so the
+  # dev backend can publish and subscribe without reaching the real service.
+  pubsub:
+    image: gcr.io/google.com/cloudsdktool/google-cloud-cli:489.0.0-emulators
+    restart: unless-stopped
+    command:
+      - gcloud
+      - beta
+      - emulators
+      - pubsub
+      - start
+      - --project=social-app-dev-123456
+      - --host-port=0.0.0.0:8085
+      - --data-dir=/var/pubsub
+    volumes:
+      # Persist emulator state across container restarts on the VM.
+      - pubsub_data:/var/pubsub
+
   # Run the application from the image built and pushed by GitHub Actions.
   backend:
     image: europe-west9-docker.pkg.dev/social-app-dev-123456/backend-images/social-app-backend:${IMAGE_TAG}
@@ -25,6 +43,7 @@ services:
       - .env
     depends_on:
       - postgres
+      - pubsub
     ports:
       # Bind only to VM localhost so the app stays private and is reachable
       # through SSH/IAP tunneling instead of a public firewall rule.
@@ -36,3 +55,5 @@ services:
 volumes:
   # Store Postgres data in a named volume managed by Docker on the VM.
   postgres_data:
+  # Store Pub/Sub emulator state in a named volume managed by Docker on the VM.
+  pubsub_data:

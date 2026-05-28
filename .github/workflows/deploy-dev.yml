@@ -17,7 +17,7 @@ permissions:
 jobs:
   deploy-dev:
     runs-on: ubuntu-latest
-    # Use variables and secrets stored in the environment named "development" in GitHub.
+    # Use the "development" GitHub environment for environment-scoped secrets.
     environment: development
 
     steps:
@@ -40,10 +40,10 @@ jobs:
         with:
           # Tells the action which Google Cloud Workload Identity Provider to use
           # that provider is the trust bridge between GitHub Actions and GCP
-          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          workload_identity_provider: projects/1080872929921/locations/global/workloadIdentityPools/github/providers/social-app-backend
           # Tells the action which Google Cloud service account
           # the workflow should impersonate after authentication
-          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT_EMAIL }}
+          service_account: github-deploy-dev@social-app-dev-123456.iam.gserviceaccount.com
 
       - name: Set up gcloud
         # use Google’s official GitHub Action that prepares the gcloud CLI
@@ -70,23 +70,24 @@ jobs:
           docker push \
             europe-west9-docker.pkg.dev/social-app-dev-123456/backend-images/social-app-backend:${{ github.sha }}
 
-      # creates a file named .env in the workflow runner’s current directory
-      # and fills it with values from GitHub variables
+      # Creates the runtime .env file directly from the fixed dev configuration
+      # checked into this workflow.
       - name: Generate runtime .env
         run: |
           cat > .env <<EOF
-          NODE_ENV=${{ vars.NODE_ENV }}
-          LOG_LEVEL=${{ vars.LOG_LEVEL }}
-          PORT=${{ vars.PORT }}
-          API_BASE_URL=${{ vars.API_BASE_URL }}
+          NODE_ENV=development
+          LOG_LEVEL=info
+          PORT=3000
+          API_BASE_URL=http://localhost:3000
           POSTGRES_HOST=postgres
-          POSTGRES_PORT=${{ vars.POSTGRES_PORT }}
-          POSTGRES_DB=${{ vars.POSTGRES_DB }}
-          POSTGRES_USER=${{ vars.POSTGRES_USER }}
-          GOOGLE_CLOUD_PROJECT_ID=${{ vars.GOOGLE_CLOUD_PROJECT_ID }}
-          GCS_BUCKET_NAME=${{ vars.GCS_BUCKET_NAME }}
-          AUTH_ACCESS_TTL_MINUTES=${{ vars.AUTH_ACCESS_TTL_MINUTES }}
-          AUTH_REFRESH_TTL_DAYS=${{ vars.AUTH_REFRESH_TTL_DAYS }}
+          POSTGRES_PORT=5432
+          POSTGRES_DB=social_app
+          POSTGRES_USER=social_app_user
+          GOOGLE_CLOUD_PROJECT_ID=social-app-dev-123456
+          PUBSUB_EMULATOR_HOST=pubsub:8085
+          GCS_BUCKET_NAME=tevinar-social-app-dev-123456
+          AUTH_ACCESS_TTL_MINUTES=60
+          AUTH_REFRESH_TTL_DAYS=30
           EOF
 
       # creates a local .secrets/ directory on the GitHub runner
@@ -134,12 +135,33 @@ jobs:
             slouis_contact@social-app-dev-vm:~/social-app-dev \
             --zone=europe-west9-b
 
-      - name: Pull and start containers on the VM
+      - name: Pull container images on the VM
         run: |
           gcloud compute ssh --quiet slouis_contact@social-app-dev-vm \
             --zone=europe-west9-b \
             --tunnel-through-iap \
-            --command='cd ~/social-app-dev && export IMAGE_TAG=${{ github.sha }} && docker compose pull && docker compose up -d'
+            --command='cd ~/social-app-dev && export IMAGE_TAG=${{ github.sha }} && docker compose pull'
+
+      - name: Start backing services on the VM
+        run: |
+          gcloud compute ssh --quiet slouis_contact@social-app-dev-vm \
+            --zone=europe-west9-b \
+            --tunnel-through-iap \
+            --command='cd ~/social-app-dev && export IMAGE_TAG=${{ github.sha }} && docker compose up -d postgres pubsub'
+
+      - name: Ensure Pub/Sub topics exist on the VM
+        run: |
+          gcloud compute ssh --quiet slouis_contact@social-app-dev-vm \
+            --zone=europe-west9-b \
+            --tunnel-through-iap \
+            --command='cd ~/social-app-dev && export IMAGE_TAG=${{ github.sha }} && docker compose run --rm --no-deps backend npm run pubsub:init-topics'
+
+      - name: Start backend on the VM
+        run: |
+          gcloud compute ssh --quiet slouis_contact@social-app-dev-vm \
+            --zone=europe-west9-b \
+            --tunnel-through-iap \
+            --command='cd ~/social-app-dev && export IMAGE_TAG=${{ github.sha }} && docker compose up -d backend'
 
       - name: Run database migrations on the VM
         run: |
