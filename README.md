@@ -74,6 +74,16 @@ Notes
 - `jest`
 - `ts-jest`
 
+## Deployment Environments
+
+This repository includes two manual GitHub Actions deployment workflows:
+
+- `.github/workflows/deploy-gke.yml` deploys to the `staging` and
+  `production` environments. Both of these environments run on GKE.
+- `.github/workflows/deploy-dev.yml` deploys to the `development`
+  environment. This environment runs on a VPS (a Google Compute Engine VM)
+  and is started with Docker Compose instead of Kubernetes.
+
 ## Architecture Summary
 
 The backend follows a feature-first modular hexagonal structure:
