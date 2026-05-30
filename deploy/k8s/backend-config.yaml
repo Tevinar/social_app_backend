@@ -24,8 +24,8 @@ spec:
     type: HTTP
 
   # Attach the Google Cloud Armor security policy that applies the WAF ruleset to the backend service.
-  #securityPolicy:
-  #  name: social-app-backend-waf
+  securityPolicy:
+    name: ''
 
   # enables request logging for the load balancer backend service, including Cloud
   # Armor-related request logs. Without that, Google says new backend-service logging
