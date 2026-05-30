@@ -22,9 +22,11 @@ spec:
     port: 3000
     # The ingress terminates TLS; the backend Pod itself serves plain HTTP on port 3000.
     type: HTTP
+
   # Attach the Google Cloud Armor security policy that applies the WAF ruleset to the backend service.
   securityPolicy:
-    name: social-app-backend-waf
+    name: ''
+
   # enables request logging for the load balancer backend service, including Cloud
   # Armor-related request logs. Without that, Google says new backend-service logging
   # is disabled by default, so you generally will not get the load balancer request
