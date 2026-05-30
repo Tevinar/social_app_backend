@@ -169,7 +169,7 @@ You need:
 
 - Node.js LTS and npm
 - Docker / Docker Compose
-- local `.env` values
+- a local `.env` copied from `.env.example`
 - local secret files under `.secrets/`
 
 ### Installation
@@ -182,8 +182,14 @@ npm install
 
 ### Configuration
 
-The backend reads runtime configuration from `.env` and secret files from
+The backend reads local runtime configuration from `.env` and secret files from
 `.secrets/`.
+
+Create your local environment file from the tracked template:
+
+```bash
+cp .env.example .env
+```
 
 Required secret files:
 
@@ -200,7 +206,7 @@ Nest app is reachable, typically `http://localhost:3000`.
 Prerequises: you have to have Docked Desktop installed and launched
 
 ```bash
-docker compose --env-file .env --env-file .env.local up -d
+docker compose --env-file .env up -d
 ```
 
 This starts:
