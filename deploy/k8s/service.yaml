@@ -4,8 +4,8 @@ metadata:
   name: social-app-backend
   namespace: social-app
   annotations:
-    # Attach the explicit GKE BackendConfig so the external load balancer
-    # health check uses /health instead of the default GET / expectation.
+    # Attach the explicit GKE BackendConfig to adjust the behavior
+    # of the external load balancer created by the Ingress.
     cloud.google.com/backend-config: '{"ports": {"80":"social-app-backend"}}'
 spec:
   # Route traffic only to Pods created by the backend Deployment.
