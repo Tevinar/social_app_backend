@@ -185,6 +185,16 @@ npm install
 The backend reads local runtime configuration from `.env` and secret files from
 `.secrets/`.
 
+Sentry is initialized during backend startup and is currently used for two
+things only:
+
+- capturing application startup failures that happen before Nest finishes booting
+- capturing unexpected HTTP request failures after the global exception filter has
+  classified them as non-business errors
+
+Expected transport and business failures such as validation errors, `401`,
+`403`, or `404` responses are not sent to Sentry by default.
+
 Create your local environment file from the tracked template:
 
 ```bash

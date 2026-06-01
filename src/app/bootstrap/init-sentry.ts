@@ -14,7 +14,11 @@ const SENTRY_DSN =
 
 loadEnv({ path: '.env' });
 
-if (SENTRY_DSN) {
+const environment =
+  (process.env[EnvVariable.NodeEnv] as Environment | undefined) ??
+  Environment.Local;
+
+if (environment !== Environment.Local) {
   Sentry.init({
     dsn: SENTRY_DSN,
     environment: process.env[EnvVariable.NodeEnv] ?? Environment.Local,

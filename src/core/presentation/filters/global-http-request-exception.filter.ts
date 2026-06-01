@@ -106,7 +106,9 @@ export class GlobalHttpRequestExceptionFilter implements ExceptionFilter {
       captureContext.user = { id: currentUserId };
     }
 
-    Sentry.captureException(error, captureContext);
+    if (Sentry.isEnabled()) {
+      Sentry.captureException(error, captureContext);
+    }
   }
 
   /**
