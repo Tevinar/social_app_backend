@@ -108,6 +108,8 @@ jobs:
             --from-literal=GCS_BUCKET_NAME="${GCS_BUCKET_NAME}" \
             --from-literal=AUTH_ACCESS_TTL_MINUTES="60" \
             --from-literal=AUTH_REFRESH_TTL_DAYS="30" \
+            --from-literal=SENTRY_TRACES_SAMPLE_RATE="0.1" \
+            --from-literal=SENTRY_RELEASE="${{ github.sha }}" \
             --dry-run=client -o yaml | kubectl apply -f -
         env:
           NODE_ENV: ${{ vars.NODE_ENV }}

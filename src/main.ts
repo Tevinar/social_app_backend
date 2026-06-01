@@ -1,3 +1,5 @@
+import './app/bootstrap/init-sentry';
+import * as Sentry from '@sentry/nestjs';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app/bootstrap/app.module';
 import { ConfigService } from '@nestjs/config';
@@ -6,6 +8,8 @@ import { Logger } from 'nestjs-pino';
 import { EnvVariable } from './core/config/env-variable';
 import { INestApplication } from '@nestjs/common';
 import { Environment } from './core/config/environment';
+
+void bootstrap();
 
 /**
  * Boots the Nest application, enables graceful shutdown hooks, and starts the
@@ -36,7 +40,14 @@ async function bootstrap(): Promise<void> {
   }
 
   // Start listening on the configured HTTP port and keep the process alive.
-  await app.listen(configService.getOrThrow<number>(EnvVariable.port));
+  await app
+    .listen(configService.getOrThrow<number>(EnvVariable.port))
+    .catch(async (error) => {
+      console.error('Application failed to start', error);
+      Sentry.captureException(error);
+      await Sentry.flush(2000);
+      process.exit(1);
+    });
 }
 
 /**
@@ -75,5 +86,3 @@ function setupSwagger(app: INestApplication): void {
     raw: ['json', 'yaml'],
   });
 }
-
-void bootstrap();

@@ -88,6 +88,8 @@ jobs:
           GCS_BUCKET_NAME=tevinar-social-app-dev-123456
           AUTH_ACCESS_TTL_MINUTES=60
           AUTH_REFRESH_TTL_DAYS=30
+          SENTRY_TRACES_SAMPLE_RATE=1
+          SENTRY_RELEASE=${{ github.sha }}
           EOF
 
       # creates a local .secrets/ directory on the GitHub runner

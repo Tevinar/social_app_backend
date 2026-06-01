@@ -14,6 +14,8 @@ export enum EnvVariable {
   GcsBucketName = 'GCS_BUCKET_NAME',
   FakeGcsHost = 'FAKE_GCS_HOST',
   FakeGcsPort = 'FAKE_GCS_PORT',
+  SentryTracesSampleRate = 'SENTRY_TRACES_SAMPLE_RATE',
+  SentryRelease = 'SENTRY_RELEASE',
 
   AuthAccessTtlMinutes = 'AUTH_ACCESS_TTL_MINUTES',
   AuthRefreshTtlDays = 'AUTH_REFRESH_TTL_DAYS',
