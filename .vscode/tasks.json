@@ -4,7 +4,7 @@
     {
       "label": "docker: infra up",
       "type": "shell",
-      "command": "docker compose --env-file .env --env-file .env.local up -d postgres fake-gcs",
+      "command": "docker compose --env-file .env up -d postgres fake-gcs",
       "problemMatcher": []
     },
     {

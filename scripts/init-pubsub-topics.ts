@@ -12,12 +12,10 @@ const CHAT_TOPICS = [
 ] as const;
 
 /**
- * Loads the shared app env file first, then lets local-only overrides in
- * `.env.local` replace matching values when present.
+ * Loads the local backend runtime configuration from the tracked `.env` file.
  */
 function loadRuntimeEnv(): void {
   loadEnv({ path: '.env' });
-  loadEnv({ path: '.env.local', override: true });
 }
 
 /**

@@ -22,7 +22,7 @@ import { HealthController } from '../../core/presentation/health.controller';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ['.env.local', '.env'],
+      envFilePath: ['.env'],
     }),
     LoggerModule.forRootAsync({
       inject: [ConfigService],
