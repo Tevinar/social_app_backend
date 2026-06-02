@@ -47,7 +47,7 @@ services:
     # Expose fake GCS on the host while keeping the container's internal port fixed.
     ports:
       - "${FAKE_GCS_HOST}:${FAKE_GCS_PORT}:4443"
-    # Bind local fake storage data to a project folder for easy inspection/reset.
+    # Persist fake GCS objects in a named Docker volume across container restarts.
     volumes:
       - fake_gcs_data:/storage
 
