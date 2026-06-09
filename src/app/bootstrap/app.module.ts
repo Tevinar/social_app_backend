@@ -28,7 +28,7 @@ import { HealthController } from '../../core/presentation/health.controller';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
         const environment =
-          configService.get<Environment>(EnvVariable.NodeEnv) ??
+          configService.get<Environment>(EnvVariable.AppEnv) ??
           Environment.Local;
 
         const logLevel =

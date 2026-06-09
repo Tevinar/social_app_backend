@@ -95,7 +95,7 @@ jobs:
         run: |
           kubectl create configmap social-app-backend-config \
             --namespace "${K8S_NAMESPACE}" \
-            --from-literal=NODE_ENV="${NODE_ENV}" \
+            --from-literal=APP_ENV="${APP_ENV}" \
             --from-literal=LOG_LEVEL="${LOG_LEVEL}" \
             --from-literal=PORT="3000" \
             --from-literal=API_BASE_URL="${API_BASE_URL}" \
@@ -112,7 +112,7 @@ jobs:
             --from-literal=SENTRY_RELEASE="${{ github.sha }}" \
             --dry-run=client -o yaml | kubectl apply -f -
         env:
-          NODE_ENV: ${{ vars.NODE_ENV }}
+          APP_ENV: ${{ vars.APP_ENV }}
           LOG_LEVEL: ${{ vars.LOG_LEVEL }}
           API_BASE_URL: ${{ vars.API_BASE_URL }}
           CLOUD_SQL_INSTANCE_CONNECTION_NAME: ${{ vars.CLOUD_SQL_INSTANCE_CONNECTION_NAME }}

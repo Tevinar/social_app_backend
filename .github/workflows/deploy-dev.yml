@@ -75,7 +75,7 @@ jobs:
       - name: Generate runtime .env
         run: |
           cat > .env <<EOF
-          NODE_ENV=development
+          APP_ENV=development
           LOG_LEVEL=info
           PORT=3000
           API_BASE_URL=http://localhost:3000

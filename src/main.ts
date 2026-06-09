@@ -32,10 +32,10 @@ async function bootstrap(): Promise<void> {
   // Enable graceful shutdown handling so Nest can react to termination signals.
   app.enableShutdownHooks();
 
-  const nodeEnv = configService.get<Environment>(EnvVariable.NodeEnv);
+  const appEnv = configService.get<Environment>(EnvVariable.AppEnv);
 
   // Only set up Swagger in non-production environments to avoid exposing API docs
-  if (nodeEnv !== Environment.Production) {
+  if (appEnv !== Environment.Production) {
     setupSwagger(app);
   }
 

@@ -54,7 +54,7 @@ import { GetBlogByIdUseCase } from './application/use-cases/get-blog-by-id.use-c
         localSigner: LocalBlogImageUrlSigner,
       ) => {
         const environment = configService.getOrThrow<string>(
-          EnvVariable.NodeEnv,
+          EnvVariable.AppEnv,
         );
 
         return environment === Environment.Local.toString()
