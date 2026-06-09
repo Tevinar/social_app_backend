@@ -9,8 +9,8 @@ export interface RefreshSessionCreator {
    *
    * Implementations are expected to store only the hashed token value rather
    * than the raw refresh token. When an active session already exists for the
-   * same user/device pair, implementations should return a stable conflict
-   * result instead of silently overwriting the existing session.
+   * same user/device pair, implementations should revoke/replace that session
+   * so the newly issued session becomes the only active one for the device.
    *
    * @param params Refresh session data to persist.
    * @param params.id Stable identifier of the refresh session.
@@ -18,11 +18,8 @@ export interface RefreshSessionCreator {
    * @param params.deviceId App-scoped client device identifier.
    * @param params.tokenHash Hashed refresh token value.
    * @param params.expiresAt Expiration timestamp for the refresh session.
-   * @returns The outcome of the session-creation attempt.
    */
-  create(
-    params: CreateRefreshSessionParams,
-  ): Promise<CreateRefreshSessionResult>;
+  create(params: CreateRefreshSessionParams): Promise<void>;
 }
 
 export type CreateRefreshSessionParams = {
@@ -32,11 +29,3 @@ export type CreateRefreshSessionParams = {
   tokenHash: string;
   expiresAt: Date;
 };
-
-/**
- * Outcome of the refresh-session creation attempt.
- */
-export enum CreateRefreshSessionResult {
-  CREATED = 'created',
-  ACTIVE_SESSION_CONFLICT = 'active_session_conflict',
-}

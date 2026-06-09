@@ -8,16 +8,12 @@ import type {
   AuthUser,
   AuthUserReader,
 } from '../ports/identity/auth-user-reader.port';
-import {
-  CreateRefreshSessionResult,
-  type RefreshSessionCreator,
-} from '../ports/sessions/refresh-session-creator.port';
+import type { RefreshSessionCreator } from '../ports/sessions/refresh-session-creator.port';
 import type { TokenCreator } from '../ports/tokens/token-creator.port';
 import type { TokenHasher } from '../ports/tokens/token-hasher.port';
 import {
   InvalidCredentialsError,
   SignInWithEmailPasswordUseCase,
-  UserAlreadySignedInOnDeviceError,
 } from './sign-in-with-email-password.use-case';
 
 describe('SignInWithEmailPasswordUseCase', () => {
@@ -97,9 +93,7 @@ describe('SignInWithEmailPasswordUseCase', () => {
       expiresAt: refreshTokenExpiresAt,
     });
     tokenHasher.hash.mockResolvedValue('refresh-token-hash');
-    refreshSessionWriter.create.mockResolvedValue(
-      CreateRefreshSessionResult.CREATED,
-    );
+    refreshSessionWriter.create.mockResolvedValue(undefined);
 
     await expect(
       useCase.execute({
@@ -196,7 +190,7 @@ describe('SignInWithEmailPasswordUseCase', () => {
     expect(refreshSessionWriter.create).not.toHaveBeenCalled();
   });
 
-  it('given an active session conflict when signing in then it throws a stable session error', async () => {
+  it('given an existing same-device session when signing in then it still returns a fresh session', async () => {
     const {
       authUserReader,
       passwordVerifier,
@@ -217,9 +211,7 @@ describe('SignInWithEmailPasswordUseCase', () => {
       expiresAt: refreshTokenExpiresAt,
     });
     tokenHasher.hash.mockResolvedValue('refresh-token-hash');
-    refreshSessionWriter.create.mockResolvedValue(
-      CreateRefreshSessionResult.ACTIVE_SESSION_CONFLICT,
-    );
+    refreshSessionWriter.create.mockResolvedValue(undefined);
 
     await expect(
       useCase.execute({
@@ -227,6 +219,16 @@ describe('SignInWithEmailPasswordUseCase', () => {
         password: 'Secret1',
         deviceId,
       }),
-    ).rejects.toThrow(UserAlreadySignedInOnDeviceError);
+    ).resolves.toEqual({
+      user: {
+        id: 'user-id',
+        email: 'user@example.com',
+        name: 'Ada Lovelace',
+      },
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      accessTokenExpiresAt,
+      refreshTokenExpiresAt,
+    });
   });
 });

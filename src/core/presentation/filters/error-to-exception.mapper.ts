@@ -1,9 +1,6 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { InvalidRefreshTokenError } from '../../../features/auth/application/use-cases/refresh-session.use-case';
-import {
-  InvalidCredentialsError,
-  UserAlreadySignedInOnDeviceError,
-} from '../../../features/auth/application/use-cases/sign-in-with-email-password.use-case';
+import { InvalidCredentialsError } from '../../../features/auth/application/use-cases/sign-in-with-email-password.use-case';
 import { EmailAlreadyInUseError } from '../../../features/auth/application/use-cases/sign-up-with-email-password.use-case';
 import { InvalidAccessTokenError } from '../../../features/auth/application/use-cases/validate-access-token.use-case';
 import { InvalidDeviceIdError } from '../../../features/auth/domain/value-objects/device-id';
@@ -96,11 +93,6 @@ const EXPECTED_ERROR_MAPPINGS: readonly ExpectedErrorMapping[] = [
   {
     errorType: EmailAlreadyInUseError,
     code: 'email_already_in_use',
-    httpStatus: HttpStatus.CONFLICT,
-  },
-  {
-    errorType: UserAlreadySignedInOnDeviceError,
-    code: 'user_already_signed_in_on_device',
     httpStatus: HttpStatus.CONFLICT,
   },
   {

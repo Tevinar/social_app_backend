@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import postgres from 'postgres';
 import { DatabaseService } from '../../../../core/database/database.service';
 import {
-  CreateRefreshSessionResult,
   CreateRefreshSessionParams,
   type RefreshSessionCreator,
 } from '../../application/ports/sessions/refresh-session-creator.port';
@@ -40,7 +39,8 @@ function isActiveRefreshSessionConflict(error: unknown): boolean {
  * This adapter stores the server-managed refresh session record created during
  * sign-in. Only the hashed refresh token is persisted; the raw token remains
  * outside the database. At most one active session may exist for a given
- * user/device pair at any time.
+ * user/device pair at any time, and a new same-device sign-in rotates the old
+ * session away.
  */
 @Injectable()
 export class PostgresRefreshSessionCreator implements RefreshSessionCreator {
@@ -55,55 +55,64 @@ export class PostgresRefreshSessionCreator implements RefreshSessionCreator {
    * Persists a newly issued refresh session row for one user/device pair.
    *
    * The table supplies default values for `created_at` and leaves `revoked_at`
-   * null until the session is explicitly revoked. Expired unreclaimed sessions
-   * for the same user/device pair are marked revoked before the new insert is
-   * attempted. If an active session still exists, the insert resolves to a
-   * stable conflict result.
+   * null until the session is explicitly revoked. Any active session for the
+   * same user/device pair is revoked before the new insert is attempted. If a
+   * concurrent write races with this operation, the write is retried once so
+   * the latest sign-in wins for the device.
    *
    * @param params Refresh session data to persist.
-   * @returns The outcome of the session-creation attempt.
    */
-  async create(
-    params: CreateRefreshSessionParams,
-  ): Promise<CreateRefreshSessionResult> {
+  async create(params: CreateRefreshSessionParams): Promise<void> {
     const { id, userId, deviceId, tokenHash, expiresAt } = params;
 
-    try {
-      await this.database.sql.begin(async (sql) => {
-        await sql`
-          update refresh_sessions
-          set revoked_at = now()
-          where user_id = ${userId}
-            and device_id = ${deviceId}
-            and revoked_at is null
-            and expires_at <= now()
-        `;
+    for (let attempt = 0; attempt < MAX_CREATE_ATTEMPTS; attempt += 1) {
+      try {
+        await this.database.sql.begin(async (sql) => {
+          await sql`
+            update refresh_sessions
+            set revoked_at = now()
+            where user_id = ${userId}
+              and device_id = ${deviceId}
+              and revoked_at is null
+          `;
 
-        await sql`
-          insert into refresh_sessions (
-            id,
-            user_id,
-            device_id,
-            token_hash,
-            expires_at
-          )
-          values (
-            ${id},
-            ${userId},
-            ${deviceId},
-            ${tokenHash},
-            ${expiresAt}
-          )
-        `;
-      });
+          await sql`
+            insert into refresh_sessions (
+              id,
+              user_id,
+              device_id,
+              token_hash,
+              expires_at
+            )
+            values (
+              ${id},
+              ${userId},
+              ${deviceId},
+              ${tokenHash},
+              ${expiresAt}
+            )
+          `;
+        });
 
-      return CreateRefreshSessionResult.CREATED;
-    } catch (error: unknown) {
-      if (isActiveRefreshSessionConflict(error)) {
-        return CreateRefreshSessionResult.ACTIVE_SESSION_CONFLICT;
+        return;
+      } catch (error: unknown) {
+        if (
+          isActiveRefreshSessionConflict(error) &&
+          attempt < MAX_CREATE_ATTEMPTS - 1
+        ) {
+          continue;
+        }
+
+        throw error;
       }
-
-      throw error;
     }
+
+    throw new Error('Refresh session creation exhausted all retry attempts');
   }
 }
+
+/**
+ * Maximum number of attempts used to replace an active same-device refresh
+ * session when a concurrent write races with the current sign-in.
+ */
+const MAX_CREATE_ATTEMPTS = 2;
