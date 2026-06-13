@@ -1,9 +1,10 @@
 import {
   Injectable,
-  Logger,
   OnApplicationBootstrap,
   OnModuleDestroy,
 } from '@nestjs/common';
+import * as Sentry from '@sentry/nestjs';
+import { PinoLogger } from 'nestjs-pino';
 import { DatabaseService } from '../database/database.service';
 import { PubSubRuntimeService } from '../pubsub/pubsub-runtime.service';
 
@@ -29,21 +30,23 @@ type ClaimedOutboxEvent = {
 export class OutboxPublisherService
   implements OnApplicationBootstrap, OnModuleDestroy
 {
-  private readonly logger = new Logger(OutboxPublisherService.name);
-
   private interval: NodeJS.Timeout | null = null;
   private isFlushInProgress = false;
 
   /**
    * Receives the shared database and Pub/Sub runtime services.
    *
+   * @param logger Nest-injected Pino logger.
    * @param database Shared Postgres service.
    * @param pubsubRuntime Shared Pub/Sub runtime used for publishing.
    */
   constructor(
+    private readonly logger: PinoLogger,
     private readonly database: DatabaseService,
     private readonly pubsubRuntime: PubSubRuntimeService,
-  ) {}
+  ) {
+    this.logger.setContext(OutboxPublisherService.name);
+  }
 
   /**
    * Starts the periodic outbox polling loop after the application has fully
@@ -86,10 +89,10 @@ export class OutboxPublisherService
         await this.publishClaimedEvent(event);
       }
     } catch (error) {
-      this.logger.error(
-        `Outbox flush failed: ${this.toErrorMessage(error)}`,
-        error instanceof Error ? error.stack : undefined,
-      );
+      this.reportBackgroundFailure({
+        error,
+        message: `Outbox flush failed: ${this.toErrorMessage(error)}`,
+      });
     } finally {
       this.isFlushInProgress = false;
     }
@@ -147,10 +150,6 @@ export class OutboxPublisherService
       await this.markEventPublished(event.id);
     } catch (error) {
       await this.markEventFailed(event.id, event.attempts, error);
-
-      this.logger.warn(
-        `Outbox publish failed for ${event.id}: ${this.toErrorMessage(error)}`,
-      );
     }
   }
 
@@ -238,6 +237,37 @@ export class OutboxPublisherService
       return JSON.stringify(error);
     } catch {
       return 'Unknown outbox publish error';
+    }
+  }
+
+  /**
+   * Logs one unexpected outbox worker failure and forwards it to Sentry.
+   *
+   * @param params Failure payload.
+   * @param params.error Unknown failure value.
+   * @param params.message Human-readable failure message.
+   */
+  private reportBackgroundFailure(params: {
+    error: unknown;
+    message: string;
+  }): void {
+    let stackTrace: string | undefined;
+
+    if (params.error instanceof Error) {
+      stackTrace = params.error.stack;
+    }
+
+    this.logger.error(params.message, stackTrace);
+
+    if (Sentry.isEnabled()) {
+      Sentry.captureException(params.error, {
+        contexts: {
+          backgroundFailure: {
+            message: params.message,
+            service: OutboxPublisherService.name,
+          },
+        },
+      });
     }
   }
 }

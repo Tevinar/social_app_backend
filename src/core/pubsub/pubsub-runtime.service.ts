@@ -1,13 +1,14 @@
 import { randomUUID } from 'node:crypto';
 import { hostname } from 'node:os';
+import * as Sentry from '@sentry/nestjs';
 import {
   Inject,
   Injectable,
-  Logger,
   OnApplicationBootstrap,
   OnModuleDestroy,
 } from '@nestjs/common';
 import { Message, PubSub, Subscription, Topic } from '@google-cloud/pubsub';
+import { PinoLogger } from 'nestjs-pino';
 import { PUBSUB_CLIENT } from './pubsub.provider';
 
 type PubSubOutboundMessage = {
@@ -60,8 +61,6 @@ export interface PubSubTopicHandler {
 export class PubSubRuntimeService
   implements OnApplicationBootstrap, OnModuleDestroy
 {
-  private readonly logger = new Logger(PubSubRuntimeService.name);
-
   // One feature-level message handler per logical Pub/Sub topic.
   // Map's keys are topic names
   private readonly handlers = new Map<string, PubSubTopicHandler>();
@@ -84,12 +83,16 @@ export class PubSubRuntimeService
   /**
    * Receives the shared Pub/Sub client.
    *
+   * @param logger Nest-injected Pino logger.
    * @param pubsub Shared Pub/Sub client provider.
    */
   constructor(
+    private readonly logger: PinoLogger,
     @Inject(PUBSUB_CLIENT)
     private readonly pubsub: PubSub,
-  ) {}
+  ) {
+    this.logger.setContext(PubSubRuntimeService.name);
+  }
 
   /**
    * Registers one topic handler before runtime startup.
@@ -212,14 +215,9 @@ export class PubSubRuntimeService
 
       // After a successful subscription open/reopen, reset the retry delay back to the initial baseline
       topicSubscriptionState.reconnectDelayMs = INITIAL_RECONNECT_DELAY_MS;
-      this.logger.log(
-        `Pub/Sub subscription ready for topic ${handler.topicName}: ${topicSubscriptionState.name}`,
-      );
-    } catch (error) {
-      topicSubscriptionState.opening = false;
-      this.logger.warn(
-        `Pub/Sub subscription open failed for ${topicSubscriptionState.name}: ${this.toErrorMessage(error)}. Retrying in ${topicSubscriptionState.reconnectDelayMs}ms.`,
-      );
+    } catch {
+      // Opening/reopening the subscription is retried with backoff, so keep
+      // this transient failure path silent.
       this.scheduleReconnect(handler, topicSubscriptionState);
     } finally {
       topicSubscriptionState.opening = false;
@@ -241,9 +239,10 @@ export class PubSubRuntimeService
       await handler.handleMessage(message.data.toString('utf8'));
       message.ack();
     } catch (error) {
-      this.logger.warn(
-        `Pub/Sub message handling failed for topic ${handler.topicName}: ${this.toErrorMessage(error)}`,
-      );
+      this.reportBackgroundFailure({
+        error,
+        message: `Pub/Sub message handling failed for topic ${handler.topicName}: ${this.toErrorMessage(error)}`,
+      });
       message.nack();
     }
   }
@@ -272,10 +271,10 @@ export class PubSubRuntimeService
       return;
     }
 
-    this.logger.error(
-      `Pub/Sub subscription failed for ${topicSubscriptionState.name}: ${this.toErrorMessage(error)}`,
-      error instanceof Error ? error.stack : undefined,
-    );
+    this.reportBackgroundFailure({
+      error,
+      message: `Pub/Sub subscription failed for ${topicSubscriptionState.name}: ${this.toErrorMessage(error)}`,
+    });
 
     await this.disposeSubscription(topicSubscriptionState, false, subscription);
     this.scheduleReconnect(handler, topicSubscriptionState);
@@ -297,10 +296,6 @@ export class PubSubRuntimeService
     if (this.isShuttingDown || entry?.PubSubSubscription !== subscription) {
       return;
     }
-
-    this.logger.warn(
-      `Pub/Sub subscription closed unexpectedly for ${entry.name}. Reconnecting...`,
-    );
 
     await this.disposeSubscription(entry, false, subscription);
     this.scheduleReconnect(handler, entry);
@@ -450,10 +445,8 @@ export class PubSubRuntimeService
       if (deleteRemote) {
         try {
           await this.pubsub.subscription(entry.name).delete();
-        } catch (error) {
-          this.logger.warn(
-            `Pub/Sub subscription delete failed for ${entry.name}: ${this.toErrorMessage(error)}`,
-          );
+        } catch {
+          // Best-effort cleanup during shutdown.
         }
       }
 
@@ -465,19 +458,15 @@ export class PubSubRuntimeService
 
     try {
       await subscription.close();
-    } catch (error) {
-      this.logger.warn(
-        `Pub/Sub subscription close failed for ${entry.name}: ${this.toErrorMessage(error)}`,
-      );
+    } catch {
+      // Best-effort cleanup during shutdown or reconnect.
     }
 
     if (deleteRemote) {
       try {
         await subscription.delete();
-      } catch (error) {
-        this.logger.warn(
-          `Pub/Sub subscription delete failed for ${entry.name}: ${this.toErrorMessage(error)}`,
-        );
+      } catch {
+        // Best-effort cleanup during shutdown.
       }
     }
 
@@ -536,6 +525,37 @@ export class PubSubRuntimeService
       return JSON.stringify(error);
     } catch {
       return 'Unserializable error';
+    }
+  }
+
+  /**
+   * Logs one unexpected background runtime failure and forwards it to Sentry.
+   *
+   * @param params Failure payload.
+   * @param params.error Unknown failure value.
+   * @param params.message Human-readable failure message.
+   */
+  private reportBackgroundFailure(params: {
+    error: unknown;
+    message: string;
+  }): void {
+    let stackTrace: string | undefined;
+
+    if (params.error instanceof Error) {
+      stackTrace = params.error.stack;
+    }
+
+    this.logger.error(params.message, stackTrace);
+
+    if (Sentry.isEnabled()) {
+      Sentry.captureException(params.error, {
+        contexts: {
+          backgroundFailure: {
+            message: params.message,
+            service: PubSubRuntimeService.name,
+          },
+        },
+      });
     }
   }
 }

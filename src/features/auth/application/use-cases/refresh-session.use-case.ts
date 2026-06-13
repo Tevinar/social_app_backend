@@ -1,4 +1,4 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { UseCase } from '../../../../core/contracts/use-case';
 import { RefreshSession } from '../../domain/entities/refresh-session';
 import { DeviceId } from '../../domain/value-objects/device-id';
@@ -56,7 +56,6 @@ export class RefreshSessionUseCase implements UseCase<
   RefreshSessionParams,
   RefreshSessionResult
 > {
-  private readonly logger = new Logger(RefreshSessionUseCase.name);
   /**
    * Receives the ports required to validate and rotate refresh sessions.
    *
@@ -99,7 +98,6 @@ export class RefreshSessionUseCase implements UseCase<
     );
 
     if (!claims) {
-      this.logger.warn('Refresh token verification failed');
       throw new InvalidRefreshTokenError();
     }
 
@@ -165,7 +163,6 @@ export class RefreshSessionUseCase implements UseCase<
     const snapshot = await this.refreshSessionReader.findById(sessionId);
 
     if (!snapshot) {
-      this.logger.warn('Refresh token verification failed');
       throw new InvalidRefreshTokenError();
     }
 

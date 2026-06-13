@@ -341,6 +341,22 @@ The chat feature combines paginated reads with SSE updates:
 - preserving the original stack trace is more valuable than swallowing the
   failure too early
 
+### Logging rules
+
+- startup failures are caught in `src/main.ts`, logged, and sent to Sentry
+- unexpected HTTP request failures are logged and sent to Sentry by
+  `src/core/presentation/filters/global-http-request-exception.filter.ts`
+- background workers must own their failure boundary, log unexpected runtime
+  errors, and send them to Sentry
+  - current examples: Pub/Sub runtime failures in
+    `src/core/pubsub/pubsub-runtime.service.ts` and outbox loop failures in
+    `src/core/outbox/outbox-publisher.service.ts`
+- any new background runtime (cron, queue, external listener, etc.) must add a
+  dedicated boundary like Pub/Sub and outbox
+- all remaining unhandled process-level failures fall back to
+  `registerFatalProcessHandlers()` in `src/main.ts`, which logs to stderr,
+  reports to Sentry, and terminates the process
+
 ### Presentation Layer
 
 Rules:

@@ -3,10 +3,10 @@ import {
   Catch,
   ExceptionFilter,
   HttpException,
-  Logger,
 } from '@nestjs/common';
 import { type Request, type Response } from 'express';
 import * as Sentry from '@sentry/nestjs';
+import { PinoLogger } from 'nestjs-pino';
 import { ErrorToExceptionMapper } from './error-to-exception.mapper';
 
 /**
@@ -14,16 +14,18 @@ import { ErrorToExceptionMapper } from './error-to-exception.mapper';
  */
 @Catch()
 export class GlobalHttpRequestExceptionFilter implements ExceptionFilter {
-  private readonly logger = new Logger(GlobalHttpRequestExceptionFilter.name);
-
   /**
    * Receives the shared mapper used to classify thrown errors.
    *
+   * @param logger Nest-injected Pino logger.
    * @param errorToExceptionMapper Maps thrown errors to public error metadata.
    */
   constructor(
+    private readonly logger: PinoLogger,
     private readonly errorToExceptionMapper: ErrorToExceptionMapper,
-  ) {}
+  ) {
+    this.logger.setContext(GlobalHttpRequestExceptionFilter.name);
+  }
 
   /**
    * Receives all exceptions thrown during HTTP request handling.

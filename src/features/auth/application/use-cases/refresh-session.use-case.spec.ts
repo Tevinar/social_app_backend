@@ -1,4 +1,3 @@
-import { Logger } from '@nestjs/common';
 import type { RefreshSessionReader } from '../ports/sessions/refresh-session-reader.port';
 import type { RefreshSessionRotator } from '../ports/sessions/refresh-session-rotator.port';
 import type { TokenCreator } from '../ports/tokens/token-creator.port';
@@ -22,8 +21,6 @@ describe('RefreshSessionUseCase', () => {
     userId: 'user-id',
     sessionId: 'session-id',
   };
-  // Suppresses expected Logger.warn output from invalid-token paths, then restores it after each test.
-  let warnSpy: jest.SpyInstance;
 
   const createUseCase = () => {
     const tokenVerifier = {
@@ -65,14 +62,9 @@ describe('RefreshSessionUseCase', () => {
   beforeEach(() => {
     jest.useFakeTimers();
     jest.setSystemTime(now);
-    warnSpy = jest
-      // The use case creates its own private Logger, so spy on the shared prototype method.
-      .spyOn(Logger.prototype, 'warn')
-      .mockImplementation(() => undefined);
   });
 
   afterEach(() => {
-    warnSpy.mockRestore();
     jest.useRealTimers();
   });
 

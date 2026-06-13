@@ -1,7 +1,7 @@
 import { config as loadEnv } from 'dotenv';
 import * as Sentry from '@sentry/nestjs';
-import { EnvVariable } from '../../core/config/env-variable';
-import { Environment } from '../../core/config/environment';
+import { EnvVariable } from '../../../core/config/env-variable';
+import { Environment } from '../../../core/config/environment';
 
 // This module is imported before the Nest bootstrap so Sentry is initialized
 // as early as possible, including for startup failures that happen before the
